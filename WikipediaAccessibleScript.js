@@ -23,7 +23,7 @@ var divMenu;
 function createWebAugmentedMenu(){
 
     divMenu = document.createElement("div");
-    divMenu.style = "background-color: red;position: fixed; left: 90%;top: 50%"
+    divMenu.style = "background-color: white; position: fixed; left: 50%;bottom: 95%;z-index: 100"
     document.body.appendChild(divMenu);
 
     textToAudio();
@@ -39,7 +39,7 @@ function textToAudio(){
     $('p, ul').each(function() {
         if($(this).parent().attr('role') != 'navigation'){
             var button = document.createElement('button');
-            button.innerHTML = "Reproducir en audio";
+            button.innerHTML = "Text to speech";
             button.value = $(this).prop('innerText');
             button.style.fontSize = "18px";
             button.addEventListener('click', function(){
@@ -52,7 +52,7 @@ function textToAudio(){
     var cancelfooter = document.createElement('div');
     cancelfooter.id = "cancel";
     var buttonStop = document.createElement('button');
-    buttonStop.innerText = "Parar audio";
+    buttonStop.innerText = "Pause";
     buttonStop.addEventListener('click', stopReading);
     buttonStop.style.height = "50px";
     buttonStop.style.fontSize = "25px";
@@ -134,14 +134,14 @@ function changeFontSize(changer){
         for(var i = 0; i < bodyContent.length; i++) {
             var styleI = window.getComputedStyle(bodyContent[i], null).getPropertyValue('font-size');
             var fontSizeI = parseFloat(styleI);
-            bodyContent[i].style.fontSize = (fontSizeI + 1) + 'px';
+            bodyContent[i].style.fontSize = (fontSizeI + 2) + 'px';
         }
     }
     else if(changer === '-'){
         for(var j = 0; j < bodyContent.length; j++) {
             var styleJ = window.getComputedStyle(bodyContent[j], null).getPropertyValue('font-size');
             var fontSizeJ = parseFloat(styleJ);
-            bodyContent[j].style.fontSize = (fontSizeJ - 1) + 'px';
+            bodyContent[j].style.fontSize = (fontSizeJ - 2) + 'px';
         }
     }
 
@@ -178,7 +178,8 @@ function showResults(results) {
 
     $.each(entries, function (index, value) {
         var videoId = value.id.videoId;
-        var vid = '<iframe width="380" height="200" src="https://www.youtube.com/embed/'+videoId+'" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+        var vid = '<iframe width="380" height="200" src="https://www.youtube.com/embed/'+videoId
+            +'" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
         content.innerHTML += vid;
     });
     $('.mw-parser-output').append(content)
