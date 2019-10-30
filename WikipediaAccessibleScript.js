@@ -1,5 +1,7 @@
 // ==UserScript==
 // @name         Wikipedia Accesible Script
+// @updateURL    https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
+// @downloadURL  https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Wikipedia Accesible Script (WAS)
