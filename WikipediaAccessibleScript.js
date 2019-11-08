@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Wikipedia Accesible Script (WAS)
 // @author       You
 // @match        https://es.wikipedia.org/*
