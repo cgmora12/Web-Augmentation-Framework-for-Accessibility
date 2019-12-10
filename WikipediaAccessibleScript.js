@@ -3,18 +3,25 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Wikipedia Accesible Script (WAS)
 // @author       You
 // @match        https://es.wikipedia.org/*
 // @match        https://es.m.wikipedia.org/*
+// @match        https://*.wikipedia.org/*
 // @grant        none
 // @require http://code.jquery.com/jquery-3.3.1.slim.min.js
 // @require http://code.jquery.com/jquery-3.3.1.min.js
 // ==/UserScript==
 
-// Main method
+// Global variables
+const SpeechRecognition =
+  window.webkitSpeechRecognition || window.SpeechRecognition
+const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
+const recognition = new SpeechRecognition()
+var headlines
 
+// Main method
 $(document).ready(function() {
     createWebAugmentedMenu();
 });
@@ -24,18 +31,64 @@ $(document).ready(function() {
 var divMenu;
 function createWebAugmentedMenu(){
 
+    focusInfo();
+
     divMenu = document.createElement("div");
     divMenu.style = "background-color: white; position: fixed; left: 50%;bottom: 95%;z-index: 100"
     document.body.appendChild(divMenu);
 
     textToAudio();
+    audioToText();
     textSize();
     youtubeVideos();
     wikipediaLinks();
     breadCrumb();
-    focusInfo();
 }
 
+// Speech recognition
+
+function audioToText(){
+    headlines = document.getElementsByClassName("mw-headline")
+
+    var commands = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
+    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commands.join(' | ') + ' ;';
+    var speechRecognitionList = new SpeechGrammarList();
+    speechRecognitionList.addFromString(grammar, 1);
+    recognition.grammars = speechRecognitionList;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.start();
+
+    recognition.onresult = event => {
+        const speechToText = event.results[event.results.length -1][0].transcript;
+        console.log(speechToText);
+        if(speechToText.includes("increase font size") || speechToText.includes("magnify")){
+            changeFontSize('+');
+        }
+        else if(speechToText.includes("decrease font size") || speechToText.includes("reduce")){
+            changeFontSize('-');
+        }
+        else if(speechToText.includes("read")){
+            for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
+                if(speechToText.includes("read " + headlines[headlineIndex].textContent.toLowerCase())){
+                    var readContent = ""
+                    var parent = headlines[headlineIndex].parentElement
+                    while(parent.nextElementSibling.tagName != "H2"){
+                        parent = parent.nextElementSibling
+                        //console.log(parent.innerText)
+                        readContent += parent.innerText
+                    }
+                    Read(readContent);
+                    break;
+                }
+            }
+        }
+        else if(speechToText.includes("stop listening")){
+            recognition.abort();
+        }
+    }
+}
 
 // Text to Audio
 
@@ -43,7 +96,7 @@ function textToAudio(){
     $('p, ul').each(function() {
         if($(this).parent().attr('role') != 'navigation'){
             var button = document.createElement('button');
-            button.innerHTML = "Text to speech";
+            button.innerHTML = "&#9658;";
             button.value = $(this).prop('innerText');
             button.style.fontSize = "18px";
             button.addEventListener('click', function(){
@@ -77,9 +130,11 @@ function textToAudio(){
 var timeoutResumeInfinity;
 
 function Read(message){
+    //console.log("Read function: " + message)
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     var reader = new SpeechSynthesisUtterance(message);
+    reader.lang = 'en-US';
     reader.onstart = function(event) {
         resumeInfinity();
     };
@@ -207,6 +262,7 @@ function wikipediaLinks(){
 // Bread Crumb (History)
 
 function breadCrumb(){
+    var i
     var breadcrumb = document.createElement('div');
     breadcrumb.id = "breadcrumb";
 
@@ -246,13 +302,17 @@ function breadCrumb(){
         'vertical-align': 'bottom',
         'visibility': 'visible',
     });
+    var item = ""
     for(var x=0;x<i;x++){
-        var link = document.createElement("a");
-        link.href = localStorage.getItem(x.toString());
-        link.innerText=localStorage.getItem("name"+x.toString());
-        link.className="linkBread";
-        $('#breadcrumb').append(link);
-        document.getElementById("breadcrumb").innerHTML += " > ";
+        if(item != localStorage.getItem("name"+x.toString())){
+            var link = document.createElement("a");
+            link.href = localStorage.getItem(x.toString());
+            link.innerText=localStorage.getItem("name"+x.toString());
+            link.className="linkBread";
+            $('#breadcrumb').append(link);
+            document.getElementById("breadcrumb").innerHTML += " > ";
+            item = localStorage.getItem("name"+x.toString());
+        }
     }
     $('.linkBread').each(function(){
         $(this).css({
@@ -275,6 +335,36 @@ function focusInfo(){
     $(".noprint").remove()
     $("#toc").remove()
     $(".mw-editsection").remove()
+    $("#catlinks").remove()
+    $(".mw-authority-control").remove()
+    $(".authority-control").remove()
+    $(".hatnote").remove()
+    $(".listaref").remove()
+    $(".references").remove()
+    var references = document.getElementById("References")
+    if(references){references.parentElement.remove()}
+    var referencias = document.getElementById("Referencias")
+    if(referencias){referencias.parentElement.remove()}
+    $("#footer").remove()
+    $(".mw-redirectedfrom").remove()
+    $(".reference").remove()
+    $(".metadata").remove()
 
+
+    // Collapsible items
+    /*var link1 = document.createElement('link');
+    link1.rel = 'stylesheet';
+    link1.href = '/w/load.php?lang=en&modules=ext.cite.styles%7Cmediawiki.hlist%7Cmediawiki.ui.button%2Cicon%7Cmobile.init.styles%7Cskins.minerva.base.styles%7Cskins.minerva.content.styles%7Cskins.minerva.content.styles.images%7Cskins.minerva.icons.images%2Cwikimedia&only=styles&skin=minerva';
+    document.head.appendChild(link1)
+
+    headlines = document.getElementsByClassName("mw-headline")
+
+    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex++){
+        headlines[headlineIndex].setAttribute("class","section-heading collapsible-heading open-block")
+        headlines[headlineIndex].setAttribute("tabindex","0")
+        headlines[headlineIndex].setAttribute("aria-haspopup","true")
+        headlines[headlineIndex].setAttribute("aria-controls","scontent-collapsible-block-0")
+        headlines[headlineIndex].innerHTML = "<div class=\"mw-ui-icon mw-ui-icon-mf-expand mw-ui-icon-element mw-ui-icon-small  indicator mw-ui-icon-flush-left\"></div>" + headlines[headlineIndex].innerHTML
+    }*/
 
 }
