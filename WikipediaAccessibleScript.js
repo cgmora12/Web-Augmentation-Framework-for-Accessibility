@@ -14,6 +14,7 @@
 // @require http://code.jquery.com/jquery-3.3.1.min.js
 // ==/UserScript==
 
+
 // Global variables
 const SpeechRecognition =
   window.webkitSpeechRecognition || window.SpeechRecognition
@@ -21,9 +22,11 @@ const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammar
 const recognition = new SpeechRecognition()
 var headlines
 
+
 // Main method
 $(document).ready(function() {
     createWebAugmentedMenu();
+    addAugmentationOperations();
 });
 
 
@@ -31,22 +34,139 @@ $(document).ready(function() {
 var divMenu;
 function createWebAugmentedMenu(){
 
-    focusInfo();
+    var link1 = document.createElement('link');
+    link1.rel = 'stylesheet';
+    link1.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css';
+    document.head.appendChild(link1)
+    var link2 = document.createElement('link');
+    link1.rel = 'stylesheet';
+    link2.href= 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'
+    document.head.appendChild(link2)
+
 
     divMenu = document.createElement("div");
-    divMenu.style = "background-color: white; position: fixed; left: 50%;bottom: 95%;z-index: 100"
-    document.body.appendChild(divMenu);
+    divMenu.id = "menu-webaugmentation";
+    divMenu.style = "position: absolute; left: 2%; top: 2%; z-index: 100"
+    var menuLinkDiv = document.createElement("div");
+    var menuLink = document.createElement("a");
+    menuLink.href = "javascript:void(0);";
+    menuLink.className = "icon";
+    menuLink.addEventListener("click", toggleMenu)
+    var menuIcon = document.createElement("i");
+    menuIcon.className = "fa fa-bars";
+    menuLink.appendChild(menuIcon);
+    menuLinkDiv.appendChild(menuLink);
+    divMenu.appendChild(menuLinkDiv);
 
+    var divButtons = document.createElement('div')
+    divButtons.id = "foldingMenu"
+    divButtons.style = "padding: 10px; border: 2px solid black; display: none; background-color: white"
+    var a1 = document.createElement('a');
+    //a1.href = '';
+    a1.addEventListener("click", function(){
+        changeFontSize('+');
+    }, false);
+    a1.text = '+ Aa';
+    divButtons.appendChild(a1);
+    divButtons.appendChild(document.createElement('br'));
+    var a2 = document.createElement('a');
+    //a2.href = '';
+    a2.addEventListener("click", function(){
+        changeFontSize('-');
+    }, false);
+    a2.text = '- Aa';
+    divButtons.appendChild(a2);
+    divButtons.appendChild(document.createElement('br'));
+    var a3 = document.createElement('a');
+    //a3.href = '';
+    a3.addEventListener("click", goToVideos);
+    a3.text = 'Videos';
+    divButtons.appendChild(a3);
+    var inputVideos = document.createElement('input');
+    inputVideos.type = 'checkbox';
+    inputVideos.id = 'youtubeVideosInput';
+    inputVideos.value = 'youtubeVideosInput';
+    inputVideos.checked = true;
+    inputVideos.addEventListener("change", toggleYoutubeVideos, false);
+    divButtons.appendChild(inputVideos);
+    menuLinkDiv.appendChild(divButtons);
+
+    document.body.appendChild(divMenu);
+}
+
+function toggleMenu(){
+  var x = document.getElementById("foldingMenu");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+
+
+// Operations
+function addAugmentationOperations(){
+    focusInfo();
     textToAudio();
     audioToText();
-    textSize();
+    //textSize();
     youtubeVideos();
     wikipediaLinks();
     breadCrumb();
 }
 
-// Speech recognition
 
+// Focus info (delete unnecessary items)
+function focusInfo(){
+    //Hide instead of remove
+
+    $('#mw-page-base').remove()
+    $('#mw-head-base').remove()
+    $('#mw-navigation').remove()
+    $('#content').removeClass('mw-body')
+    $("#content").css({"padding":"1em"})
+    $("#siteNotice").remove()
+    $(".noprint").remove()
+    $("#toc").remove()
+    $(".mw-editsection").remove()
+    $("#catlinks").remove()
+    $(".mw-authority-control").remove()
+    $(".authority-control").remove()
+    $(".hatnote").remove()
+    $(".listaref").remove()
+    $(".references").remove()
+    var references = document.getElementById("References")
+    if(references){references.parentElement.remove()}
+    var referencias = document.getElementById("Referencias")
+    if(referencias){referencias.parentElement.remove()}
+    $("#footer").remove()
+    $(".mw-redirectedfrom").remove()
+    $(".reference").remove()
+    $(".metadata").remove()
+
+    var content = document.getElementById("content");    // Get the <ul> element to insert a new node
+    content.insertBefore(document.createElement("br"), content.childNodes[0]);
+
+    // Collapsible items
+    /*var link1 = document.createElement('link');
+    link1.rel = 'stylesheet';
+    link1.href = '/w/load.php?lang=en&modules=ext.cite.styles%7Cmediawiki.hlist%7Cmediawiki.ui.button%2Cicon%7Cmobile.init.styles%7Cskins.minerva.base.styles%7Cskins.minerva.content.styles%7Cskins.minerva.content.styles.images%7Cskins.minerva.icons.images%2Cwikimedia&only=styles&skin=minerva';
+    document.head.appendChild(link1)
+
+    headlines = document.getElementsByClassName("mw-headline")
+
+    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex++){
+        headlines[headlineIndex].setAttribute("class","section-heading collapsible-heading open-block")
+        headlines[headlineIndex].setAttribute("tabindex","0")
+        headlines[headlineIndex].setAttribute("aria-haspopup","true")
+        headlines[headlineIndex].setAttribute("aria-controls","scontent-collapsible-block-0")
+        headlines[headlineIndex].innerHTML = "<div class=\"mw-ui-icon mw-ui-icon-mf-expand mw-ui-icon-element mw-ui-icon-small  indicator mw-ui-icon-flush-left\"></div>" + headlines[headlineIndex].innerHTML
+    }*/
+
+}
+
+
+// Speech recognition
 function audioToText(){
     headlines = document.getElementsByClassName("mw-headline")
 
@@ -90,8 +210,8 @@ function audioToText(){
     }
 }
 
-// Text to Audio
 
+// Text to Audio
 function textToAudio(){
     $('p, ul').each(function() {
         if($(this).parent().attr('role') != 'navigation'){
@@ -160,8 +280,7 @@ function stopReading(){
 }
 
 
-// Text size
-
+// Font size
 function textSize(){
     var plusButton = document.createElement("Button");
     plusButton.innerHTML = "Font size +";
@@ -211,8 +330,8 @@ function changeFontSize(changer){
     window.scrollTo(0, currentScroll);
 }
 
-// Youtube videos
 
+// Youtube videos
 function youtubeVideos(){
     getRequest($("#firstHeading").prop('innerText'));
 }
@@ -221,7 +340,7 @@ function getRequest(searchTerm) {
     var url = 'https://www.googleapis.com/youtube/v3/search';
     var params = {
         part: 'snippet',
-        key: 'AIzaSyDeuEVu90ExAcbBW6ycaZAQSHRhAJGd2D0',
+        key: 'AIzaSyBB9Vs9M1WcozRTjf9rGBU-M-HEpGYGXv8',
         type: 'video',
         maxResults: 6,
         q: searchTerm
@@ -238,16 +357,30 @@ function showResults(results) {
     $.each(entries, function (index, value) {
         var videoId = value.id.videoId;
         var vid = '<iframe width="380" height="200" src="https://www.youtube.com/embed/'+videoId
-            +'" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+            +'" frameborder="1" margin="5px" padding="5px" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
         content.innerHTML += vid;
     });
-    $('.mw-parser-output').append(content)
 
+    $('.mw-parser-output').append("<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>")
+    $('#youtubeVideos').append(content)
+
+}
+
+function goToVideos(){
+    $(window).scrollTop($('#youtubeVideos').offset().top);
+}
+
+function toggleYoutubeVideos(){
+  var x = document.getElementById("youtubeVideos");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
 }
 
 
 // Wikipedia Links
-
 function wikipediaLinks(){
     //Index
     $('.new').each(function() {
@@ -259,8 +392,8 @@ function wikipediaLinks(){
     });
 }
 
-// Bread Crumb (History)
 
+// Bread Crumb (History)
 function breadCrumb(){
     var i
     var breadcrumb = document.createElement('div');
@@ -293,12 +426,13 @@ function breadCrumb(){
     }
     document.body.appendChild(breadcrumb);
     $('#breadcrumb').css({
-        'position': 'fixed',
+        'position': 'absolute',
         'height': '50px',
-        'left': '0',
+        'left': '15%',
         'top': '0',
         'width': '100%',
-        'background-color': '#FFFFFF',
+        'padding': '10px',
+        //'background-color': '#FFFFFF',
         'vertical-align': 'bottom',
         'visibility': 'visible',
     });
@@ -319,52 +453,4 @@ function breadCrumb(){
             'padding':'3px',
         });
     });
-}
-
-// Focus info (delete unnecessary items)
-
-function focusInfo(){
-    //Hide instead of remove
-
-    $('#mw-page-base').remove()
-    $('#mw-head-base').remove()
-    $('#mw-navigation').remove()
-    $('#content').removeClass('mw-body')
-    $("#content").css({"padding":"1em"})
-    $("#siteNotice").remove()
-    $(".noprint").remove()
-    $("#toc").remove()
-    $(".mw-editsection").remove()
-    $("#catlinks").remove()
-    $(".mw-authority-control").remove()
-    $(".authority-control").remove()
-    $(".hatnote").remove()
-    $(".listaref").remove()
-    $(".references").remove()
-    var references = document.getElementById("References")
-    if(references){references.parentElement.remove()}
-    var referencias = document.getElementById("Referencias")
-    if(referencias){referencias.parentElement.remove()}
-    $("#footer").remove()
-    $(".mw-redirectedfrom").remove()
-    $(".reference").remove()
-    $(".metadata").remove()
-
-
-    // Collapsible items
-    /*var link1 = document.createElement('link');
-    link1.rel = 'stylesheet';
-    link1.href = '/w/load.php?lang=en&modules=ext.cite.styles%7Cmediawiki.hlist%7Cmediawiki.ui.button%2Cicon%7Cmobile.init.styles%7Cskins.minerva.base.styles%7Cskins.minerva.content.styles%7Cskins.minerva.content.styles.images%7Cskins.minerva.icons.images%2Cwikimedia&only=styles&skin=minerva';
-    document.head.appendChild(link1)
-
-    headlines = document.getElementsByClassName("mw-headline")
-
-    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex++){
-        headlines[headlineIndex].setAttribute("class","section-heading collapsible-heading open-block")
-        headlines[headlineIndex].setAttribute("tabindex","0")
-        headlines[headlineIndex].setAttribute("aria-haspopup","true")
-        headlines[headlineIndex].setAttribute("aria-controls","scontent-collapsible-block-0")
-        headlines[headlineIndex].innerHTML = "<div class=\"mw-ui-icon mw-ui-icon-mf-expand mw-ui-icon-element mw-ui-icon-small  indicator mw-ui-icon-flush-left\"></div>" + headlines[headlineIndex].innerHTML
-    }*/
-
 }
