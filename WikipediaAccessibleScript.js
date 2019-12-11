@@ -120,6 +120,8 @@ function addAugmentationOperations(){
 function focusInfo(){
     //Hide instead of remove
 
+    var content = document.getElementById("content");
+    content.insertBefore(document.createElement("br"), content.childNodes[0]);
     $('#mw-page-base').remove()
     $('#mw-head-base').remove()
     $('#mw-navigation').remove()
@@ -134,6 +136,7 @@ function focusInfo(){
     $(".authority-control").remove()
     $(".hatnote").remove()
     $(".listaref").remove()
+    $(".reflist").remove()
     $(".references").remove()
     var references = document.getElementById("References")
     if(references){references.parentElement.remove()}
@@ -143,9 +146,39 @@ function focusInfo(){
     $(".mw-redirectedfrom").remove()
     $(".reference").remove()
     $(".metadata").remove()
-
-    var content = document.getElementById("content");    // Get the <ul> element to insert a new node
-    content.insertBefore(document.createElement("br"), content.childNodes[0]);
+    $(".navbox").remove()
+    var notes = document.getElementById("Notes")
+    if(notes){notes.parentElement.remove()}
+    var sources = document.getElementById("Sources")
+    if(sources){
+        sources = sources.parentElement.nextElementSibling
+        while(sources != null && sources.tagName != "H2"){
+            var sourcesAux = sources.nexElementSibling
+            sources.remove()
+            sources = sourcesAux
+        }
+        document.getElementById("Sources").parentElement.remove()
+    }
+    var seeAlso = document.getElementById("See_also")
+    if(seeAlso){
+        seeAlso = seeAlso.parentElement.nextElementSibling
+        while(seeAlso != null && seeAlso.tagName != "H2"){
+            var seeAlsoAux = seeAlso.nextElementSibling
+            seeAlso.remove()
+            seeAlso = seeAlsoAux
+        }
+        document.getElementById("See_also").parentElement.remove()
+    }
+    var externalLinks = document.getElementById("External_links")
+    if(externalLinks){
+        externalLinks = externalLinks.parentElement.nextElementSibling
+        while(externalLinks != null && externalLinks.tagName != "H2"){
+            var externalLinksAux = externalLinks.nextElementSibling
+            externalLinks.remove()
+            externalLinks = externalLinksAux
+        }
+        document.getElementById("External_links").parentElement.remove()
+    }
 
     // Collapsible items
     /*var link1 = document.createElement('link');
