@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Wikipedia Accesible Script (WAS)
 // @author       You
 // @match        https://es.wikipedia.org/*
@@ -21,6 +21,23 @@ const SpeechRecognition =
 const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
 const recognition = new SpeechRecognition()
 var headlines
+var languageCodeSyntesis = "en"
+var languageCodeCommands = "en"
+
+var increaseFontSizeCommand = "increase font size"
+var decreaseFontSizeCommand = "decrease font size"
+var stopListeningCommand = "stop listening"
+var readCommand = "read"
+
+var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand]
+
+var changeCommand = "change command"
+var cancelCommand = "cancel"
+var changeCommandQuestion = "which command"
+var newCommandQuestion = "which is the new command"
+var changeCommandInProcess1 = false;
+var changeCommandInProcess2 = false;
+var newCommandString = "";
 
 
 // Main method
@@ -89,9 +106,40 @@ function createWebAugmentedMenu(){
     inputVideos.checked = true;
     inputVideos.addEventListener("change", toggleYoutubeVideos, false);
     divButtons.appendChild(inputVideos);
-    menuLinkDiv.appendChild(divButtons);
+    divButtons.appendChild(document.createElement('br'));
+    var a4 = document.createElement('a');
+    //a4.href = '';
+    a4.addEventListener("click", function(){
+        toggleMenu();
+        closeCommandsMenu();
+        toggleLanguageMenu();
+    }, false);
+    a4.text = 'Language';
+    divButtons.appendChild(a4);
+    divButtons.appendChild(document.createElement('br'));
+    var a5 = document.createElement('a');
+    //a5.href = '';
+    a5.addEventListener("click", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        toggleCommandsMenu();
+    }, false);
+    a5.text = 'Voice commands';
+    divButtons.appendChild(a5);
 
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 10%; top: 20%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeMenu();
+    }, false);
+    divButtons.appendChild(i);
+
+    menuLinkDiv.appendChild(divButtons);
     document.body.appendChild(divMenu);
+
+    changeLanguageMenu();
+    commandsMenu();
 }
 
 function toggleMenu(){
@@ -101,6 +149,151 @@ function toggleMenu(){
   } else {
     x.style.display = "block";
   }
+  closeLanguageMenu();
+  closeCommandsMenu();
+}
+function closeMenu(){
+  var x = document.getElementById("foldingMenu");
+  x.style.display = "none";
+}
+
+
+// Language management
+function changeLanguageMenu(){
+
+    try {
+        var url = window.location.href;
+        var urlLanguage = url.split("https://")[1].split(".")[0]
+        changePredefinedVoiceLanguage(urlLanguage)
+    }
+    catch(error) {
+        console.error(error);
+    }
+
+    var divLanguageMenu = document.createElement("div")
+    divLanguageMenu.id = "menu-language";
+    divLanguageMenu.style = "position: absolute; left: 5%; top: 5%; z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeLanguageMenu();
+    }, false);
+    divLanguageMenu.appendChild(i);
+
+    var languages = document.getElementsByClassName("interlanguage-link");
+    for(var languagesIndex = 0; languagesIndex < languages.length; languagesIndex++){
+        if(window.getComputedStyle(languages[languagesIndex]).display === "list-item" &&
+          window.getComputedStyle(languages[languagesIndex]).display !== "none"){
+            var a1 = document.createElement('a');
+            a1.href = languages[languagesIndex].firstElementChild.href;
+            a1.text = languages[languagesIndex].firstElementChild.text;
+            divLanguageMenu.appendChild(a1);
+            divLanguageMenu.appendChild(document.createElement('br'));
+            //console.log("language available: " + languages[languagesIndex].firstElementChild.text);
+        }
+    }
+    document.body.appendChild(divLanguageMenu);
+}
+
+function changePredefinedVoiceLanguage(urlLanguage){
+    languageCodeSyntesis = urlLanguage
+    /*switch(urlLanguage){
+        case "es": languageCodeSyntesis = "es"
+    }*/
+}
+
+function toggleLanguageMenu(){
+  var x = document.getElementById("menu-language");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+function closeLanguageMenu(){
+  var x = document.getElementById("menu-language");
+  x.style.display = "none";
+}
+
+
+// Voice management
+function commandsMenu(){
+    var divCommandsMenu = document.createElement("div")
+    divCommandsMenu.id = "menu-commands";
+    divCommandsMenu.style = "position: absolute; left: 5%; top: 5%; z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeCommandsMenu();
+    }, false);
+    divCommandsMenu.appendChild(i);
+
+    var a1 = document.createElement('a');
+    a1.text = '"' + readCommand + '" command ';
+    a1.addEventListener("click", function(){
+        var result = prompt("New command value for " + readCommand +  " command", readCommand);
+        readCommand = result;
+        console.log(result);
+    }, false);
+    divCommandsMenu.appendChild(a1);
+    var a1i = document.createElement('i');
+    a1i.className = 'fa fa-edit'
+    a1.appendChild(a1i);
+    divCommandsMenu.appendChild(document.createElement('br'));
+    var a2 = document.createElement('a');
+    a2.text = '"' + increaseFontSizeCommand + '" command ';
+    a2.addEventListener("click", function(){
+        var result = prompt("New command value for " + increaseFontSizeCommand +  " command", increaseFontSizeCommand);
+        increaseFontSizeCommand = result;
+        console.log(result);
+    }, false);
+    divCommandsMenu.appendChild(a2);
+    var a2i = document.createElement('i');
+    a2i.className = 'fa fa-edit'
+    a2.appendChild(a2i);
+    divCommandsMenu.appendChild(document.createElement('br'));
+    var a3 = document.createElement('a');
+    a3.text = '"' + decreaseFontSizeCommand + '" command ';
+    a3.addEventListener("click", function(){
+        var result = prompt("New command value for " + decreaseFontSizeCommand +  " command", decreaseFontSizeCommand);
+        decreaseFontSizeCommand = result;
+        console.log(result);
+    }, false);
+    divCommandsMenu.appendChild(a3);
+    var a3i = document.createElement('i');
+    a3i.className = 'fa fa-edit'
+    a3.appendChild(a3i);
+    divCommandsMenu.appendChild(document.createElement('br'));
+    var a4 = document.createElement('a');
+    a4.text = '"' + stopListeningCommand + '" command ';
+    a4.addEventListener("click", function(){
+        var result = prompt("New command value for " + stopListeningCommand +  " command", stopListeningCommand);
+        stopListeningCommand = result;
+        console.log(result);
+    }, false);
+    divCommandsMenu.appendChild(a4);
+    var a4i = document.createElement('i');
+    a4i.className = 'fa fa-edit'
+    a4.appendChild(a4i);
+    divCommandsMenu.appendChild(document.createElement('br'));
+    document.body.appendChild(divCommandsMenu);
+}
+
+function toggleCommandsMenu(){
+  var x = document.getElementById("menu-commands");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+function closeCommandsMenu(){
+  var x = document.getElementById("menu-commands");
+  x.style.display = "none";
 }
 
 
@@ -203,12 +396,12 @@ function focusInfo(){
 function audioToText(){
     headlines = document.getElementsByClassName("mw-headline")
 
-    var commands = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
-    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commands.join(' | ') + ' ;';
+    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
+    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.join(' | ') + ' ;';
     var speechRecognitionList = new SpeechGrammarList();
     speechRecognitionList.addFromString(grammar, 1);
     recognition.grammars = speechRecognitionList;
-    recognition.lang = 'en-US';
+    recognition.lang = languageCodeCommands;
     recognition.interimResults = false;
     recognition.continuous = true;
     recognition.start();
@@ -216,31 +409,81 @@ function audioToText(){
     recognition.onresult = event => {
         const speechToText = event.results[event.results.length -1][0].transcript;
         console.log(speechToText);
-        if(speechToText.includes("increase font size") || speechToText.includes("magnify")){
-            changeFontSize('+');
-        }
-        else if(speechToText.includes("decrease font size") || speechToText.includes("reduce")){
-            changeFontSize('-');
-        }
-        else if(speechToText.includes("read")){
-            for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
-                if(speechToText.includes("read " + headlines[headlineIndex].textContent.toLowerCase())){
-                    var readContent = ""
-                    var parent = headlines[headlineIndex].parentElement
-                    while(parent.nextElementSibling.tagName != "H2"){
-                        parent = parent.nextElementSibling
-                        //console.log(parent.innerText)
-                        readContent += parent.innerText
+        if(!changeCommandInProcess1 && !changeCommandInProcess2){
+            if(speechToText.includes(increaseFontSizeCommand)){
+                changeFontSize('+');
+            }
+            else if(speechToText.includes(decreaseFontSizeCommand)){
+                changeFontSize('-');
+            }
+            else if(speechToText.includes(readCommand)){
+                for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
+                    if(speechToText.includes(readCommand + " " + headlines[headlineIndex].textContent.toLowerCase())){
+                        var readContent = ""
+                        var parent = headlines[headlineIndex].parentElement
+                        while(parent.nextElementSibling.tagName != "H2"){
+                            parent = parent.nextElementSibling
+                            //console.log(parent.innerText)
+                            readContent += parent.innerText
+                        }
+                        Read(readContent);
+                        break;
                     }
-                    Read(readContent);
-                    break;
+                }
+            }
+            else if(speechToText.includes(changeCommand)){
+                console.log("changeCommandInProcess = true")
+                changeCommandInProcess1 = true;
+                Read(changeCommandQuestion + "?");
+            }
+            else if(speechToText.includes(stopListeningCommand)){
+                recognition.abort();
+            }
+        } else {
+            if(changeCommandInProcess1){
+                //Command change in process
+                if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                    if(commands.includes(speechToText.toLowerCase())){
+                        Read(newCommandQuestion + "?");
+                        newCommandString = speechToText.toLowerCase();
+                        changeCommandInProcess1 = false;
+                        changeCommandInProcess2 = true;
+                    } else if(speechToText.toLowerCase() == cancelCommand) {
+                        console.log("Cancel change of command")
+                        changeCommandInProcess1 = false;
+                        changeCommandInProcess2 = false;
+                    } else {
+                        Read(speechToText + " is not an existing command. Try again.");
+                    }
+                }
+            } else if(changeCommandInProcess2){
+                //Command change in process
+                if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                    if(speechToText.toLowerCase() == cancelCommand) {
+                        console.log("Cancel change of command")
+                        changeCommandInProcess1 = false;
+                        changeCommandInProcess2 = false;
+                    } else {
+                        Read(speechToText + " is the new command");
+                        eval(camelize(newCommandString) + "Command = '" + speechToText.toLowerCase() + "'");
+                        //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
+                        changeCommandInProcess1 = false;
+                        changeCommandInProcess2 = false;
+                        commands.push(speechToText.toLowerCase());
+                        commands = commands.filter(function(item) {
+                            return item !== newCommandString
+                        })
+                    }
                 }
             }
         }
-        else if(speechToText.includes("stop listening")){
-            recognition.abort();
-        }
     }
+}
+function camelize(str) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+    if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+    return index == 0 ? match.toLowerCase() : match.toUpperCase();
+  });
 }
 
 
@@ -287,13 +530,15 @@ function Read(message){
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     var reader = new SpeechSynthesisUtterance(message);
-    reader.lang = 'en-US';
+    reader.lang = languageCodeSyntesis;
     reader.onstart = function(event) {
+        recognition.abort();
         resumeInfinity();
     };
     reader.onend = function(event) {
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
+        recognition.start();
     };
     window.speechSynthesis.speak(reader);
     $('#cancel').css('visibility', 'visible');
@@ -400,6 +645,7 @@ function showResults(results) {
 }
 
 function goToVideos(){
+    toggleMenu();
     $(window).scrollTop($('#youtubeVideos').offset().top);
 }
 
@@ -411,7 +657,6 @@ function toggleYoutubeVideos(){
     x.style.display = "block";
   }
 }
-
 
 // Wikipedia Links
 function wikipediaLinks(){
