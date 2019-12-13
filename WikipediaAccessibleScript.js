@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Wikipedia Accesible Script
+// @name         Web Augmentation Framework for Accessibility
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Wikipedia-Accessible/master/WikipediaAccessibleScript.js
 // @namespace    http://tampermonkey.net/
-// @version      0.5
-// @description  Wikipedia Accesible Script (WAS)
-// @author       You
+// @version      0.6
+// @description  Web Augmentation Framework for Accessibility (WAFA)
+// @author       Cesar Gonzalez Mora
 // @match        https://es.wikipedia.org/*
 // @match        https://es.m.wikipedia.org/*
 // @match        https://*.wikipedia.org/*
@@ -24,12 +24,19 @@ var headlines
 var languageCodeSyntesis = "en"
 var languageCodeCommands = "en"
 
+var listeningActive = true
+var readCommandActive = true
+var goToCommandActive = true
+var goToVideosCommandActive = true
 var increaseFontSizeCommand = "increase font size"
+var increaseFontSizeCommandActive = true
 var decreaseFontSizeCommand = "decrease font size"
+var decreaseFontSizeCommandActive = true
 var stopListeningCommand = "stop listening"
+var goToCommand = "go to"
 var readCommand = "read"
 
-var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand]
+var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -79,22 +86,79 @@ function createWebAugmentedMenu(){
     divButtons.id = "foldingMenu"
     divButtons.style = "padding: 10px; border: 2px solid black; display: none; background-color: white"
     var a1 = document.createElement('a');
+    a1.id = "increaseFontSizeA";
     //a1.href = '';
     a1.addEventListener("click", function(){
-        changeFontSize('+');
+        if(increaseFontSizeCommandActive){
+            changeFontSize('+');
+        }
     }, false);
     a1.text = '+ Aa';
     divButtons.appendChild(a1);
+    var inputIncreaseFontSize = document.createElement('input');
+    inputIncreaseFontSize.type = 'checkbox';
+    inputIncreaseFontSize.id = 'increaseFontSizeInput';
+    inputIncreaseFontSize.value = 'increaseFontSizeInput';
+    inputIncreaseFontSize.checked = true;
+    inputIncreaseFontSize.addEventListener("change", toggleIncreaseFontSize, false);
+    divButtons.appendChild(inputIncreaseFontSize);
     divButtons.appendChild(document.createElement('br'));
+
     var a2 = document.createElement('a');
+    a2.id = "decreaseFontSizeA";
     //a2.href = '';
     a2.addEventListener("click", function(){
-        changeFontSize('-');
+        if(decreaseFontSizeCommandActive){
+            changeFontSize('-');
+        }
     }, false);
     a2.text = '- Aa';
     divButtons.appendChild(a2);
+    var inputDecreaseFontSize = document.createElement('input');
+    inputDecreaseFontSize.type = 'checkbox';
+    inputDecreaseFontSize.id = 'decreaseFontSizeInput';
+    inputDecreaseFontSize.value = 'decreaseFontSizeInput';
+    inputDecreaseFontSize.checked = true;
+    inputDecreaseFontSize.addEventListener("change", toggleDecreaseFontSize, false);
+    divButtons.appendChild(inputDecreaseFontSize);
     divButtons.appendChild(document.createElement('br'));
+
+    var aRead = document.createElement('a');
+    aRead.id = "readA";
+    //a2.href = '';
+    aRead.addEventListener("click", function(){
+        toggleReadMenu()
+    }, false);
+    aRead.text = 'Read aloud';
+    divButtons.appendChild(aRead);
+    var inputRead = document.createElement('input');
+    inputRead.type = 'checkbox';
+    inputRead.id = 'readInput';
+    inputRead.value = 'readInput';
+    inputRead.checked = true;
+    inputRead.addEventListener("change", toggleReadAloud, false);
+    divButtons.appendChild(inputRead);
+    divButtons.appendChild(document.createElement('br'));
+
+    var aGoTo = document.createElement('a');
+    aGoTo.id = "goToA";
+    //aGoTo.href = '';
+    aGoTo.addEventListener("click", function(){
+        toggleGoToMenu()
+    }, false);
+    aGoTo.text = 'Go to section';
+    divButtons.appendChild(aGoTo);
+    var inputGoTo = document.createElement('input');
+    inputGoTo.type = 'checkbox';
+    inputGoTo.id = 'goToInput';
+    inputGoTo.value = 'goToInput';
+    inputGoTo.checked = true;
+    inputGoTo.addEventListener("change", toggleGoTo, false);
+    divButtons.appendChild(inputGoTo);
+    divButtons.appendChild(document.createElement('br'));
+
     var a3 = document.createElement('a');
+    a3.id = "goToVideosA";
     //a3.href = '';
     a3.addEventListener("click", goToVideos);
     a3.text = 'Videos';
@@ -107,25 +171,92 @@ function createWebAugmentedMenu(){
     inputVideos.addEventListener("change", toggleYoutubeVideos, false);
     divButtons.appendChild(inputVideos);
     divButtons.appendChild(document.createElement('br'));
-    var a4 = document.createElement('a');
-    //a4.href = '';
-    a4.addEventListener("click", function(){
-        toggleMenu();
-        closeCommandsMenu();
-        toggleLanguageMenu();
-    }, false);
-    a4.text = 'Language';
-    divButtons.appendChild(a4);
-    divButtons.appendChild(document.createElement('br'));
+
     var a5 = document.createElement('a');
+    a5.id = "voiceCommandsA";
     //a5.href = '';
     a5.addEventListener("click", function(){
         toggleMenu();
         closeLanguageMenu();
         toggleCommandsMenu();
+        closeReadMenu();
     }, false);
     a5.text = 'Voice commands';
     divButtons.appendChild(a5);
+    var inputVoiceCommands = document.createElement('input');
+    inputVoiceCommands.type = 'checkbox';
+    inputVoiceCommands.id = 'voiceCommandsInput';
+    inputVoiceCommands.value = 'voiceCommandsInput';
+    inputVoiceCommands.checked = true;
+    inputVoiceCommands.addEventListener("change", function(){
+        if(!this.checked){
+            recognition.abort();
+            aToggleListening.text = 'Start Listening';
+            listeningActive = false;
+        } else{
+            recognition.start();
+            aToggleListening.text = 'Stop Listening';
+            listeningActive = true;
+        }
+    }, false);
+    divButtons.appendChild(inputVoiceCommands);
+    divButtons.appendChild(document.createElement('br'));
+
+    var aToggleSections = document.createElement('a');
+    aToggleSections.id = "toggleSectionsA";
+    //aToggleSections.href = '';
+    aToggleSections.addEventListener("click", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        closeCommandsMenu();
+        closeReadMenu();
+        toggleToggleSectionsMenu();
+    }, false);
+    aToggleSections.text = 'Toggle sections';
+    divButtons.appendChild(aToggleSections);
+    var inputToggleSections = document.createElement('input');
+    inputToggleSections.type = 'checkbox';
+    inputToggleSections.id = 'toggleSectionsInput';
+    inputToggleSections.value = 'toggleSectionsInput';
+    inputToggleSections.checked = true;
+    inputToggleSections.addEventListener("change", function(){
+        //TODO
+        console.log("Change toggle sections checkbox value");
+    }, false);
+    divButtons.appendChild(inputToggleSections);
+    divButtons.appendChild(document.createElement('br'));
+
+    var a4 = document.createElement('a');
+    a4.id = "languageA";
+    //a4.href = '';
+    a4.addEventListener("click", function(){
+        toggleMenu();
+        closeCommandsMenu();
+        toggleLanguageMenu();
+        closeReadMenu();
+    }, false);
+    a4.text = 'Language';
+    divButtons.appendChild(a4);
+    divButtons.appendChild(document.createElement('br'));
+
+    var aToggleListening = document.createElement('a');
+    aToggleListening.id = "toggleListeningA";
+    //aToggleSections.href = '';
+    aToggleListening.addEventListener("click", function(){
+        closeMenu();
+        if(listeningActive){
+            recognition.abort();
+            aToggleListening.text = 'Start Listening';
+            listeningActive = false;
+        } else{
+            recognition.start();
+            aToggleListening.text = 'Stop Listening';
+            listeningActive = true;
+        }
+    }, false);
+    aToggleListening.text = 'Stop Listening';
+    divButtons.appendChild(aToggleListening);
+    divButtons.appendChild(document.createElement('br'));
 
     var i = document.createElement('i');
     i.className = 'fa fa-close'
@@ -140,6 +271,8 @@ function createWebAugmentedMenu(){
 
     changeLanguageMenu();
     commandsMenu();
+    createReadMenu();
+    createGoToMenu();
 }
 
 function toggleMenu(){
@@ -151,12 +284,148 @@ function toggleMenu(){
   }
   closeLanguageMenu();
   closeCommandsMenu();
+  closeReadMenu();
+  closeGoToMenu();
 }
 function closeMenu(){
   var x = document.getElementById("foldingMenu");
   x.style.display = "none";
 }
 
+
+function toggleIncreaseFontSize(){
+    if(increaseFontSizeCommandActive){
+        increaseFontSizeCommandActive = false;
+        document.getElementById("increaseFontSizeA").style.setProperty("pointer-events", "none");
+    } else {
+        increaseFontSizeCommandActive = true;
+        document.getElementById("increaseFontSizeA").style.setProperty("pointer-events", "all");
+    }
+}
+function toggleDecreaseFontSize(){
+    if(decreaseFontSizeCommandActive){
+        decreaseFontSizeCommandActive = false;
+        document.getElementById("decreaseFontSizeA").style.setProperty("pointer-events", "none");
+    } else {
+        decreaseFontSizeCommandActive = true;
+        document.getElementById("decreaseFontSizeA").style.setProperty("pointer-events", "all");
+    }
+}
+
+function createReadMenu(){
+
+    var divReadMenu = document.createElement("div")
+    divReadMenu.id = "menu-read";
+    divReadMenu.style = "position: absolute; left: 5%; top: 5%; z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeReadMenu();
+    }, false);
+    divReadMenu.appendChild(i);
+
+    headlines = document.getElementsByClassName("mw-headline")
+    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
+        var a1 = document.createElement('a');
+        //a1.href = languages[languagesIndex].firstElementChild.href;
+        a1.text = headlines[headlineIndex].textContent
+        var headlineElement = headlines[headlineIndex]
+        a1.addEventListener("click", readAloudFromHeadlineElement, false);
+        a1.headlineElement = headlineElement;
+        divReadMenu.appendChild(a1);
+        divReadMenu.appendChild(document.createElement('br'));
+    }
+
+    document.body.appendChild(divReadMenu);
+}
+function toggleReadMenu(){
+  var x = document.getElementById("menu-read");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+    closeMenu();
+  }
+}
+function closeReadMenu(){
+  var x = document.getElementById("menu-read");
+  x.style.display = "none";
+}
+function toggleReadAloud(){
+        var divsToHide = document.getElementsByClassName("readAloudButton");
+    if(readCommandActive){
+        readCommandActive = false;
+        document.getElementById("readA").style.setProperty("pointer-events", "none");
+        document.getElementsByClassName("readAloudButton")
+        for(var i = 0; i < divsToHide.length; i++){
+            divsToHide[i].style.display = "none";
+        }
+    } else {
+        readCommandActive = true;
+        document.getElementById("readA").style.setProperty("pointer-events", "all");
+        for(var i2 = 0; i2 < divsToHide.length; i2++){
+            divsToHide[i2].style.display = "block";
+        }
+    }
+}
+
+
+function createGoToMenu(){
+
+    var divGoToMenu = document.createElement("div")
+    divGoToMenu.id = "menu-goto";
+    divGoToMenu.style = "position: absolute; left: 5%; top: 5%; z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeGoToMenu();
+    }, false);
+    divGoToMenu.appendChild(i);
+
+    headlines = document.getElementsByClassName("mw-headline")
+    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
+        var a1 = document.createElement('a');
+        //a1.href = languages[languagesIndex].firstElementChild.href;
+        a1.text = headlines[headlineIndex].textContent
+        var headlineElement = headlines[headlineIndex]
+        a1.addEventListener("click", goToFromHeadlineElement, false);
+        a1.headlineElement = headlineElement;
+        divGoToMenu.appendChild(a1);
+        divGoToMenu.appendChild(document.createElement('br'));
+    }
+
+    document.body.appendChild(divGoToMenu);
+}
+function toggleGoToMenu(){
+  var x = document.getElementById("menu-goto");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+    closeMenu();
+  }
+}
+function closeGoToMenu(){
+  var x = document.getElementById("menu-goto");
+  x.style.display = "none";
+}
+function toggleGoTo(){
+    if(goToCommandActive){
+        goToCommandActive = false;
+        document.getElementById("goToA").style.setProperty("pointer-events", "none");
+    } else {
+        goToCommandActive = true;
+        document.getElementById("goToA").style.setProperty("pointer-events", "all");
+    }
+}
+
+function toggleToggleSectionsMenu(){
+    console.log("toggleToggleSectionsMenu");
+}
 
 // Language management
 function changeLanguageMenu(){
@@ -235,50 +504,86 @@ function commandsMenu(){
     var a1 = document.createElement('a');
     a1.text = '"' + readCommand + '" command ';
     a1.addEventListener("click", function(){
-        var result = prompt("New command value for " + readCommand +  " command", readCommand);
-        readCommand = result;
+        var result = prompt("New command value for " + readCommand + " command", readCommand);
+        commands.push(result.toLowerCase());
+        commands = commands.filter(function(item) {
+            return item !== readCommand
+        })
+        readCommand = result.toLowerCase();
         console.log(result);
     }, false);
-    divCommandsMenu.appendChild(a1);
     var a1i = document.createElement('i');
     a1i.className = 'fa fa-edit'
     a1.appendChild(a1i);
+    divCommandsMenu.appendChild(a1);
     divCommandsMenu.appendChild(document.createElement('br'));
+
+    var aGoTo = document.createElement('a');
+    aGoTo.text = '"' + goToCommand + '" command ';
+    aGoTo.addEventListener("click", function(){
+        var result = prompt("New command value for " + goToCommand + " command", goToCommand);
+        commands.push(result.toLowerCase());
+        commands = commands.filter(function(item) {
+            return item !== goToCommand
+        })
+        goToCommand = result.toLowerCase();
+        console.log(result);
+    }, false);
+    var aGoToi = document.createElement('i');
+    aGoToi.className = 'fa fa-edit'
+    aGoTo.appendChild(aGoToi);
+    divCommandsMenu.appendChild(aGoTo);
+    divCommandsMenu.appendChild(document.createElement('br'));
+
     var a2 = document.createElement('a');
     a2.text = '"' + increaseFontSizeCommand + '" command ';
     a2.addEventListener("click", function(){
-        var result = prompt("New command value for " + increaseFontSizeCommand +  " command", increaseFontSizeCommand);
-        increaseFontSizeCommand = result;
+        var result = prompt("New command value for " + increaseFontSizeCommand + " command", increaseFontSizeCommand);
+        commands.push(result.toLowerCase());
+        commands = commands.filter(function(item) {
+            return item !== increaseFontSizeCommand
+        })
+        increaseFontSizeCommand = result.toLowerCase();
         console.log(result);
     }, false);
-    divCommandsMenu.appendChild(a2);
     var a2i = document.createElement('i');
     a2i.className = 'fa fa-edit'
     a2.appendChild(a2i);
+    divCommandsMenu.appendChild(a2);
     divCommandsMenu.appendChild(document.createElement('br'));
+
     var a3 = document.createElement('a');
     a3.text = '"' + decreaseFontSizeCommand + '" command ';
     a3.addEventListener("click", function(){
-        var result = prompt("New command value for " + decreaseFontSizeCommand +  " command", decreaseFontSizeCommand);
-        decreaseFontSizeCommand = result;
+        var result = prompt("New command value for " + decreaseFontSizeCommand + " command", decreaseFontSizeCommand);
+        commands.push(result.toLowerCase());
+        commands = commands.filter(function(item) {
+            return item !== decreaseFontSizeCommand
+        })
+        decreaseFontSizeCommand = result.toLowerCase();
         console.log(result);
     }, false);
-    divCommandsMenu.appendChild(a3);
     var a3i = document.createElement('i');
     a3i.className = 'fa fa-edit'
     a3.appendChild(a3i);
+    divCommandsMenu.appendChild(a3);
     divCommandsMenu.appendChild(document.createElement('br'));
+
     var a4 = document.createElement('a');
     a4.text = '"' + stopListeningCommand + '" command ';
     a4.addEventListener("click", function(){
-        var result = prompt("New command value for " + stopListeningCommand +  " command", stopListeningCommand);
-        stopListeningCommand = result;
+        var result = prompt("New command value for " + stopListeningCommand + " command", stopListeningCommand);
+        commands.push(result.toLowerCase());
+        commands = commands.filter(function(item) {
+            return item !== stopListeningCommand
+        })
+        stopListeningCommand = result.toLowerCase();
         console.log(result);
     }, false);
-    divCommandsMenu.appendChild(a4);
     var a4i = document.createElement('i');
     a4i.className = 'fa fa-edit'
     a4.appendChild(a4i);
+    divCommandsMenu.appendChild(a4);
     divCommandsMenu.appendChild(document.createElement('br'));
     document.body.appendChild(divCommandsMenu);
 }
@@ -410,23 +715,40 @@ function audioToText(){
         const speechToText = event.results[event.results.length -1][0].transcript;
         console.log(speechToText);
         if(!changeCommandInProcess1 && !changeCommandInProcess2){
-            if(speechToText.includes(increaseFontSizeCommand)){
+            if(speechToText.includes(increaseFontSizeCommand) && increaseFontSizeCommandActive){
                 changeFontSize('+');
             }
-            else if(speechToText.includes(decreaseFontSizeCommand)){
+            else if(speechToText.includes(decreaseFontSizeCommand) && decreaseFontSizeCommandActive){
                 changeFontSize('-');
             }
-            else if(speechToText.includes(readCommand)){
+            else if(speechToText.includes(readCommand) && readCommandActive){
                 for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
                     if(speechToText.includes(readCommand + " " + headlines[headlineIndex].textContent.toLowerCase())){
-                        var readContent = ""
+                        readAloudFromHeadlineElement(headlines[headlineIndex]);
+                        /*var readContent = ""
                         var parent = headlines[headlineIndex].parentElement
                         while(parent.nextElementSibling.tagName != "H2"){
                             parent = parent.nextElementSibling
                             //console.log(parent.innerText)
                             readContent += parent.innerText
                         }
-                        Read(readContent);
+                        Read(readContent);*/
+                        break;
+                    }
+                }
+            }
+            else if(speechToText.includes(goToCommand) && goToCommandActive){
+                for(var headlineIndex2 = 0; headlineIndex2 < headlines.length; headlineIndex2 ++){
+                    if(speechToText.includes(goToCommand + " " + headlines[headlineIndex2].textContent.toLowerCase())){
+                        goToFromHeadlineElement(headlines[headlineIndex2]);
+                        /*var readContent = ""
+                        var parent = headlines[headlineIndex].parentElement
+                        while(parent.nextElementSibling.tagName != "H2"){
+                            parent = parent.nextElementSibling
+                            //console.log(parent.innerText)
+                            readContent += parent.innerText
+                        }
+                        Read(readContent);*/
                         break;
                     }
                 }
@@ -438,11 +760,14 @@ function audioToText(){
             }
             else if(speechToText.includes(stopListeningCommand)){
                 recognition.abort();
+                listeningActive = false;
+                document.getElementById("toggleListeningA").text = "Start Listening";
             }
         } else {
             if(changeCommandInProcess1){
                 //Command change in process
                 if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                    console.log(commands);
                     if(commands.includes(speechToText.toLowerCase())){
                         Read(newCommandQuestion + "?");
                         newCommandString = speechToText.toLowerCase();
@@ -494,6 +819,7 @@ function textToAudio(){
             var button = document.createElement('button');
             button.innerHTML = "&#9658;";
             button.value = $(this).prop('innerText');
+            button.className = "readAloudButton";
             button.style.fontSize = "18px";
             button.addEventListener('click', function(){
                 Read($(this).prop('value'));
@@ -524,6 +850,26 @@ function textToAudio(){
 }
 
 var timeoutResumeInfinity;
+
+function readAloudFromHeadlineElement(headlineElement){
+    closeReadMenu();
+
+    if(typeof headlineElement.parentElement === 'undefined'){
+        headlineElement = headlineElement.currentTarget.headlineElement
+    }
+    var readContent = ""
+    /*var newHeadlines = document.getElementsByClassName("mw-headline")
+            for(var newHeadlinesIndex = 0; newHeadlinesIndex < newHeadlines.length; newHeadLinesIndex++){
+                if(headlines[headlineIndex].textContent.toLowerCase() === a1.text
+            }*/
+    var parent = headlineElement.parentElement
+    while(parent.nextElementSibling.tagName != "H2"){
+        parent = parent.nextElementSibling
+        //console.log(parent.innerText)
+        readContent += parent.innerText
+    }
+    Read(readContent);
+}
 
 function Read(message){
     //console.log("Read function: " + message)
@@ -608,6 +954,20 @@ function changeFontSize(changer){
     window.scrollTo(0, currentScroll);
 }
 
+// Go to
+
+function goToFromHeadlineElement(headlineElement){
+    closeGoToMenu();
+    closeMenu();
+
+    if(typeof headlineElement.parentElement === 'undefined'){
+        headlineElement = headlineElement.currentTarget.headlineElement
+    }
+
+    if(goToVideosCommandActive){
+        $(window).scrollTop(headlineElement.offsetTop);
+    }
+}
 
 // Youtube videos
 function youtubeVideos(){
@@ -645,16 +1005,22 @@ function showResults(results) {
 }
 
 function goToVideos(){
-    toggleMenu();
-    $(window).scrollTop($('#youtubeVideos').offset().top);
+    if(goToVideosCommandActive){
+        toggleMenu();
+        $(window).scrollTop($('#youtubeVideos').offset().top);
+    }
 }
 
 function toggleYoutubeVideos(){
   var x = document.getElementById("youtubeVideos");
   if (x.style.display === "block") {
     x.style.display = "none";
+    document.getElementById("goToVideosA").style.setProperty("pointer-events", "none");
+    goToVideosCommandActive = false;
   } else {
     x.style.display = "block";
+    document.getElementById("goToVideosA").style.setProperty("pointer-events", "all");
+    goToVideosCommandActive = true;
   }
 }
 
