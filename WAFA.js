@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  Web Augmentation Framework for Accessibility (WAFA)
 // @author       Cesar Gonzalez Mora
 // @match        https://es.wikipedia.org/*
@@ -24,7 +24,7 @@ var headlines
 var languageCodeSyntesis = "en"
 var languageCodeCommands = "en"
 
-var listeningActive = true
+var listeningActive = false
 var readCommand = "read"
 var readCommandActive = true
 var goToCommand = "go to"
@@ -183,6 +183,11 @@ function createWebAugmentedMenu(){
     var divButtons = document.createElement('div')
     divButtons.id = "foldingMenu"
     divButtons.style = "padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var toggleListeningIcon = document.createElement("i");
+    toggleListeningIcon.id = "toggleListeningIcon";
+    toggleListeningIcon.className = "fa fa-circle";
+
     var a1 = document.createElement('a');
     a1.id = "increaseFontSizeA";
     //a1.href = '';
@@ -291,11 +296,14 @@ function createWebAugmentedMenu(){
             recognition.abort();
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
+            toggleListeningIcon.style = "color:red";
         } else{
             recognition.start();
             aToggleListening.text = 'Stop Listening';
+            toggleListeningIcon.style = "color:gray";
             listeningActive = true;
         }
+        setCookie("listeningActive", listeningActive, 10000);
     }, false);
     divButtons.appendChild(inputVoiceCommands);
     divButtons.appendChild(document.createElement('br'));
@@ -346,14 +354,26 @@ function createWebAugmentedMenu(){
             recognition.abort();
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
+            toggleListeningIcon.style = "color:red";
         } else{
             recognition.start();
             aToggleListening.text = 'Stop Listening';
             listeningActive = true;
+            inputVoiceCommands.checked = listeningActive;
+            toggleListeningIcon.style = "color:gray";
         }
+        setCookie("listeningActive", listeningActive, 10000);
     }, false);
-    aToggleListening.text = 'Stop Listening';
+    if(listeningActive){
+        aToggleListening.text = 'Stop Listening';
+        toggleListeningIcon.style = "color:gray";
+    }
+    else{
+        aToggleListening.text = 'Start Listening';
+        toggleListeningIcon.style = "color:red";
+    }
     divButtons.appendChild(aToggleListening);
+    divButtons.appendChild(toggleListeningIcon);
     divButtons.appendChild(document.createElement('br'));
 
     var i = document.createElement('i');
@@ -604,14 +624,15 @@ function commandsMenu(){
     divCommandsMenu.appendChild(i);
 
     var a1 = document.createElement('a');
-    a1.text = '"' + readCommand + '" command ';
+    a1.text = "'Read' command " + "(" + readCommand + ") ";
     a1.addEventListener("click", function(){
-        var result = prompt("New command value for " + readCommand + " command", readCommand);
+        var result = prompt("New command value for 'read aloud' command", readCommand);
         commands.push(result.toLowerCase());
         commands = commands.filter(function(item) {
             return item !== readCommand
         })
         readCommand = result.toLowerCase();
+        setCookie("readCommand", readCommand, 10000);
         console.log(result);
     }, false);
     var a1i = document.createElement('i');
@@ -621,14 +642,15 @@ function commandsMenu(){
     divCommandsMenu.appendChild(document.createElement('br'));
 
     var aGoTo = document.createElement('a');
-    aGoTo.text = '"' + goToCommand + '" command ';
+    aGoTo.text = "'Go to' command " + "(" + goToCommand + ") ";
     aGoTo.addEventListener("click", function(){
-        var result = prompt("New command value for " + goToCommand + " command", goToCommand);
+        var result = prompt("New command value for 'go to section' command", goToCommand);
         commands.push(result.toLowerCase());
         commands = commands.filter(function(item) {
             return item !== goToCommand
         })
         goToCommand = result.toLowerCase();
+        setCookie("goToCommand", goToCommand, 10000);
         console.log(result);
     }, false);
     var aGoToi = document.createElement('i');
@@ -638,14 +660,15 @@ function commandsMenu(){
     divCommandsMenu.appendChild(document.createElement('br'));
 
     var a2 = document.createElement('a');
-    a2.text = '"' + increaseFontSizeCommand + '" command ';
+    a2.text = "'Increase font size' command " + "(" + increaseFontSizeCommand + ") ";
     a2.addEventListener("click", function(){
-        var result = prompt("New command value for " + increaseFontSizeCommand + " command", increaseFontSizeCommand);
+        var result = prompt("New command value for 'increase font size' command", increaseFontSizeCommand);
         commands.push(result.toLowerCase());
         commands = commands.filter(function(item) {
             return item !== increaseFontSizeCommand
         })
         increaseFontSizeCommand = result.toLowerCase();
+        setCookie("increaseFontSizeCommand", increaseFontSizeCommand, 10000);
         console.log(result);
     }, false);
     var a2i = document.createElement('i');
@@ -655,14 +678,15 @@ function commandsMenu(){
     divCommandsMenu.appendChild(document.createElement('br'));
 
     var a3 = document.createElement('a');
-    a3.text = '"' + decreaseFontSizeCommand + '" command ';
+    a3.text = "'Decrease font size' command " + "(" + decreaseFontSizeCommand + ") ";
     a3.addEventListener("click", function(){
-        var result = prompt("New command value for " + decreaseFontSizeCommand + " command", decreaseFontSizeCommand);
+        var result = prompt("New command value for 'decrease font size' command", decreaseFontSizeCommand);
         commands.push(result.toLowerCase());
         commands = commands.filter(function(item) {
             return item !== decreaseFontSizeCommand
         })
         decreaseFontSizeCommand = result.toLowerCase();
+        setCookie("decreaseFontSizeCommand", decreaseFontSizeCommand, 10000);
         console.log(result);
     }, false);
     var a3i = document.createElement('i');
@@ -672,14 +696,15 @@ function commandsMenu(){
     divCommandsMenu.appendChild(document.createElement('br'));
 
     var a4 = document.createElement('a');
-    a4.text = '"' + stopListeningCommand + '" command ';
+    a4.text = "'Stop listening' command " + "(" + stopListeningCommand + ") ";
     a4.addEventListener("click", function(){
-        var result = prompt("New command value for " + stopListeningCommand + " command", stopListeningCommand);
+        var result = prompt("New command value for 'stop listening' command", stopListeningCommand);
         commands.push(result.toLowerCase());
         commands = commands.filter(function(item) {
             return item !== stopListeningCommand
         })
         stopListeningCommand = result.toLowerCase();
+        setCookie("stopListeningCommand", stopListeningCommand, 10000);
         console.log(result);
     }, false);
     var a4i = document.createElement('i');
@@ -811,10 +836,12 @@ function audioToText(){
     recognition.lang = languageCodeCommands;
     recognition.interimResults = false;
     recognition.continuous = true;
-    recognition.start();
+    if(listeningActive){
+        recognition.start();
+    }
 
     recognition.onresult = event => {
-        const speechToText = event.results[event.results.length -1][0].transcript;
+        const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
         console.log(speechToText);
         if(!changeCommandInProcess1 && !changeCommandInProcess2){
             if(speechToText.includes(increaseFontSizeCommand) && increaseFontSizeCommandActive){
@@ -864,6 +891,7 @@ function audioToText(){
                 recognition.abort();
                 listeningActive = false;
                 document.getElementById("toggleListeningA").text = "Start Listening";
+                document.getElementById("toggleListeningIcon").style = "color:red";
             }
         } else {
             if(changeCommandInProcess1){
@@ -892,7 +920,25 @@ function audioToText(){
                         changeCommandInProcess2 = false;
                     } else {
                         Read(speechToText + " is the new command");
-                        eval(camelize(newCommandString) + "Command = '" + speechToText.toLowerCase() + "'");
+                        if(newCommandString === readCommand){
+                            readCommand = speechToText.toLowerCase();
+                            setCookie("readCommand", readCommand, 10000);
+                        } else if(newCommandString === increaseFontSizeCommand){
+                            increaseFontSizeCommand = speechToText.toLowerCase();
+                            setCookie("increaseFontSizeCommand", increaseFontSizeCommand, 10000);
+                        } else if(newCommandString === goToCommand){
+                            goToCommand = speechToText.toLowerCase();
+                            setCookie("goToCommand", goToCommand, 10000);
+                        } else if(newCommandString === stopListeningCommand){
+                            stopListeningCommand = speechToText.toLowerCase();
+                            setCookie("stopListeningCommand", stopListeningCommand, 10000);
+                        } else if(newCommandString === changeCommand){
+                            changeCommand = speechToText.toLowerCase();
+                            setCookie("changeCommand", changeCommand, 10000);
+                        }
+                        /*eval(camelize(newCommandString) + "Command = '" + speechToText.toLowerCase() + "'");
+                        var variableName = camelize(newCommandString) + "Command";
+                        console.log("variableName: " +variableName);*/
                         //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
                         changeCommandInProcess1 = false;
                         changeCommandInProcess2 = false;
