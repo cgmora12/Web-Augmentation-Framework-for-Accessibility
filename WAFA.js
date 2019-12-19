@@ -47,6 +47,7 @@ var newCommandQuestion = "which is the new command"
 var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
 var newCommandString = "";
+var activateClickDetector = false;
 
 var myStorage = window.localStorage;
 
@@ -173,6 +174,7 @@ function createWebAugmentedMenu(){
     divMenu.style = "position: absolute; left: 2%; top: 2%; z-index: 100"
     var menuLinkDiv = document.createElement("div");
     var menuLink = document.createElement("a");
+    menuLink.id = "a-webaugmentation";
     menuLink.href = "javascript:void(0);";
     menuLink.className = "icon";
     menuLink.addEventListener("click", toggleMenu)
@@ -322,7 +324,7 @@ function createWebAugmentedMenu(){
     }, false);
     aToggleSections.text = 'Toggle sections';
     divButtons.appendChild(aToggleSections);
-    var inputToggleSections = document.createElement('input');
+    /*var inputToggleSections = document.createElement('input');
     inputToggleSections.type = 'checkbox';
     inputToggleSections.id = 'toggleSectionsInput';
     inputToggleSections.value = 'toggleSectionsInput';
@@ -331,7 +333,7 @@ function createWebAugmentedMenu(){
         //TODO
         console.log("Change toggle sections checkbox value");
     }, false);
-    divButtons.appendChild(inputToggleSections);
+    divButtons.appendChild(inputToggleSections);*/
     divButtons.appendChild(document.createElement('br'));
 
     var a4 = document.createElement('a');
@@ -393,6 +395,7 @@ function createWebAugmentedMenu(){
     commandsMenu();
     createReadMenu();
     createGoToMenu();
+    clickDetector();
 }
 
 function toggleMenu(){
@@ -548,7 +551,50 @@ function toggleGoTo(){
 }
 
 function toggleToggleSectionsMenu(){
-    console.log("toggleToggleSectionsMenu");
+    activateClickDetector = !activateClickDetector;
+
+    if(activateClickDetector){
+        document.getElementById("toggleSectionsA").text = "Stop Toggle sections";
+        $('button').prop('disabled', true);
+        $('a').css({'pointer-events': 'none'});
+        $("#a-webaugmentation").css({'pointer-events': 'all'});
+        $("#toggleSectionsA").css({'pointer-events': 'all'});
+    } else {
+        document.getElementById("toggleSectionsA").text = "Toggle sections";
+        $('button').prop('disabled', false);
+        $('a').css({'pointer-events': 'all'});
+    }
+}
+
+function clickDetector(){
+    document.addEventListener('click', function(event) {
+        //console.log('click');
+        if (event===undefined) event= window.event;
+        var target= 'target' in event? event.target : event.srcElement;
+
+        if(activateClickDetector){
+            console.log('clicked on ' + target.tagName);
+            //TODO: avoid deleting/hiding some elements, and activate actions such as read aloud
+            var menu = document.getElementById("menu-webaugmentation");
+            if(!menu.contains(target)){
+               target.parentNode.removeChild(target);
+            }
+            event.stopPropagation()
+            event.preventDefault()
+            return false;
+        }
+    }, false);
+
+    /*$("a").click(function(event) {
+        console.log("a clicked!!")
+        if (activateClickDetector){
+            console.log("activated")
+            event.stopPropagation()
+            event.preventDefault()
+            return false;
+        }
+        return !activateClickDetector;
+    });*/
 }
 
 // Language management
@@ -1034,7 +1080,9 @@ function Read(message){
     reader.onend = function(event) {
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
-        recognition.start();
+        if(listeningActive){
+            recognition.start();
+        }
     };
     window.speechSynthesis.speak(reader);
     $('#cancel').css('visibility', 'visible');
