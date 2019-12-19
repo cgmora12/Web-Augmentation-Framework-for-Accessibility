@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  Web Augmentation Framework for Accessibility (WAFA)
 // @author       Cesar Gonzalez Mora
 // @match        https://es.wikipedia.org/*
@@ -48,104 +48,106 @@ var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
 var newCommandString = "";
 
+var myStorage = window.localStorage;
+
 
 // Main method
 $(document).ready(function() {
-    getAndSetCookies();
+    getAndSetStorage();
     createWebAugmentedMenu();
     addAugmentationOperations();
 });
 
-// Cookies management
-function getAndSetCookies(){
-    if(getCookie("languageCodeSyntesis") !== ""){
-        languageCodeSyntesis = getCookie("languageCodeSyntesis")
+// Storage management
+function getAndSetStorage(){
+    if(myStorage.getItem("languageCodeSyntesis") !== null){
+        languageCodeSyntesis = myStorage.getItem("languageCodeSyntesis")
     } else {
-        setCookie("languageCodeSyntesis", languageCodeSyntesis, 10000);
+        myStorage.setItem("languageCodeSyntesis", languageCodeSyntesis);
     }
 
-    if(getCookie("languageCodeCommands") !== ""){
-        languageCodeCommands = getCookie("languageCodeCommands")
+    if(myStorage.getItem("languageCodeCommands") !== null){
+        languageCodeCommands = myStorage.getItem("languageCodeCommands")
     } else {
-        setCookie("languageCodeCommands", languageCodeCommands, 10000);
+        myStorage.setItem("languageCodeCommands", languageCodeCommands);
     }
 
-    if(getCookie("listeningActive") !== ""){
-        listeningActive = (getCookie("listeningActive") == 'true')
+    if(myStorage.getItem("listeningActive") !== null){
+        listeningActive = (myStorage.getItem("listeningActive") == 'true')
     } else {
-        setCookie("listeningActive", listeningActive, 10000);
+        myStorage.setItem("listeningActive", listeningActive);
     }
 
-    if(getCookie("readCommand") !== ""){
-        readCommand = getCookie("readCommand")
+    if(myStorage.getItem("readCommand") !== null){
+        readCommand = myStorage.getItem("readCommand")
     } else {
-        setCookie("readCommand", readCommand, 10000);
+        myStorage.setItem("readCommand", readCommand);
     }
 
-    if(getCookie("readCommandActive") !== ""){
-        readCommandActive = (getCookie("readCommandActive") == 'true')
+    if(myStorage.getItem("readCommandActive") !== null){
+        readCommandActive = (myStorage.getItem("readCommandActive") == 'true')
     } else {
-        setCookie("readCommandActive", readCommandActive, 10000);
+        myStorage.setItem("readCommandActive", readCommandActive);
     }
 
-    if(getCookie("goToCommand") !== ""){
-        goToCommand = getCookie("goToCommand")
+    if(myStorage.getItem("goToCommand") !== null){
+        goToCommand = myStorage.getItem("goToCommand")
     } else {
-        setCookie("goToCommand", goToCommand, 10000);
+        myStorage.setItem("goToCommand", goToCommand);
     }
 
-    if(getCookie("goToCommandActive") !== ""){
-        goToCommandActive = (getCookie("goToCommandActive") == 'true')
+    if(myStorage.getItem("goToCommandActive") !== null){
+        goToCommandActive = (myStorage.getItem("goToCommandActive") == 'true')
     } else {
-        setCookie("goToCommandActive", goToCommandActive, 10000);
+        myStorage.setItem("goToCommandActive", goToCommandActive);
     }
 
-    if(getCookie("goToVideosCommandActive") !== ""){
-        goToVideosCommandActive = (getCookie("goToVideosCommandActive") == 'true')
+    if(myStorage.getItem("goToVideosCommandActive") !== null){
+        goToVideosCommandActive = (myStorage.getItem("goToVideosCommandActive") == 'true')
     } else {
-        setCookie("goToVideosCommandActive", goToVideosCommandActive, 10000);
+        myStorage.setItem("goToVideosCommandActive", goToVideosCommandActive);
     }
 
-    if(getCookie("increaseFontSizeCommand") !== ""){
-        increaseFontSizeCommand = getCookie("increaseFontSizeCommand")
+    if(myStorage.getItem("increaseFontSizeCommand") !== null){
+        increaseFontSizeCommand = myStorage.getItem("increaseFontSizeCommand")
     } else {
-        setCookie("increaseFontSizeCommand", increaseFontSizeCommand, 10000);
+        myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
     }
 
-    if(getCookie("increaseFontSizeCommandActive") !== ""){
-        increaseFontSizeCommandActive = (getCookie("increaseFontSizeCommandActive") == 'true')
+    if(myStorage.getItem("increaseFontSizeCommandActive") !== null){
+        increaseFontSizeCommandActive = (myStorage.getItem("increaseFontSizeCommandActive") == 'true')
     } else {
-        setCookie("increaseFontSizeCommandActive", increaseFontSizeCommandActive, 10000);
+        myStorage.setItem("increaseFontSizeCommandActive", increaseFontSizeCommandActive);
     }
 
-    if(getCookie("decreaseFontSizeCommand") !== ""){
-        decreaseFontSizeCommand = getCookie("decreaseFontSizeCommand")
+    if(myStorage.getItem("decreaseFontSizeCommand") !== null){
+        decreaseFontSizeCommand = myStorage.getItem("decreaseFontSizeCommand")
     } else {
-        setCookie("decreaseFontSizeCommand", decreaseFontSizeCommand, 10000);
+        myStorage.setItem("decreaseFontSizeCommand", decreaseFontSizeCommand);
     }
 
-    if(getCookie("decreaseFontSizeCommandActive") !== ""){
-        decreaseFontSizeCommandActive = (getCookie("decreaseFontSizeCommandActive") == 'true')
+    if(myStorage.getItem("decreaseFontSizeCommandActive") !== null){
+        decreaseFontSizeCommandActive = (myStorage.getItem("decreaseFontSizeCommandActive") == 'true')
     } else {
-        setCookie("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive, 10000);
+        myStorage.setItem("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
     }
 
-    if(getCookie("stopListeningCommand") !== ""){
-        stopListeningCommand = getCookie("stopListeningCommand")
+    if(myStorage.getItem("stopListeningCommand") !== null){
+        stopListeningCommand = myStorage.getItem("stopListeningCommand")
     } else {
-        setCookie("stopListeningCommand", stopListeningCommand, 10000);
+        myStorage.setItem("stopListeningCommand", stopListeningCommand);
     }
 
-    if(getCookie("toggleSectionsCommand") !== ""){
-        toggleSectionsCommand = getCookie("toggleSectionsCommand")
+    if(myStorage.getItem("toggleSectionsCommand") !== null){
+        toggleSectionsCommand = myStorage.getItem("toggleSectionsCommand")
     } else {
-        setCookie("toggleSectionsCommand", toggleSectionsCommand, 10000);
+        myStorage.setItem("toggleSectionsCommand", toggleSectionsCommand);
     }
 
-    if(getCookie("toggleSectionsCommandActive") !== ""){
-        toggleSectionsCommandActive = (getCookie("toggleSectionsCommandActive") == 'true')
+    if(myStorage.getItem("toggleSectionsCommandActive") !== null){
+        toggleSectionsCommandActive = (myStorage.getItem("toggleSectionsCommandActive") == 'true')
     } else {
-        setCookie("toggleSectionsCommandActive", toggleSectionsCommandActive, 10000);
+        myStorage.setItem("toggleSectionsCommandActive", toggleSectionsCommandActive);
     }
 
     commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, toggleSectionsCommandActive]
@@ -303,7 +305,7 @@ function createWebAugmentedMenu(){
             toggleListeningIcon.style = "color:gray";
             listeningActive = true;
         }
-        setCookie("listeningActive", listeningActive, 10000);
+        myStorage.setItem("listeningActive", listeningActive);
     }, false);
     divButtons.appendChild(inputVoiceCommands);
     divButtons.appendChild(document.createElement('br'));
@@ -362,7 +364,7 @@ function createWebAugmentedMenu(){
             inputVoiceCommands.checked = listeningActive;
             toggleListeningIcon.style = "color:gray";
         }
-        setCookie("listeningActive", listeningActive, 10000);
+        myStorage.setItem("listeningActive", listeningActive);
     }, false);
     if(listeningActive){
         aToggleListening.text = 'Stop Listening';
@@ -419,7 +421,7 @@ function toggleIncreaseFontSize(){
         increaseFontSizeCommandActive = true;
         document.getElementById("increaseFontSizeA").style.setProperty("pointer-events", "all");
     }
-    setCookie("increaseFontSizeCommandActive", increaseFontSizeCommandActive, 10000);
+    myStorage.setItem("increaseFontSizeCommandActive", increaseFontSizeCommandActive);
 }
 function toggleDecreaseFontSize(){
     if(decreaseFontSizeCommandActive){
@@ -429,7 +431,7 @@ function toggleDecreaseFontSize(){
         decreaseFontSizeCommandActive = true;
         document.getElementById("decreaseFontSizeA").style.setProperty("pointer-events", "all");
     }
-    setCookie("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive, 10000);
+    myStorage.setItem("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
 }
 
 function createReadMenu(){
@@ -489,7 +491,7 @@ function toggleReadAloud(){
             divsToHide[i2].style.display = "block";
         }
     }
-    setCookie("readCommandActive", readCommandActive, 10000);
+    myStorage.setItem("readCommandActive", readCommandActive);
 }
 
 
@@ -542,7 +544,7 @@ function toggleGoTo(){
         goToCommandActive = true;
         document.getElementById("goToA").style.setProperty("pointer-events", "all");
     }
-    setCookie("goToCommandActive", goToCommandActive, 10000);
+    myStorage.setItem("goToCommandActive", goToCommandActive);
 }
 
 function toggleToggleSectionsMenu(){
@@ -632,7 +634,7 @@ function commandsMenu(){
             return item !== readCommand
         })
         readCommand = result.toLowerCase();
-        setCookie("readCommand", readCommand, 10000);
+        myStorage.setItem("readCommand", readCommand);
         console.log(result);
     }, false);
     var a1i = document.createElement('i');
@@ -650,7 +652,7 @@ function commandsMenu(){
             return item !== goToCommand
         })
         goToCommand = result.toLowerCase();
-        setCookie("goToCommand", goToCommand, 10000);
+        myStorage.setItem("goToCommand", goToCommand);
         console.log(result);
     }, false);
     var aGoToi = document.createElement('i');
@@ -668,7 +670,7 @@ function commandsMenu(){
             return item !== increaseFontSizeCommand
         })
         increaseFontSizeCommand = result.toLowerCase();
-        setCookie("increaseFontSizeCommand", increaseFontSizeCommand, 10000);
+        myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
         console.log(result);
     }, false);
     var a2i = document.createElement('i');
@@ -686,7 +688,7 @@ function commandsMenu(){
             return item !== decreaseFontSizeCommand
         })
         decreaseFontSizeCommand = result.toLowerCase();
-        setCookie("decreaseFontSizeCommand", decreaseFontSizeCommand, 10000);
+        myStorage.setItem("decreaseFontSizeCommand", decreaseFontSizeCommand);
         console.log(result);
     }, false);
     var a3i = document.createElement('i');
@@ -704,7 +706,7 @@ function commandsMenu(){
             return item !== stopListeningCommand
         })
         stopListeningCommand = result.toLowerCase();
-        setCookie("stopListeningCommand", stopListeningCommand, 10000);
+        myStorage.setItem("stopListeningCommand", stopListeningCommand);
         console.log(result);
     }, false);
     var a4i = document.createElement('i');
@@ -922,19 +924,19 @@ function audioToText(){
                         Read(speechToText + " is the new command");
                         if(newCommandString === readCommand){
                             readCommand = speechToText.toLowerCase();
-                            setCookie("readCommand", readCommand, 10000);
+                            myStorage.setItem("readCommand", readCommand);
                         } else if(newCommandString === increaseFontSizeCommand){
                             increaseFontSizeCommand = speechToText.toLowerCase();
-                            setCookie("increaseFontSizeCommand", increaseFontSizeCommand, 10000);
+                            myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
                         } else if(newCommandString === goToCommand){
                             goToCommand = speechToText.toLowerCase();
-                            setCookie("goToCommand", goToCommand, 10000);
+                            myStorage.setItem("goToCommand", goToCommand);
                         } else if(newCommandString === stopListeningCommand){
                             stopListeningCommand = speechToText.toLowerCase();
-                            setCookie("stopListeningCommand", stopListeningCommand, 10000);
+                            myStorage.setItem("stopListeningCommand", stopListeningCommand);
                         } else if(newCommandString === changeCommand){
                             changeCommand = speechToText.toLowerCase();
-                            setCookie("changeCommand", changeCommand, 10000);
+                            myStorage.setItem("changeCommand", changeCommand);
                         }
                         /*eval(camelize(newCommandString) + "Command = '" + speechToText.toLowerCase() + "'");
                         var variableName = camelize(newCommandString) + "Command";
@@ -1170,7 +1172,7 @@ function toggleYoutubeVideos(){
     document.getElementById("goToVideosA").style.setProperty("pointer-events", "all");
     goToVideosCommandActive = true;
   }
-  setCookie("goToVideosCommandActive", goToVideosCommandActive, 10000);
+  myStorage.setItem("goToVideosCommandActive", goToVideosCommandActive);
 }
 
 // Wikipedia Links
@@ -1188,34 +1190,29 @@ function wikipediaLinks(){
 
 // Bread Crumb (History)
 function breadCrumb(){
-    var i
+    var lastVisitedSitesURL = []
+    var lastVisitedSitesTitle = []
     var breadcrumb = document.createElement('div');
     breadcrumb.id = "breadcrumb";
 
-    if(localStorage.getItem("i") != null){
-        i = parseInt(localStorage.getItem("i"))+1;
-        localStorage.setItem("i", i);
-    }else{
-        i = 0;
-        localStorage.setItem("i", i);
+    var maxBreadCrumb = 4;
+    if(myStorage.getItem("lastVisitedSitesTitle" + "0") !== document.title){
+        lastVisitedSitesURL.push(location.href)
+        lastVisitedSitesTitle.push(document.title)
+    } else{
+        maxBreadCrumb++;
     }
-    localStorage.setItem(i.toString(), location.href);
-    localStorage.setItem("name"+i.toString(), document.getElementById("firstHeading").innerText);
-    if(i == 6){
-        localStorage.setItem("0", localStorage.getItem("1"));
-        localStorage.setItem("name0", localStorage.getItem("name1"));
-        localStorage.setItem("1", localStorage.getItem("2"));
-        localStorage.setItem("name1", localStorage.getItem("name2"));
-        localStorage.setItem("2", localStorage.getItem("3"));
-        localStorage.setItem("name2", localStorage.getItem("name3"));
-        localStorage.setItem("3", localStorage.getItem("4"));
-        localStorage.setItem("name3", localStorage.getItem("name4"));
-        localStorage.setItem("4", localStorage.getItem("5"));
-        localStorage.setItem("name4", localStorage.getItem("name5"));
-        localStorage.setItem("5", localStorage.getItem("6"));
-        localStorage.setItem("name5", localStorage.getItem("name6"));
-        i = 5;
-        localStorage.setItem("i", "5");
+    for(var i = 0; i < maxBreadCrumb; i++){
+        if(myStorage.getItem("lastVisitedSitesURL" + i) !== null){
+            lastVisitedSitesURL.push(myStorage.getItem("lastVisitedSitesURL" + i))
+        }
+        if(myStorage.getItem("lastVisitedSitesTitle" + i) !== null){
+            lastVisitedSitesTitle.push(myStorage.getItem("lastVisitedSitesTitle" + i))
+        }
+    }
+    for(var lastVisitedSitesIndex = 0; lastVisitedSitesIndex < lastVisitedSitesURL.length; lastVisitedSitesIndex++){
+        myStorage.setItem("lastVisitedSitesURL" + lastVisitedSitesIndex, lastVisitedSitesURL[lastVisitedSitesIndex])
+        myStorage.setItem("lastVisitedSitesTitle" + lastVisitedSitesIndex, lastVisitedSitesTitle[lastVisitedSitesIndex])
     }
     document.body.appendChild(breadcrumb);
     $('#breadcrumb').css({
@@ -1223,23 +1220,26 @@ function breadCrumb(){
         'height': '50px',
         'left': '15%',
         'top': '0',
-        'width': '100%',
+        //'width': '100%',
         'padding': '10px',
         //'background-color': '#FFFFFF',
         'vertical-align': 'bottom',
         'visibility': 'visible',
     });
-    var item = ""
-    for(var x=0;x<i;x++){
-        if(item != localStorage.getItem("name"+x.toString())){
-            var link = document.createElement("a");
-            link.href = localStorage.getItem(x.toString());
-            link.innerText=localStorage.getItem("name"+x.toString());
-            link.className="linkBread";
-            $('#breadcrumb').append(link);
-            document.getElementById("breadcrumb").innerHTML += " > ";
-            item = localStorage.getItem("name"+x.toString());
+    var lastVisitedSitesURLReverse = lastVisitedSitesURL.reverse()
+    var lastVisitedSitesTitleReverse = lastVisitedSitesTitle.reverse()
+    for(var x = 0; x < lastVisitedSitesURLReverse.length; x++){
+        var link = document.createElement("a");
+        if(x < lastVisitedSitesURLReverse.length - 1) {
+            link.href = lastVisitedSitesURLReverse[x];
+            link.style = "color: #0645ad !important;"
+        } else {
+            link.style = "color: #000000 !important;text-decoration: none;"
         }
+        link.innerText = lastVisitedSitesTitleReverse[x];
+        link.className = "linkBread";
+        $('#breadcrumb').append(link);
+        document.getElementById("breadcrumb").innerHTML += " > ";
     }
     $('.linkBread').each(function(){
         $(this).css({
@@ -1248,7 +1248,7 @@ function breadCrumb(){
     });
 }
 
-function setCookie(cname, cvalue, exdays) {
+/*function setCookie(cname, cvalue, exdays) {
   var d = new Date();
   d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
   var expires = "expires="+d.toUTCString();
@@ -1268,6 +1268,6 @@ function getCookie(cname) {
     }
   }
   return "";
-}
+}*/
 
 
