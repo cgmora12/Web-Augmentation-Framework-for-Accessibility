@@ -49,9 +49,13 @@ var activateClickDetector = false;
 
 var myStorage = window.localStorage;
 
+var hiddenItems = [];
+
 
 // Main method
 $(document).ready(function() {
+    createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
+    $('*[class=""]').removeAttr('class');
     getAndSetStorage();
     createWebAugmentedMenu();
     addAugmentationOperations();
@@ -147,6 +151,15 @@ function getAndSetStorage(){
         toggleSectionsCommandActive = (myStorage.getItem("toggleSectionsCommandActive") == 'true')
     } else {
         myStorage.setItem("toggleSectionsCommandActive", toggleSectionsCommandActive);
+    }
+
+    if(myStorage.getItem("hiddenItems") !== null){
+        try {
+            hiddenItems = JSON.parse(myStorage.getItem("hiddenItems"))
+        } catch (e) {
+        }
+    } else {
+        myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
     }
 
     commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, toggleSectionsCommandActive]
@@ -321,7 +334,7 @@ function createWebAugmentedMenu(){
         closeReadMenu();
         toggleToggleSectionsMenu();
     }, false);
-    aToggleSections.text = 'Toggle sections';
+    aToggleSections.text = 'Hide sections';
     divButtons.appendChild(aToggleSections);
     /*var inputToggleSections = document.createElement('input');
     inputToggleSections.type = 'checkbox';
@@ -333,6 +346,20 @@ function createWebAugmentedMenu(){
         console.log("Change toggle sections checkbox value");
     }, false);
     divButtons.appendChild(inputToggleSections);*/
+    divButtons.appendChild(document.createElement('br'));
+
+    var aResetSections = document.createElement('a');
+    aResetSections.id = "resetSectionsA";
+    aResetSections.addEventListener("click", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        closeCommandsMenu();
+        closeReadMenu();
+        resetSections();
+    }, false);
+    aResetSections.text = 'Reset sections';
+    divButtons.appendChild(aResetSections);
+
     divButtons.appendChild(document.createElement('br'));
 
     var a4 = document.createElement('a');
@@ -553,15 +580,18 @@ function toggleToggleSectionsMenu(){
     activateClickDetector = !activateClickDetector;
 
     if(activateClickDetector){
-        document.getElementById("toggleSectionsA").text = "Stop Toggle sections";
+        document.getElementById("toggleSectionsA").text = "Stop hide sections (Save)";
         $('button').prop('disabled', true);
-        $('a').css({'pointer-events': 'none'});
+        $('a').addClass("hideSectionsLinks");
+        //$('a').css({'pointer-events': 'none'});
         $("#a-webaugmentation").css({'pointer-events': 'all'});
         $("#toggleSectionsA").css({'pointer-events': 'all'});
     } else {
-        document.getElementById("toggleSectionsA").text = "Toggle sections";
+        document.getElementById("toggleSectionsA").text = "Hide sections";
         $('button').prop('disabled', false);
-        $('a').css({'pointer-events': 'all'});
+        //$('a').css({'pointer-events': 'all'});
+        $('a').removeClass("hideSectionsLinks");
+        myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
     }
 }
 
@@ -577,6 +607,20 @@ function clickDetector(){
             var menu = document.getElementById("menu-webaugmentation");
             if(!menu.contains(target)){
                //target.parentNode.removeChild(target);
+                if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
+                    hiddenItems.push(target.id);
+                } else {
+                    var childA = target.getElementsByTagName("a")
+                    for(var i = 0; i < childA.length; i++){
+                        childA[i].classList.remove("hideSectionsLinks");
+                        if (childA[i].className == "")
+                            childA[i].removeAttribute('class');
+                    }
+                    target.classList.remove("hideSectionsLinks");
+                    if (target.className == "")
+                        target.removeAttribute('class');
+                    hiddenItems.push(target.outerHTML);
+                }
                 target.style.display = 'none';
             }
             event.stopPropagation()
@@ -779,7 +823,7 @@ function closeCommandsMenu(){
 
 // Operations
 function addAugmentationOperations(){
-    //focusInfo();
+    focusInfo();
     textToAudio();
     audioToText();
     //textSize();
@@ -791,9 +835,23 @@ function addAugmentationOperations(){
 
 // Focus info (delete unnecessary items)
 function focusInfo(){
-    //Hide instead of remove
+    //Hide selected items
+    for(var i = 0; i < hiddenItems.length; i++){
+        //console.log(hiddenItems[i]);
+        if(document.getElementById(hiddenItems[i]) !== null){
+            document.getElementById(hiddenItems[i]).style.display = 'none';
+        } else {
+            var all = document.body.getElementsByTagName("*");
 
-    var content = document.getElementById("content");
+            for (var j=0, max=all.length; j < max; j++) {
+                if(all[j].outerHTML === hiddenItems[i]){
+                    all[j].style.display = 'none';
+                }
+            }
+        }
+    }
+
+    /*var content = document.getElementById("content");
     content.insertBefore(document.createElement("br"), content.childNodes[0]);
     $('#mw-page-base').remove()
     $('#mw-head-base').remove()
@@ -852,6 +910,7 @@ function focusInfo(){
         }
         document.getElementById("External_links").parentElement.remove()
     }
+    */
 
     // Collapsible items
     /*var link1 = document.createElement('link');
@@ -868,6 +927,18 @@ function focusInfo(){
         headlines[headlineIndex].setAttribute("aria-controls","scontent-collapsible-block-0")
         headlines[headlineIndex].innerHTML = "<div class=\"mw-ui-icon mw-ui-icon-mf-expand mw-ui-icon-element mw-ui-icon-small  indicator mw-ui-icon-flush-left\"></div>" + headlines[headlineIndex].innerHTML
     }*/
+
+}
+
+function resetSections(){
+
+    for(var i = 0; i < hiddenItems.length; i++){
+        //console.log(hiddenItems[i]);
+        document.getElementById(hiddenItems[i]).style.display = 'block';
+    }
+
+    hiddenItems = [];
+    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
 
 }
 
@@ -1153,7 +1224,6 @@ function changeFontSize(changer){
 }
 
 // Go to
-
 function goToFromHeadlineElement(headlineElement){
     closeGoToMenu();
     closeMenu();
@@ -1317,4 +1387,70 @@ function getCookie(cname) {
   }
   return "";
 }*/
+
+function createCSSSelector (selector, style) {
+  if (!document.styleSheets) return;
+  if (document.getElementsByTagName('head').length == 0) return;
+
+  var styleSheet,mediaType;
+
+  if (document.styleSheets.length > 0) {
+    for (var i = 0, l = document.styleSheets.length; i < l; i++) {
+      if (document.styleSheets[i].disabled)
+        continue;
+      var media = document.styleSheets[i].media;
+      mediaType = typeof media;
+
+      if (mediaType === 'string') {
+        if (media === '' || (media.indexOf('screen') !== -1)) {
+          styleSheet = document.styleSheets[i];
+        }
+      }
+      else if (mediaType=='object') {
+        if (media.mediaText === '' || (media.mediaText.indexOf('screen') !== -1)) {
+          styleSheet = document.styleSheets[i];
+        }
+      }
+
+      if (typeof styleSheet !== 'undefined')
+        break;
+    }
+  }
+
+  if (typeof styleSheet === 'undefined') {
+    var styleSheetElement = document.createElement('style');
+    styleSheetElement.type = 'text/css';
+    document.getElementsByTagName('head')[0].appendChild(styleSheetElement);
+
+    for (i = 0; i < document.styleSheets.length; i++) {
+      if (document.styleSheets[i].disabled) {
+        continue;
+      }
+      styleSheet = document.styleSheets[i];
+    }
+
+    mediaType = typeof styleSheet.media;
+  }
+
+  if (mediaType === 'string') {
+    for (i = 0, l = styleSheet.rules.length; i < l; i++) {
+      if(styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase()==selector.toLowerCase()) {
+        styleSheet.rules[i].style.cssText = style;
+        return;
+      }
+    }
+    styleSheet.addRule(selector,style);
+  }
+  else if (mediaType === 'object') {
+    var styleSheetLength = (styleSheet.cssRules) ? styleSheet.cssRules.length : 0;
+    for (i = 0; i < styleSheetLength; i++) {
+      if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+        styleSheet.cssRules[i].style.cssText = style;
+        return;
+      }
+    }
+    styleSheet.insertRule(selector + '{' + style + '}', styleSheetLength);
+  }
+}
+
 
