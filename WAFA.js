@@ -6,9 +6,7 @@
 // @version      0.8
 // @description  Web Augmentation Framework for Accessibility (WAFA)
 // @author       Cesar Gonzalez Mora
-// @match        https://es.wikipedia.org/*
-// @match        https://es.m.wikipedia.org/*
-// @match        https://*.wikipedia.org/*
+// @match        *://*/*
 // @grant        none
 // @require http://code.jquery.com/jquery-3.3.1.slim.min.js
 // @require http://code.jquery.com/jquery-3.3.1.min.js
@@ -179,7 +177,8 @@ function createWebAugmentedMenu(){
     menuLink.className = "icon";
     menuLink.addEventListener("click", toggleMenu)
     var menuIcon = document.createElement("i");
-    menuIcon.className = "fa fa-bars";
+    menuIcon.className = "fa fa-bars fa-2x fa-border";
+    menuIcon.style="background-color: white;";
     menuLink.appendChild(menuIcon);
     menuLinkDiv.appendChild(menuLink);
     divMenu.appendChild(menuLinkDiv);
@@ -577,7 +576,8 @@ function clickDetector(){
             //TODO: avoid deleting/hiding some elements, and activate actions such as read aloud
             var menu = document.getElementById("menu-webaugmentation");
             if(!menu.contains(target)){
-               target.parentNode.removeChild(target);
+               //target.parentNode.removeChild(target);
+                target.style.display = 'none';
             }
             event.stopPropagation()
             event.preventDefault()
@@ -779,7 +779,7 @@ function closeCommandsMenu(){
 
 // Operations
 function addAugmentationOperations(){
-    focusInfo();
+    //focusInfo();
     textToAudio();
     audioToText();
     //textSize();
@@ -1317,5 +1317,4 @@ function getCookie(cname) {
   }
   return "";
 }*/
-
 
