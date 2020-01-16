@@ -33,10 +33,10 @@ var increaseFontSizeCommandActive = true
 var decreaseFontSizeCommand = "decrease font size"
 var decreaseFontSizeCommandActive = true
 var stopListeningCommand = "stop listening"
-var toggleSectionsCommand = "toggle"
-var toggleSectionsCommandActive = true
+var hiddenSectionsCommand = "hidden"
+var hiddenSectionsCommandActive = true
 
-var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, toggleSectionsCommand]
+var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -50,11 +50,15 @@ var activateClickDetector = false;
 var myStorage = window.localStorage;
 
 var hiddenItems = [];
+var hiddenItemsAux = [];
 
 
 // Main method
 $(document).ready(function() {
     createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
+    createCSSSelector('.hideUselessSections', 'display: none');
+    createCSSSelector('.hoverColor:hover', 'background-color: grey !important;');
+    createCSSSelector('.selectedColor', 'background-color: grey !important;;');
     $('*[class=""]').removeAttr('class');
     getAndSetStorage();
     createWebAugmentedMenu();
@@ -141,16 +145,16 @@ function getAndSetStorage(){
         myStorage.setItem("stopListeningCommand", stopListeningCommand);
     }
 
-    if(myStorage.getItem("toggleSectionsCommand") !== null){
-        toggleSectionsCommand = myStorage.getItem("toggleSectionsCommand")
+    if(myStorage.getItem("hiddenSectionsCommand") !== null){
+        hiddenSectionsCommand = myStorage.getItem("hiddenSectionsCommand")
     } else {
-        myStorage.setItem("toggleSectionsCommand", toggleSectionsCommand);
+        myStorage.setItem("hiddenSectionsCommand", hiddenSectionsCommand);
     }
 
-    if(myStorage.getItem("toggleSectionsCommandActive") !== null){
-        toggleSectionsCommandActive = (myStorage.getItem("toggleSectionsCommandActive") == 'true')
+    if(myStorage.getItem("hiddenSectionsCommandActive") !== null){
+        hiddenSectionsCommandActive = (myStorage.getItem("hiddenSectionsCommandActive") == 'true')
     } else {
-        myStorage.setItem("toggleSectionsCommandActive", toggleSectionsCommandActive);
+        myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
     }
 
     if(myStorage.getItem("hiddenItems") !== null){
@@ -162,7 +166,7 @@ function getAndSetStorage(){
         myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
     }
 
-    commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, toggleSectionsCommandActive]
+    commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand]
 }
 
 
@@ -324,42 +328,45 @@ function createWebAugmentedMenu(){
     divButtons.appendChild(inputVoiceCommands);
     divButtons.appendChild(document.createElement('br'));
 
-    var aToggleSections = document.createElement('a');
-    aToggleSections.id = "toggleSectionsA";
-    //aToggleSections.href = '';
-    aToggleSections.addEventListener("click", function(){
+    var a6 = document.createElement('a');
+    a6.id = "annotationsA";
+    a6.addEventListener("click", function(){
         toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
-        toggleToggleSectionsMenu();
+        toggleAnnotationsMenu();
     }, false);
-    aToggleSections.text = 'Hide sections';
-    divButtons.appendChild(aToggleSections);
-    /*var inputToggleSections = document.createElement('input');
-    inputToggleSections.type = 'checkbox';
-    inputToggleSections.id = 'toggleSectionsInput';
-    inputToggleSections.value = 'toggleSectionsInput';
-    inputToggleSections.checked = toggleSectionsCommandActive;
-    inputToggleSections.addEventListener("change", function(){
-        //TODO
-        console.log("Change toggle sections checkbox value");
-    }, false);
-    divButtons.appendChild(inputToggleSections);*/
+    a6.text = 'Annotations';
+    divButtons.appendChild(a6);
     divButtons.appendChild(document.createElement('br'));
 
-    var aResetSections = document.createElement('a');
-    aResetSections.id = "resetSectionsA";
-    aResetSections.addEventListener("click", function(){
+    var aHiddenSections = document.createElement('a');
+    aHiddenSections.id = "hiddenSectionsA";
+    //aToggleSections.href = '';
+    aHiddenSections.addEventListener("click", function(){
         toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
-        resetSections();
+        document.getElementById("hiddenSectionsInput").checked = !document.getElementById("hiddenSectionsInput").checked;
+        toggleHiddenSections();
     }, false);
-    aResetSections.text = 'Reset sections';
-    divButtons.appendChild(aResetSections);
-
+    aHiddenSections.text = 'Hide useless sections';
+    divButtons.appendChild(aHiddenSections);
+    var inputHiddenSections = document.createElement('input');
+    inputHiddenSections.type = 'checkbox';
+    inputHiddenSections.id = 'hiddenSectionsInput';
+    inputHiddenSections.value = 'hiddenSectionsInput';
+    inputHiddenSections.checked = hiddenSectionsCommandActive;
+    inputHiddenSections.addEventListener("change", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        closeCommandsMenu();
+        closeReadMenu();
+        toggleHiddenSections();
+    }, false);
+    divButtons.appendChild(inputHiddenSections);
     divButtons.appendChild(document.createElement('br'));
 
     var a4 = document.createElement('a');
@@ -377,7 +384,6 @@ function createWebAugmentedMenu(){
 
     var aToggleListening = document.createElement('a');
     aToggleListening.id = "toggleListeningA";
-    //aToggleSections.href = '';
     aToggleListening.addEventListener("click", function(){
         closeMenu();
         if(listeningActive){
@@ -417,10 +423,13 @@ function createWebAugmentedMenu(){
     menuLinkDiv.appendChild(divButtons);
     document.body.appendChild(divMenu);
 
-    changeLanguageMenu();
+    //TODO: language management
+    //changeLanguageMenu();
+    toggleHiddenSections()
     commandsMenu();
     createReadMenu();
     createGoToMenu();
+    createAnnotationsMenu();
     clickDetector();
 }
 
@@ -435,6 +444,7 @@ function toggleMenu(){
   closeCommandsMenu();
   closeReadMenu();
   closeGoToMenu();
+  closeAnnotationsMenu();
 }
 function closeMenu(){
   var x = document.getElementById("foldingMenu");
@@ -576,22 +586,151 @@ function toggleGoTo(){
     myStorage.setItem("goToCommandActive", goToCommandActive);
 }
 
-function toggleToggleSectionsMenu(){
-    activateClickDetector = !activateClickDetector;
+function toggleHiddenSections(){
 
+  if (document.getElementById("hiddenSectionsInput").checked) {
+    var all
+    for(var i = 0; i < hiddenItems.length; i++){
+        //console.log(hiddenItems[i]);
+        if(document.getElementById(hiddenItems[i]) !== null){
+            document.getElementById(hiddenItems[i]).classList.add("hideUselessSections");
+        } else {
+            all = document.body.getElementsByTagName("*");
+
+            for (var j=0, max=all.length; j < max; j++) {
+                if(all[j].outerHTML === hiddenItems[i]){
+                    all[j].classList.add("hideUselessSections");
+                }
+            }
+        }
+    }
+    hiddenSectionsCommandActive = true;
+  } else {
+    for(var k = 0; k < hiddenItems.length; k++){
+        if(document.getElementById(hiddenItems[k]) !== null){
+            document.getElementById(hiddenItems[k]).classList.remove("hideUselessSections");
+        } else {
+            all = document.body.getElementsByTagName("*");
+
+            for (var z=0; z < all.length; z++) {
+                if(all[z].outerHTML === hiddenItems[k]){
+                    all[z].classList.remove("hideUselessSections");
+                }
+            }
+        }
+    }
+
+    hiddenSectionsCommandActive = false;
+  }
+
+  closeMenu();
+
+}
+
+function resetUselessSections(){
+
+    var all
+    for(var k = 0; k < hiddenItems.length; k++){
+        if(document.getElementById(hiddenItems[k]) !== null){
+            document.getElementById(hiddenItems[k]).classList.remove("hideUselessSections");
+        } else {
+            all = document.body.getElementsByTagName("*");
+
+            for (var z=0; z < all.length; z++) {
+                if(all[z].outerHTML === hiddenItems[k]){
+                    all[z].classList.remove("hideUselessSections");
+                }
+            }
+        }
+    }
+
+    hiddenSectionsCommandActive = false;
+
+    hiddenItems = [];
+    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    closeAnnotationsMenu();
+
+}
+
+function createAnnotationsMenu(){
+
+    var divAnnotationsMenu = document.createElement("div")
+    divAnnotationsMenu.id = "menu-annotations";
+    divAnnotationsMenu.style = "position: absolute; left: 5%; top: 5%; z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeAnnotationsMenu();
+    }, false);
+    divAnnotationsMenu.appendChild(i);
+
+    var a1 = document.createElement('a');
+    a1.id = "annotateUselessA";
+    a1.text = "Annotate useless sections";
+    a1.addEventListener("click", toggleAnnotationsUselessSections, false);
+    divAnnotationsMenu.appendChild(a1);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a2 = document.createElement('a');
+    a2.id = "resetUselessSectionsA";
+    a2.text = "Reset useless sections";
+    a2.addEventListener("click", resetUselessSections, false);
+    divAnnotationsMenu.appendChild(a2);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+    document.body.appendChild(divAnnotationsMenu);
+}
+
+function toggleAnnotationsMenu(){
+  var x = document.getElementById("menu-annotations");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+    closeMenu();
+  }
+}
+
+function closeAnnotationsMenu(){
+  var x = document.getElementById("menu-annotations");
+  x.style.display = "none";
+}
+
+function toggleAnnotationsUselessSections(){
+    activateClickDetector = !activateClickDetector;
+    closeAnnotationsMenu()
+
+    var all;
     if(activateClickDetector){
-        document.getElementById("toggleSectionsA").text = "Stop hide sections (Save)";
+        document.getElementById("annotateUselessA").text = "Save annotated useless sections";
         $('button').prop('disabled', true);
         $('a').addClass("hideSectionsLinks");
+        /*all = document.body.getElementsByTagName("*");
+        for (var i = 0; i < all.length; i++) {
+            all[i].classList.add('hoverColor');
+        }*/
         //$('a').css({'pointer-events': 'none'});
         $("#a-webaugmentation").css({'pointer-events': 'all'});
-        $("#toggleSectionsA").css({'pointer-events': 'all'});
+        $("#annotationsA").css({'pointer-events': 'all'});
+        $("#annotateUselessA").css({'pointer-events': 'all'});
+        hiddenItemsAux = [];
     } else {
-        document.getElementById("toggleSectionsA").text = "Hide sections";
+        document.getElementById("annotateUselessA").text = "Annotate useless sections";
         $('button').prop('disabled', false);
         //$('a').css({'pointer-events': 'all'});
         $('a').removeClass("hideSectionsLinks");
+        all = document.body.getElementsByTagName("*");
+        for (var j = 0; j < all.length; j++) {
+            all[j].classList.remove('hoverColor');
+            all[j].classList.remove('selectedColor');
+        }
+
+        hiddenItems = hiddenItems.concat(hiddenItemsAux);
         myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+        hiddenItemsAux = [];
+
+        toggleHiddenSections();
     }
 }
 
@@ -605,10 +744,11 @@ function clickDetector(){
             console.log('clicked on ' + target.tagName);
             //TODO: avoid deleting/hiding some elements, and activate actions such as read aloud
             var menu = document.getElementById("menu-webaugmentation");
-            if(!menu.contains(target)){
+            var menuAnnotations = document.getElementById("menu-annotations");
+            if(!menu.contains(target) && !menuAnnotations.contains(target)){
                //target.parentNode.removeChild(target);
                 if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
-                    hiddenItems.push(target.id);
+                    hiddenItemsAux.push(target.id);
                 } else {
                     var childA = target.getElementsByTagName("a")
                     for(var i = 0; i < childA.length; i++){
@@ -619,9 +759,13 @@ function clickDetector(){
                     target.classList.remove("hideSectionsLinks");
                     if (target.className == "")
                         target.removeAttribute('class');
-                    hiddenItems.push(target.outerHTML);
+                    hiddenItemsAux.push(target.outerHTML);
+                    target.classList.add("hideUselessSections");
+                    hiddenItemsAux.push(target.outerHTML);
+                    target.classList.remove("hideUselessSections");
                 }
-                target.style.display = 'none';
+                //target.style.display = 'none';
+                target.classList.add('selectedColor');
             }
             event.stopPropagation()
             event.preventDefault()
@@ -650,7 +794,7 @@ function changeLanguageMenu(){
         changePredefinedVoiceLanguage(urlLanguage)
     }
     catch(error) {
-        console.error(error);
+        console.log(error);
     }
 
     var divLanguageMenu = document.createElement("div")
@@ -689,15 +833,19 @@ function changePredefinedVoiceLanguage(urlLanguage){
 
 function toggleLanguageMenu(){
   var x = document.getElementById("menu-language");
-  if (x.style.display === "block") {
-    x.style.display = "none";
-  } else {
-    x.style.display = "block";
+  if(x != null){
+      if (x.style.display === "block") {
+          x.style.display = "none";
+      } else {
+          x.style.display = "block";
+      }
   }
 }
 function closeLanguageMenu(){
   var x = document.getElementById("menu-language");
-  x.style.display = "none";
+  if(x != null){
+      x.style.display = "none";
+  }
 }
 
 
@@ -823,7 +971,7 @@ function closeCommandsMenu(){
 
 // Operations
 function addAugmentationOperations(){
-    focusInfo();
+    //focusInfo();
     textToAudio();
     audioToText();
     //textSize();
@@ -834,24 +982,10 @@ function addAugmentationOperations(){
 
 
 // Focus info (delete unnecessary items)
-function focusInfo(){
+/*function focusInfo(){
     //Hide selected items
-    for(var i = 0; i < hiddenItems.length; i++){
-        //console.log(hiddenItems[i]);
-        if(document.getElementById(hiddenItems[i]) !== null){
-            document.getElementById(hiddenItems[i]).style.display = 'none';
-        } else {
-            var all = document.body.getElementsByTagName("*");
 
-            for (var j=0, max=all.length; j < max; j++) {
-                if(all[j].outerHTML === hiddenItems[i]){
-                    all[j].style.display = 'none';
-                }
-            }
-        }
-    }
-
-    /*var content = document.getElementById("content");
+    var content = document.getElementById("content");
     content.insertBefore(document.createElement("br"), content.childNodes[0]);
     $('#mw-page-base').remove()
     $('#mw-head-base').remove()
@@ -926,21 +1060,9 @@ function focusInfo(){
         headlines[headlineIndex].setAttribute("aria-haspopup","true")
         headlines[headlineIndex].setAttribute("aria-controls","scontent-collapsible-block-0")
         headlines[headlineIndex].innerHTML = "<div class=\"mw-ui-icon mw-ui-icon-mf-expand mw-ui-icon-element mw-ui-icon-small  indicator mw-ui-icon-flush-left\"></div>" + headlines[headlineIndex].innerHTML
-    }*/
-
-}
-
-function resetSections(){
-
-    for(var i = 0; i < hiddenItems.length; i++){
-        //console.log(hiddenItems[i]);
-        document.getElementById(hiddenItems[i]).style.display = 'block';
     }
 
-    hiddenItems = [];
-    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
-
-}
+}*/
 
 
 // Speech recognition
