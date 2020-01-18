@@ -3,10 +3,12 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.8
+// @version      0.9
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
+// @noframes
+// @exclude      *://www.youtube.com/embed/*
 // @grant        none
 // @require http://code.jquery.com/jquery-3.3.1.slim.min.js
 // @require http://code.jquery.com/jquery-3.3.1.min.js
@@ -27,7 +29,7 @@ var readCommand = "read"
 var readCommandActive = true
 var goToCommand = "go to"
 var goToCommandActive = true
-var goToVideosCommandActive = true
+var videosCommandActive = true
 var increaseFontSizeCommand = "increase font size"
 var increaseFontSizeCommandActive = true
 var decreaseFontSizeCommand = "decrease font size"
@@ -35,8 +37,10 @@ var decreaseFontSizeCommandActive = true
 var stopListeningCommand = "stop listening"
 var hiddenSectionsCommand = "hidden"
 var hiddenSectionsCommandActive = true
+var breadcrumbCommand = "breadcrumb"
+var breadcrumbCommandActive = true
 
-var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand]
+var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand, breadcrumbCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -109,10 +113,10 @@ function getAndSetStorage(){
         myStorage.setItem("goToCommandActive", goToCommandActive);
     }
 
-    if(myStorage.getItem("goToVideosCommandActive") !== null){
-        goToVideosCommandActive = (myStorage.getItem("goToVideosCommandActive") == 'true')
+    if(myStorage.getItem("videosCommandActive") !== null){
+        videosCommandActive = (myStorage.getItem("videosCommandActive") == 'true')
     } else {
-        myStorage.setItem("goToVideosCommandActive", goToVideosCommandActive);
+        myStorage.setItem("videosCommandActive", videosCommandActive);
     }
 
     if(myStorage.getItem("increaseFontSizeCommand") !== null){
@@ -166,7 +170,19 @@ function getAndSetStorage(){
         myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
     }
 
-    commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand]
+    if(myStorage.getItem("breadcrumbCommand") !== null){
+        breadcrumbCommand = myStorage.getItem("breadcrumbCommand")
+    } else {
+        myStorage.setItem("breadcrumbCommand", breadcrumbCommand);
+    }
+
+    if(myStorage.getItem("breadcrumbCommandActive") !== null){
+        breadcrumbCommandActive = (myStorage.getItem("breadcrumbCommandActive") == 'true')
+    } else {
+        myStorage.setItem("breadcrumbCommandActive", breadcrumbCommandActive);
+    }
+
+    commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand, hiddenSectionsCommand, breadcrumbCommand]
 }
 
 
@@ -290,7 +306,7 @@ function createWebAugmentedMenu(){
     inputVideos.type = 'checkbox';
     inputVideos.id = 'youtubeVideosInput';
     inputVideos.value = 'youtubeVideosInput';
-    inputVideos.checked = goToVideosCommandActive;
+    inputVideos.checked = videosCommandActive;
     inputVideos.addEventListener("change", toggleYoutubeVideos, false);
     divButtons.appendChild(inputVideos);
     divButtons.appendChild(document.createElement('br'));
@@ -303,6 +319,7 @@ function createWebAugmentedMenu(){
         closeLanguageMenu();
         toggleCommandsMenu();
         closeReadMenu();
+        closeAnnotationsMenu();
     }, false);
     a5.text = 'Voice commands';
     divButtons.appendChild(a5);
@@ -369,6 +386,35 @@ function createWebAugmentedMenu(){
     divButtons.appendChild(inputHiddenSections);
     divButtons.appendChild(document.createElement('br'));
 
+    var aBreadcrumb = document.createElement('a');
+    aBreadcrumb.id = "breadcrumbA";
+    aBreadcrumb.addEventListener("click", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        closeCommandsMenu();
+        closeReadMenu();
+        closeAnnotationsMenu();
+        document.getElementById("breadcrumbInput").checked = !document.getElementById("breadcrumbInput").checked;
+        toggleBreadcrumb();
+    }, false);
+    aBreadcrumb.text = 'History breadcrumb';
+    divButtons.appendChild(aBreadcrumb);
+    var inputBreadcrumb = document.createElement('input');
+    inputBreadcrumb.type = 'checkbox';
+    inputBreadcrumb.id = 'breadcrumbInput';
+    inputBreadcrumb.value = 'breadcrumbInput';
+    inputBreadcrumb.checked = breadcrumbCommandActive;
+    inputBreadcrumb.addEventListener("change", function(){
+        toggleMenu();
+        closeLanguageMenu();
+        closeCommandsMenu();
+        closeReadMenu();
+        closeAnnotationsMenu();
+        toggleBreadcrumb();
+    }, false);
+    divButtons.appendChild(inputBreadcrumb);
+    divButtons.appendChild(document.createElement('br'));
+
     var a4 = document.createElement('a');
     a4.id = "languageA";
     //a4.href = '';
@@ -425,7 +471,7 @@ function createWebAugmentedMenu(){
 
     //TODO: language management
     //changeLanguageMenu();
-    toggleHiddenSections()
+    toggleHiddenSections();
     commandsMenu();
     createReadMenu();
     createGoToMenu();
@@ -516,10 +562,9 @@ function closeReadMenu(){
 }
 function toggleReadAloud(){
     var divsToHide = document.getElementsByClassName("readAloudButton");
-    if(readCommandActive){
+    if(!document.getElementById("readInput").checked){
         readCommandActive = false;
         document.getElementById("readA").style.setProperty("pointer-events", "none");
-        document.getElementsByClassName("readAloudButton")
         for(var i = 0; i < divsToHide.length; i++){
             divsToHide[i].style.display = "none";
         }
@@ -586,6 +631,17 @@ function toggleGoTo(){
     myStorage.setItem("goToCommandActive", goToCommandActive);
 }
 
+function toggleBreadcrumb(){
+    if(document.getElementById("breadcrumbInput").checked){
+        breadcrumbCommandActive = true;
+        document.getElementById("breadcrumb").style.setProperty("display", "block");
+    } else {
+        breadcrumbCommandActive = false;
+        document.getElementById("breadcrumb").style.setProperty("display", "none");
+    }
+    myStorage.setItem("breadcrumbCommandActive", breadcrumbCommandActive);
+}
+
 function toggleHiddenSections(){
 
   if (document.getElementById("hiddenSectionsInput").checked) {
@@ -623,6 +679,8 @@ function toggleHiddenSections(){
     hiddenSectionsCommandActive = false;
   }
 
+  myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
+
   closeMenu();
 
 }
@@ -645,6 +703,7 @@ function resetUselessSections(){
     }
 
     hiddenSectionsCommandActive = false;
+    myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
 
     hiddenItems = [];
     myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
@@ -973,10 +1032,12 @@ function closeCommandsMenu(){
 function addAugmentationOperations(){
     //focusInfo();
     textToAudio();
+    toggleReadAloud();
     audioToText();
     //textSize();
-    youtubeVideos();
-    wikipediaLinks();
+    //youtubeVideos();
+    toggleYoutubeVideos();
+    //wikipediaLinks();
     breadCrumb();
 }
 
@@ -1354,21 +1415,23 @@ function goToFromHeadlineElement(headlineElement){
         headlineElement = headlineElement.currentTarget.headlineElement
     }
 
-    if(goToVideosCommandActive){
+    if(videosCommandActive){
         $(window).scrollTop(headlineElement.offsetTop);
     }
 }
 
 // Youtube videos
 function youtubeVideos(){
-    getRequest($("#firstHeading").prop('innerText'));
+    //videoRequest($("#firstHeading").prop('innerText'));
+    videoRequest(document.title);
 }
 
-function getRequest(searchTerm) {
+function videoRequest(searchTerm) {
     var url = 'https://www.googleapis.com/youtube/v3/search';
     var params = {
         part: 'snippet',
-        key: 'AIzaSyBB9Vs9M1WcozRTjf9rGBU-M-HEpGYGXv8',
+        //key: 'AIzaSyBB9Vs9M1WcozRTjf9rGBU-M-HEpGYGXv8',
+        key: 'AIzaSyA9c14XqejmcLW_KMVlSZZngrPfyF3X5rY',
         type: 'video',
         maxResults: 6,
         q: searchTerm
@@ -1389,13 +1452,17 @@ function showResults(results) {
         content.innerHTML += vid;
     });
 
-    $('.mw-parser-output').append("<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>")
+    //$('.mw-parser-output').append("<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>")
+
+    var youtubeVideoContent = document.createElement("DIV");
+    youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>";
+    document.body.appendChild(youtubeVideoContent);
     $('#youtubeVideos').append(content)
 
 }
 
 function goToVideos(){
-    if(goToVideosCommandActive){
+    if(videosCommandActive){
         toggleMenu();
         $(window).scrollTop($('#youtubeVideos').offset().top);
     }
@@ -1403,20 +1470,26 @@ function goToVideos(){
 
 function toggleYoutubeVideos(){
   var x = document.getElementById("youtubeVideos");
-  if (x.style.display === "block") {
-    x.style.display = "none";
+  if (!document.getElementById("youtubeVideosInput").checked) {
+    if(x != null){
+        x.style.display = "none";
+    }
     document.getElementById("goToVideosA").style.setProperty("pointer-events", "none");
-    goToVideosCommandActive = false;
+    videosCommandActive = false;
   } else {
-    x.style.display = "block";
+    if(x != null){
+        x.style.display = "block";
+    } else {
+        youtubeVideos();
+    }
     document.getElementById("goToVideosA").style.setProperty("pointer-events", "all");
-    goToVideosCommandActive = true;
+    videosCommandActive = true;
   }
-  myStorage.setItem("goToVideosCommandActive", goToVideosCommandActive);
+  myStorage.setItem("videosCommandActive", videosCommandActive);
 }
 
 // Wikipedia Links
-function wikipediaLinks(){
+/*function wikipediaLinks(){
     //Index
     $('.new').each(function() {
         var word = $(this).prop('href');
@@ -1425,7 +1498,7 @@ function wikipediaLinks(){
         var auxlink = "https://en.wikipedia.org/wiki/"+word;
         $(this).prop('href', auxlink);
     });
-}
+}*/
 
 
 // Bread Crumb (History)
@@ -1486,6 +1559,8 @@ function breadCrumb(){
             'padding':'3px',
         });
     });
+
+    toggleBreadcrumb()
 }
 
 /*function setCookie(cname, cvalue, exdays) {
