@@ -37,6 +37,7 @@ var decreaseFontSizeCommandActive = true
 var stopListeningCommand = "stop listening"
 var hiddenSectionsCommand = "hidden"
 var hiddenSectionsCommandActive = true
+var paragraphSectionsCommandActive = true
 var breadcrumbCommand = "breadcrumb"
 var breadcrumbCommandActive = true
 
@@ -55,6 +56,16 @@ var myStorage = window.localStorage;
 
 var hiddenItems = [];
 var hiddenItemsAux = [];
+var paragraphItems = [];
+var paragraphItemsAux = [];
+var textItems = [];
+var textItemsAux = [];
+var sectionsNames = [];
+
+
+var annotationsUselessActive = false;
+var annotationsTextActive = false;
+var annotationsParagraphActive = false;
 
 
 // Main method
@@ -168,6 +179,24 @@ function getAndSetStorage(){
         }
     } else {
         myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    }
+
+    if(myStorage.getItem("paragraphItems") !== null){
+        try {
+            paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"))
+        } catch (e) {
+        }
+    } else {
+        myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
+    }
+
+    if(myStorage.getItem("sectionsNames") !== null){
+        try {
+            sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"))
+        } catch (e) {
+        }
+    } else {
+        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
     }
 
     if(myStorage.getItem("breadcrumbCommand") !== null){
@@ -593,20 +622,51 @@ function createGoToMenu(){
     }, false);
     divGoToMenu.appendChild(i);
 
-    headlines = document.getElementsByClassName("mw-headline")
-    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
-        var a1 = document.createElement('a');
-        //a1.href = languages[languagesIndex].firstElementChild.href;
-        a1.text = headlines[headlineIndex].textContent
-        var headlineElement = headlines[headlineIndex]
-        a1.addEventListener("click", goToFromHeadlineElement, false);
-        a1.headlineElement = headlineElement;
-        divGoToMenu.appendChild(a1);
-        divGoToMenu.appendChild(document.createElement('br'));
-    }
+    //headlines = document.getElementsByClassName("mw-headline")
+    try{
+        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
+            var a1 = document.createElement('a');
+            //a1.href = languages[languagesIndex].firstElementChild.href;
+            a1.text = sectionsNames[sectionsIndex]
+            var sectionName = sectionsNames[sectionsIndex]
+            a1.addEventListener("click", goToFromSectionName, false);
+            a1.sectionName = sectionName;
+            divGoToMenu.appendChild(a1);
+            divGoToMenu.appendChild(document.createElement('br'));
+        }
+    } catch(e){}
 
     document.body.appendChild(divGoToMenu);
 }
+
+function updateGoToMenu(){
+    try{
+        var divGoToMenu = document.getElementById("menu-goto");
+        divGoToMenu.innerHTML = "";
+
+        var i = document.createElement('i');
+        i.className = 'fa fa-close'
+        i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+        i.addEventListener("click", function(){
+            closeGoToMenu();
+        }, false);
+        divGoToMenu.appendChild(i);
+
+        var sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
+            var a1 = document.createElement('a');
+            //a1.href = languages[languagesIndex].firstElementChild.href;
+            a1.text = sectionsNames[sectionsIndex]
+            var sectionName = sectionsNames[sectionsIndex]
+            a1.addEventListener("click", goToFromSectionName, false);
+            a1.sectionName = sectionName;
+            divGoToMenu.appendChild(a1);
+            divGoToMenu.appendChild(document.createElement('br'));
+        }
+    } catch(e){}
+}
+
 function toggleGoToMenu(){
   var x = document.getElementById("menu-goto");
   if (x.style.display === "block") {
@@ -711,6 +771,20 @@ function resetUselessSections(){
 
 }
 
+function resetParagraphSections(){
+
+    paragraphSectionsCommandActive = false;
+    myStorage.setItem("paragraphSectionsCommandActive", paragraphSectionsCommandActive);
+
+    paragraphItems = [];
+    myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
+    closeAnnotationsMenu();
+    updateGoToMenu();
+
+}
+
+function resetTextSections(){ }
+
 function createAnnotationsMenu(){
 
     var divAnnotationsMenu = document.createElement("div")
@@ -726,17 +800,52 @@ function createAnnotationsMenu(){
     divAnnotationsMenu.appendChild(i);
 
     var a1 = document.createElement('a');
-    a1.id = "annotateUselessA";
-    a1.text = "Annotate useless sections";
-    a1.addEventListener("click", toggleAnnotationsUselessSections, false);
+    a1.id = "annotateTextA";
+    a1.text = "Annotate text sections";
+    a1.addEventListener("click", toggleAnnotationsTextSections, false);
     divAnnotationsMenu.appendChild(a1);
     divAnnotationsMenu.appendChild(document.createElement('br'));
 
     var a2 = document.createElement('a');
-    a2.id = "resetUselessSectionsA";
-    a2.text = "Reset useless sections";
-    a2.addEventListener("click", resetUselessSections, false);
+    a2.id = "resetTextSectionsA";
+    a2.text = "Reset text sections";
+    a2.addEventListener("click", resetTextSections, false);
     divAnnotationsMenu.appendChild(a2);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a3 = document.createElement('a');
+    a3.id = "annotateParagraphA";
+    a3.text = "Annotate paragraph sections";
+    a3.addEventListener("click", toggleAnnotationsParagraphSections, false);
+    divAnnotationsMenu.appendChild(a3);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a3b = document.createElement('a');
+    a3b.id = "saveParagraphA";
+    a3b.text = "Stop and save paragraph sections";
+    a3b.addEventListener("click", stopAnnotationsParagraphSections, false);
+    divAnnotationsMenu.appendChild(a3b);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a4 = document.createElement('a');
+    a4.id = "resetParagraphSectionsA";
+    a4.text = "Reset paragraph sections";
+    a4.addEventListener("click", resetParagraphSections, false);
+    divAnnotationsMenu.appendChild(a4);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a5 = document.createElement('a');
+    a5.id = "annotateUselessA";
+    a5.text = "Annotate useless sections";
+    a5.addEventListener("click", toggleAnnotationsUselessSections, false);
+    divAnnotationsMenu.appendChild(a5);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a6 = document.createElement('a');
+    a6.id = "resetUselessSectionsA";
+    a6.text = "Reset useless sections";
+    a6.addEventListener("click", resetUselessSections, false);
+    divAnnotationsMenu.appendChild(a6);
     divAnnotationsMenu.appendChild(document.createElement('br'));
     document.body.appendChild(divAnnotationsMenu);
 }
@@ -762,8 +871,9 @@ function toggleAnnotationsUselessSections(){
 
     var all;
     if(activateClickDetector){
+        annotationsUselessActive = true;
         document.getElementById("annotateUselessA").text = "Save annotated useless sections";
-        $('button').prop('disabled', true);
+        $('button').attr('disabled', 'disabled');
         $('a').addClass("hideSectionsLinks");
         /*all = document.body.getElementsByTagName("*");
         for (var i = 0; i < all.length; i++) {
@@ -775,8 +885,9 @@ function toggleAnnotationsUselessSections(){
         $("#annotateUselessA").css({'pointer-events': 'all'});
         hiddenItemsAux = [];
     } else {
+        annotationsUselessActive = false;
         document.getElementById("annotateUselessA").text = "Annotate useless sections";
-        $('button').prop('disabled', false);
+        $('button').removeAttr('disabled');
         //$('a').css({'pointer-events': 'all'});
         $('a').removeClass("hideSectionsLinks");
         all = document.body.getElementsByTagName("*");
@@ -785,6 +896,8 @@ function toggleAnnotationsUselessSections(){
             all[j].classList.remove('selectedColor');
         }
 
+        $('*[class=""]').removeAttr('class');
+
         hiddenItems = hiddenItems.concat(hiddenItemsAux);
         myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
         hiddenItemsAux = [];
@@ -792,6 +905,89 @@ function toggleAnnotationsUselessSections(){
         toggleHiddenSections();
     }
 }
+
+
+
+function toggleAnnotationsParagraphSections(){
+    activateClickDetector = !activateClickDetector;
+    closeAnnotationsMenu()
+
+    var all;
+    if(activateClickDetector){
+        annotationsParagraphActive = true;
+        document.getElementById("annotateParagraphA").text = "Save paragraphs' section";
+        $('button').attr('disabled', 'disabled');
+        $('a').addClass("hideSectionsLinks");
+        /*all = document.body.getElementsByTagName("*");
+        for (var i = 0; i < all.length; i++) {
+            all[i].classList.add('hoverColor');
+        }*/
+        //$('a').css({'pointer-events': 'none'});
+        $("#a-webaugmentation").css({'pointer-events': 'all'});
+        $("#annotationsA").css({'pointer-events': 'all'});
+        $("#annotateParagraphA").css({'pointer-events': 'all'});
+        $("#saveParagraphA").css({'pointer-events': 'all'});
+        paragraphItemsAux = [];
+
+
+    } else {
+        if(Array.isArray(paragraphItemsAux) && paragraphItemsAux.length > 0){
+            var result = prompt("Title of this paragraphs' section", "");
+
+            all = document.body.getElementsByTagName("*");
+            for (var j = 0; j < all.length; j++) {
+                all[j].classList.remove('hoverColor');
+                all[j].classList.remove('selectedColor');
+            }
+
+            $('*[class=""]').removeAttr('class');
+
+            var jsonParagraph = new Object();
+            jsonParagraph.name = result;
+            jsonParagraph.value = paragraphItemsAux;
+            var jsons = new Array();
+            try{
+                var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+                if(Array.isArray(paragraphItems) && paragraphItems.length > 0){
+                    jsons = paragraphItems;
+                }
+            } catch(e){}
+            jsons.push(jsonParagraph);
+            myStorage.setItem("paragraphItems", JSON.stringify(jsons));
+            paragraphItemsAux = [];
+        }
+        activateClickDetector = !activateClickDetector;
+
+        //toggleHiddenSections();
+    }
+}
+
+function stopAnnotationsParagraphSections(){
+    if(activateClickDetector){
+        toggleAnnotationsParagraphSections()
+        annotationsParagraphActive = false;
+        document.getElementById("annotateParagraphA").text = "Annotate paragraph sections";
+        $('button').removeAttr('disabled');
+        //$('a').css({'pointer-events': 'all'});
+        $('a').removeClass("hideSectionsLinks");
+        activateClickDetector = !activateClickDetector;
+        $('*[class=""]').removeAttr('class');
+
+        // save sections names from paragraphItems
+        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        var sectionsNames = [];
+        for(var i = 0; i < paragraphItems.length; i++){
+            sectionsNames.push(paragraphItems[i].name);
+        }
+        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+
+        toggleReadAloud();
+        updateGoToMenu();
+    }
+}
+
+
+function toggleAnnotationsTextSections(){}
 
 function clickDetector(){
     document.addEventListener('click', function(event) {
@@ -805,26 +1001,54 @@ function clickDetector(){
             var menu = document.getElementById("menu-webaugmentation");
             var menuAnnotations = document.getElementById("menu-annotations");
             if(!menu.contains(target) && !menuAnnotations.contains(target)){
-               //target.parentNode.removeChild(target);
-                if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
-                    hiddenItemsAux.push(target.id);
-                } else {
-                    var childA = target.getElementsByTagName("a")
-                    for(var i = 0; i < childA.length; i++){
-                        childA[i].classList.remove("hideSectionsLinks");
-                        if (childA[i].className == "")
-                            childA[i].removeAttribute('class');
+                var childA = target.getElementsByTagName("a")
+                var i
+                if(annotationsUselessActive){
+                    //target.parentNode.removeChild(target);
+                    if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
+                        hiddenItemsAux.push(target.id);
+                    } else {
+                        for(i = 0; i < childA.length; i++){
+                            childA[i].classList.remove("hideSectionsLinks");
+                            if (childA[i].className == "")
+                                childA[i].removeAttribute('class');
+                        }
+                        target.classList.remove("hideSectionsLinks");
+                        if (target.className == "")
+                            target.removeAttribute('class');
+                        hiddenItemsAux.push(target.outerHTML);
+                        target.classList.add("hideUselessSections");
+                        hiddenItemsAux.push(target.outerHTML);
+                        target.classList.remove("hideUselessSections");
                     }
-                    target.classList.remove("hideSectionsLinks");
-                    if (target.className == "")
-                        target.removeAttribute('class');
-                    hiddenItemsAux.push(target.outerHTML);
-                    target.classList.add("hideUselessSections");
-                    hiddenItemsAux.push(target.outerHTML);
-                    target.classList.remove("hideUselessSections");
+                    //target.style.display = 'none';
+                    target.classList.add('selectedColor');
                 }
-                //target.style.display = 'none';
-                target.classList.add('selectedColor');
+                else if(annotationsParagraphActive && target.tagName === "P"){
+                    //target.parentNode.removeChild(target);
+                    if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
+                        paragraphItemsAux.push(target.id);
+                    } else {
+                        for(i = 0; i < childA.length; i++){
+                            childA[i].classList.remove("hideSectionsLinks");
+                            if (childA[i].className == "")
+                                childA[i].removeAttribute('class');
+                        }
+                        target.classList.remove("hideSectionsLinks");
+                        if (target.className == "")
+                            target.removeAttribute('class');
+                        paragraphItemsAux.push(target.outerHTML);
+                        /*target.classList.add("hideUselessSections");
+                        paragraphItemsAux.push(target.outerHTML);
+                        target.classList.remove("hideUselessSections");*/
+                    }
+
+                    //if(!target.classList.contains('selectedColor')){
+                        target.classList.add('selectedColor');
+                    /*} else {
+                        target.classList.remove('selectedColor');
+                    }*/
+                }
             }
             event.stopPropagation()
             event.preventDefault()
@@ -1264,19 +1488,7 @@ function camelize(str) {
 
 // Text to Audio
 function textToAudio(){
-    $('p, ul').each(function() {
-        if($(this).parent().attr('role') != 'navigation'){
-            var button = document.createElement('button');
-            button.innerHTML = "&#9658;";
-            button.value = $(this).prop('innerText');
-            button.className = "readAloudButton";
-            button.style.fontSize = "18px";
-            button.addEventListener('click', function(){
-                Read($(this).prop('value'));
-            });
-            $(this).append(button);
-        }
-    });
+    createPlayButtons();
 
     var cancelfooter = document.createElement('div');
     cancelfooter.id = "cancel";
@@ -1296,6 +1508,22 @@ function textToAudio(){
         'color': 'white',
         'text-align': 'center',
         'visibility': 'hidden',
+    });
+}
+
+function createPlayButtons(){
+    $('p').each(function() {
+        if($(this).parent().attr('role') != 'navigation'){
+            var button = document.createElement('button');
+            button.innerHTML = "&#9658;";
+            button.value = $(this).prop('innerText');
+            button.className = "readAloudButton";
+            button.style.fontSize = "18px";
+            button.addEventListener('click', function(){
+                Read($(this).prop('value'));
+            });
+            $(this).append(button);
+        }
     });
 }
 
@@ -1417,6 +1645,71 @@ function goToFromHeadlineElement(headlineElement){
 
     if(videosCommandActive){
         $(window).scrollTop(headlineElement.offsetTop);
+    }
+}
+
+function goToFromSectionName(sectionName){
+    console.log("goToFromSectionName: " + sectionName.currentTarget.sectionName);
+    closeGoToMenu();
+    closeMenu();
+
+    $('*[class=""]').removeAttr('class');
+
+    var sectionsNames = myStorage.getItem("sectionsNames");
+    if(sectionsNames.includes(sectionName.currentTarget.sectionName)){
+
+        $('.readAloudButton').attr('disabled', 'disabled');
+
+        var textElement
+        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        for(var i = 0; i < paragraphItems.length; i++){
+            if(sectionName.currentTarget.sectionName === paragraphItems[i].name){
+
+                var allp = document.body.getElementsByTagName("P");
+                for (var j=0, max=allp.length; j < max; j++) {
+                    for(var k = 0; k < paragraphItems[i].value.length; k++){
+                        if(allp[j].outerHTML === paragraphItems[i].value[k]){
+                            textElement = allp[j]
+                            textElement.scrollIntoView()
+                            $('.readAloudButton').removeAttr('disabled');
+                            toggleReadAloud();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        for(var buttonIndex = 0; buttonIndex < document.getElementsByClassName("readAloudButton").length; buttonIndex++){
+            if(document.getElementById("readInput").checked){
+                document.getElementsByClassName("readAloudButton")[buttonIndex].style.display = "none";
+            } else {
+                document.getElementsByClassName("readAloudButton")[buttonIndex].style.display = "block";
+                //$('.readAloudButton').removeAttr('disabled');
+            }
+        }
+        paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        for(i = 0; i < paragraphItems.length; i++){
+            if(sectionName.currentTarget.sectionName === paragraphItems[i].name){
+
+                allp = document.body.getElementsByTagName("P");
+                for (j=0, max=allp.length; j < max; j++) {
+                    for(k = 0; k < paragraphItems[i].value.length; k++){
+                        if(allp[j].outerHTML === paragraphItems[i].value[k]){
+                            textElement = allp[j]
+                            textElement.scrollIntoView()
+                            $('.readAloudButton').removeAttr('disabled');
+                            toggleReadAloud();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        toggleReadAloud();
+
+
     }
 }
 
