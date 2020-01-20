@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      0.91
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -562,20 +562,50 @@ function createReadMenu(){
     }, false);
     divReadMenu.appendChild(i);
 
-    headlines = document.getElementsByClassName("mw-headline")
-    for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
-        var a1 = document.createElement('a');
-        //a1.href = languages[languagesIndex].firstElementChild.href;
-        a1.text = headlines[headlineIndex].textContent
-        var headlineElement = headlines[headlineIndex]
-        a1.addEventListener("click", readAloudFromHeadlineElement, false);
-        a1.headlineElement = headlineElement;
-        divReadMenu.appendChild(a1);
-        divReadMenu.appendChild(document.createElement('br'));
-    }
+    try{
+        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
+            var a1 = document.createElement('a');
+            //a1.href = languages[languagesIndex].firstElementChild.href;
+            a1.text = sectionsNames[sectionsIndex]
+            var sectionName = sectionsNames[sectionsIndex]
+            a1.addEventListener("click", readAloudFromSectionName, false);
+            a1.sectionName = sectionName;
+            divReadMenu.appendChild(a1);
+            divReadMenu.appendChild(document.createElement('br'));
+        }
+    } catch(e){}
 
     document.body.appendChild(divReadMenu);
 }
+
+function updateReadMenu(){
+    var divReadMenu = document.getElementById("menu-read");
+    divReadMenu.innerHTML = "";
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeReadMenu();
+    }, false);
+    divGoToMenu.appendChild(i);
+
+    try{
+        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
+            var a1 = document.createElement('a');
+            //a1.href = languages[languagesIndex].firstElementChild.href;
+            a1.text = sectionsNames[sectionsIndex]
+            var sectionName = sectionsNames[sectionsIndex]
+            a1.addEventListener("click", readAloudFromSectionName, false);
+            a1.sectionName = sectionName;
+            divReadMenu.appendChild(a1);
+            divReadMenu.appendChild(document.createElement('br'));
+        }
+    } catch(e){}
+}
+
 function toggleReadMenu(){
   var x = document.getElementById("menu-read");
   if (x.style.display === "block") {
@@ -641,18 +671,18 @@ function createGoToMenu(){
 }
 
 function updateGoToMenu(){
+    var divGoToMenu = document.getElementById("menu-goto");
+    divGoToMenu.innerHTML = "";
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeGoToMenu();
+    }, false);
+    divGoToMenu.appendChild(i);
+
     try{
-        var divGoToMenu = document.getElementById("menu-goto");
-        divGoToMenu.innerHTML = "";
-
-        var i = document.createElement('i');
-        i.className = 'fa fa-close'
-        i.style = "position: absolute; right: 1%; top: 1%; z-index: 100;"
-        i.addEventListener("click", function(){
-            closeGoToMenu();
-        }, false);
-        divGoToMenu.appendChild(i);
-
         var sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
         for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
             var a1 = document.createElement('a');
@@ -780,6 +810,7 @@ function resetParagraphSections(){
     myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
     closeAnnotationsMenu();
     updateGoToMenu();
+    updateReadMenu()
 
 }
 
@@ -983,6 +1014,7 @@ function stopAnnotationsParagraphSections(){
 
         toggleReadAloud();
         updateGoToMenu();
+        updateReadMenu()
     }
 }
 
@@ -1352,7 +1384,8 @@ function addAugmentationOperations(){
 
 // Speech recognition
 function audioToText(){
-    headlines = document.getElementsByClassName("mw-headline")
+    //headlines = document.getElementsByClassName("mw-headline")
+    sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
 
     var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
     var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.join(' | ') + ' ;';
@@ -1377,9 +1410,9 @@ function audioToText(){
                 changeFontSize('-');
             }
             else if(speechToText.includes(readCommand) && readCommandActive){
-                for(var headlineIndex = 0; headlineIndex < headlines.length; headlineIndex ++){
-                    if(speechToText.includes(readCommand + " " + headlines[headlineIndex].textContent.toLowerCase())){
-                        readAloudFromHeadlineElement(headlines[headlineIndex]);
+                for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
+                    if(speechToText.includes(readCommand + " " + sectionsNames[sectionsIndex].toLowerCase())){
+                        readAloudFromSectionName(sectionsNames[sectionsIndex]);
                         /*var readContent = ""
                         var parent = headlines[headlineIndex].parentElement
                         while(parent.nextElementSibling.tagName != "H2"){
@@ -1393,9 +1426,9 @@ function audioToText(){
                 }
             }
             else if(speechToText.includes(goToCommand) && goToCommandActive){
-                for(var headlineIndex2 = 0; headlineIndex2 < headlines.length; headlineIndex2 ++){
-                    if(speechToText.includes(goToCommand + " " + headlines[headlineIndex2].textContent.toLowerCase())){
-                        goToFromHeadlineElement(headlines[headlineIndex2]);
+                for(var sectionsIndex2 = 0; sectionsIndex2 < sectionsNames.length; sectionsIndex2 ++){
+                    if(speechToText.includes(goToCommand + " " + sectionsNames[sectionsIndex2].toLowerCase())){
+                        goToFromSectionNames(sectionsNames[sectionsIndex2]);
                         /*var readContent = ""
                         var parent = headlines[headlineIndex].parentElement
                         while(parent.nextElementSibling.tagName != "H2"){
@@ -1529,22 +1562,24 @@ function createPlayButtons(){
 
 var timeoutResumeInfinity;
 
-function readAloudFromHeadlineElement(headlineElement){
+function readAloudFromSectionName(sectionName){
     closeReadMenu();
-
-    if(typeof headlineElement.parentElement === 'undefined'){
-        headlineElement = headlineElement.currentTarget.headlineElement
+    var sectionNameToRead = sectionName;
+    if(typeof sectionName.parentElement === 'undefined' && typeof sectionName.currentTarget !== 'undefined'){
+        sectionNameToRead = sectionName.currentTarget.sectionName
     }
+    console.log("sectionNameToRead: " + sectionNameToRead);
     var readContent = ""
-    /*var newHeadlines = document.getElementsByClassName("mw-headline")
-            for(var newHeadlinesIndex = 0; newHeadlinesIndex < newHeadlines.length; newHeadLinesIndex++){
-                if(headlines[headlineIndex].textContent.toLowerCase() === a1.text
-            }*/
-    var parent = headlineElement.parentElement
-    while(parent.nextElementSibling.tagName != "H2"){
-        parent = parent.nextElementSibling
-        //console.log(parent.innerText)
-        readContent += parent.innerText
+    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+    for(var i = 0; i < paragraphItems.length; i++){
+        if(paragraphItems[i].name === sectionNameToRead){
+            for(var j = 0; j < paragraphItems[i].value.length; j++){
+                var domParser = new DOMParser().parseFromString(paragraphItems[i].value[j], 'text/html');
+                readContent += domParser.body.innerText;
+                console.log("domParser: " + JSON.stringify(domParser));
+                console.log("content: " + readContent);
+            }
+        }
     }
     Read(readContent);
 }
@@ -1635,19 +1670,6 @@ function changeFontSize(changer){
 }
 
 // Go to
-function goToFromHeadlineElement(headlineElement){
-    closeGoToMenu();
-    closeMenu();
-
-    if(typeof headlineElement.parentElement === 'undefined'){
-        headlineElement = headlineElement.currentTarget.headlineElement
-    }
-
-    if(videosCommandActive){
-        $(window).scrollTop(headlineElement.offsetTop);
-    }
-}
-
 function goToFromSectionName(sectionName){
     console.log("goToFromSectionName: " + sectionName.currentTarget.sectionName);
     closeGoToMenu();
