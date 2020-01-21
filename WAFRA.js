@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.91
+// @version      0.92
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -42,11 +42,11 @@ var breadcrumbCommand = "breadcrumb"
 var breadcrumbCommandActive = true
 var showOperationsCommand = "show operations"
 var showSectionsCommand = "show sections"
+var showSectionCommand = "show section"
 var welcomeCommand = "welcome"
-var okeyWafraCommand = "ok wafra"
 
 var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand, okeyWafraCommand]
+                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -56,6 +56,7 @@ var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
 var newCommandString = "";
 var activateClickDetector = false;
+var activateTextDetector = false;
 
 var myStorage = window.localStorage;
 
@@ -217,7 +218,7 @@ function getAndSetStorage(){
     }
 
     commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand, okeyWafraCommand]
+                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand]
 }
 
 
@@ -904,7 +905,10 @@ function resetParagraphSections(){
 
 }
 
-function resetTextSections(){ }
+function resetTextSections(){
+
+    //TODO: remove text selections
+}
 
 function createAnnotationsMenu(){
 
@@ -920,7 +924,6 @@ function createAnnotationsMenu(){
     }, false);
     divAnnotationsMenu.appendChild(i);
 
-    /*
     var a1 = document.createElement('a');
     a1.id = "annotateTextA";
     a1.text = "Annotate text sections";
@@ -933,7 +936,7 @@ function createAnnotationsMenu(){
     a2.text = "Reset text sections";
     a2.addEventListener("click", resetTextSections, false);
     divAnnotationsMenu.appendChild(a2);
-    divAnnotationsMenu.appendChild(document.createElement('br'));*/
+    divAnnotationsMenu.appendChild(document.createElement('br'));
 
     var a3 = document.createElement('a');
     a3.id = "annotateParagraphA";
@@ -1031,7 +1034,7 @@ function toggleAnnotationsUselessSections(){
 
 function toggleAnnotationsParagraphSections(){
     activateClickDetector = !activateClickDetector;
-    closeAnnotationsMenu()
+    closeAnnotationsMenu();
 
     var all;
     if(activateClickDetector){
@@ -1105,11 +1108,42 @@ function stopAnnotationsParagraphSections(){
         toggleReadAloud();
         updateGoToMenu();
         updateReadMenu()
+        updateGrammar();
     }
 }
 
 
-function toggleAnnotationsTextSections(){}
+function toggleAnnotationsTextSections(){
+    activateTextDetector = !activateTextDetector;
+
+    if(activateTextDetector){
+        document.addEventListener("mouseup", doSomethingWithSelectedText);
+        document.addEventListener("keyup", doSomethingWithSelectedText);
+    } else{
+        document.removeEventListener("mouseup", doSomethingWithSelectedText);
+        document.removeEventListener("keyup", doSomethingWithSelectedText);
+    }
+
+    closeAnnotationsMenu();
+
+}
+
+function getSelectedText() {
+    var text = "";
+    if (typeof window.getSelection != "undefined") {
+        text = window.getSelection().toString();
+    } else if (typeof document.selection != "undefined" && document.selection.type == "Text") {
+        text = document.selection.createRange().text;
+    }
+    return text;
+}
+
+function doSomethingWithSelectedText() {
+    var selectedText = getSelectedText();
+    if (selectedText) {
+        alert("Got selected text " + selectedText);
+    }
+}
 
 function clickDetector(){
     document.addEventListener('click', function(event) {
@@ -1477,12 +1511,7 @@ function audioToText(){
     //headlines = document.getElementsByClassName("mw-headline")
     sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
 
-    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
-    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.concat(commands).join(' | ') + ' ;';
-    console.log("grammar: " + grammar);
-    var speechRecognitionList = new SpeechGrammarList();
-    speechRecognitionList.addFromString(grammar, 1);
-    recognition.grammars = speechRecognitionList;
+    updateGrammar();
     recognition.lang = languageCodeCommands;
     recognition.interimResults = false;
     recognition.continuous = true;
@@ -1503,10 +1532,10 @@ function audioToText(){
             else if(speechToText.includes(showOperationsCommand)){
                 readOperations();
             }
-            else if(speechToText.includes(welcomeCommand) || speechToText.includes(okeyWafraCommand)){
+            else if(speechToText.includes(welcomeCommand)){
                 readWelcome();
             }
-            else if(speechToText.includes(showSectionsCommand)){
+            else if(speechToText.includes(showSectionsCommand)|| speechToText.includes(showSectionCommand)){
                 readSections();
             }
             else if(speechToText.includes(readCommand) && readCommandActive){
@@ -1528,7 +1557,7 @@ function audioToText(){
             else if(speechToText.includes(goToCommand) && goToCommandActive){
                 for(var sectionsIndex2 = 0; sectionsIndex2 < sectionsNames.length; sectionsIndex2 ++){
                     if(speechToText.includes(goToCommand + " " + sectionsNames[sectionsIndex2].toLowerCase())){
-                        goToFromSectionNames(sectionsNames[sectionsIndex2]);
+                        goToFromSectionName(sectionsNames[sectionsIndex2]);
                         /*var readContent = ""
                         var parent = headlines[headlineIndex].parentElement
                         while(parent.nextElementSibling.tagName != "H2"){
@@ -1611,6 +1640,28 @@ function audioToText(){
         }
     }
 }
+
+function updateGrammar(){
+
+    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
+    var commandsAux = [];
+    for(var i = 0; i < commands.length; i++){
+        if(commands[i] === "read" || commands[i] === "go to"){
+            for(var j = 0; j < sectionsNames.length; j++){
+                commandsAux.push(commands[i] + " " + sectionsNames[j])
+            }
+        } else {
+            commandsAux.push(commands[i])
+        }
+    }
+    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.concat(commandsAux).join(' | ') + ' ;';
+    console.log("grammar: " + grammar);
+    var speechRecognitionList = new SpeechGrammarList();
+    speechRecognitionList.addFromString(grammar, 1);
+    recognition.grammars = speechRecognitionList;
+}
+
+
 function camelize(str) {
   return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
     if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -1689,6 +1740,7 @@ function Read(message){
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     var reader = new SpeechSynthesisUtterance(message);
+    reader.rate = 0.75;
     reader.lang = languageCodeSyntesis;
     reader.onstart = function(event) {
         recognition.abort();
