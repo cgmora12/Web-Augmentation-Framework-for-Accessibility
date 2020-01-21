@@ -1648,7 +1648,7 @@ function updateGrammar(){
     for(var i = 0; i < commands.length; i++){
         if(commands[i] === "read" || commands[i] === "go to"){
             for(var j = 0; j < sectionsNames.length; j++){
-                commandsAux.push(commands[i] + " " + sectionsNames[j])
+                commandsAux.push(commands[i] + " " + sectionsNames[j].toLowerCase())
             }
         } else {
             commandsAux.push(commands[i])
@@ -1823,7 +1823,11 @@ function changeFontSize(changer){
 
 // Go to
 function goToFromSectionName(sectionName){
-    console.log("goToFromSectionName: " + sectionName.currentTarget.sectionName);
+    var sectionNameToGo = sectionName;
+    if(typeof sectionName.parentElement === 'undefined' && typeof sectionName.currentTarget !== 'undefined'){
+        sectionNameToGo = sectionName.currentTarget.sectionName
+    }
+    console.log("goToFromSectionName: " + sectionNameToGo);
     closeGoToMenu();
     closeMenu();
     closeOperationsMenu();
@@ -1831,14 +1835,14 @@ function goToFromSectionName(sectionName){
     $('*[class=""]').removeAttr('class');
 
     var sectionsNames = myStorage.getItem("sectionsNames");
-    if(sectionsNames.includes(sectionName.currentTarget.sectionName)){
+    if(sectionsNames.includes(sectionNameToGo)){
 
         $('.readAloudButton').attr('disabled', 'disabled');
 
         var textElement
         var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
         for(var i = 0; i < paragraphItems.length; i++){
-            if(sectionName.currentTarget.sectionName === paragraphItems[i].name){
+            if(sectionNameToGo === paragraphItems[i].name){
 
                 var allp = document.body.getElementsByTagName("P");
                 for (var j=0, max=allp.length; j < max; j++) {
@@ -1865,7 +1869,7 @@ function goToFromSectionName(sectionName){
         }
         paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
         for(i = 0; i < paragraphItems.length; i++){
-            if(sectionName.currentTarget.sectionName === paragraphItems[i].name){
+            if(sectionNameToGo === paragraphItems[i].name){
 
                 allp = document.body.getElementsByTagName("P");
                 for (j=0, max=allp.length; j < max; j++) {
