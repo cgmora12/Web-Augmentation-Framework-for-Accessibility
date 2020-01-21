@@ -46,7 +46,7 @@ var showSectionCommand = "show section"
 var welcomeCommand = "welcome"
 
 var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand]
+                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, welcomeCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -218,7 +218,7 @@ function getAndSetStorage(){
     }
 
     commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, welcomeCommand]
+                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, welcomeCommand]
 }
 
 
@@ -907,7 +907,12 @@ function resetParagraphSections(){
 
 function resetTextSections(){
 
-    //TODO: remove text selections
+    //remove text selections
+    textItems = [];
+    myStorage.setItem("textItems", JSON.stringify(textItems));
+    closeAnnotationsMenu();
+    updateGoToMenu();
+    updateReadMenu();
 }
 
 function createAnnotationsMenu(){
@@ -929,6 +934,13 @@ function createAnnotationsMenu(){
     a1.text = "Annotate text sections";
     a1.addEventListener("click", toggleAnnotationsTextSections, false);
     divAnnotationsMenu.appendChild(a1);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a1b = document.createElement('a');
+    a1b.id = "saveTextA";
+    a1b.text = "Stop and save text sections";
+    a1b.addEventListener("click", stopAnnotationsTextSections, false);
+    divAnnotationsMenu.appendChild(a1b);
     divAnnotationsMenu.appendChild(document.createElement('br'));
 
     var a2 = document.createElement('a');
@@ -1099,9 +1111,13 @@ function stopAnnotationsParagraphSections(){
 
         // save sections names from paragraphItems
         var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        var textItems = JSON.parse(myStorage.getItem("textItems"));
         var sectionsNames = [];
         for(var i = 0; i < paragraphItems.length; i++){
             sectionsNames.push(paragraphItems[i].name);
+        }
+        for(var j = 0; j < textItems.length; j++){
+            sectionsNames.push(textItems[j].name);
         }
         myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
 
@@ -1117,11 +1133,28 @@ function toggleAnnotationsTextSections(){
     activateTextDetector = !activateTextDetector;
 
     if(activateTextDetector){
-        document.addEventListener("mouseup", doSomethingWithSelectedText);
-        document.addEventListener("keyup", doSomethingWithSelectedText);
+        textItemsAux = [];
+        document.addEventListener("mouseup", saveTextSelected);
+        document.addEventListener("keyup", saveTextSelected);
+        document.getElementById("annotateTextA").text = "Save text section";
     } else{
-        document.removeEventListener("mouseup", doSomethingWithSelectedText);
-        document.removeEventListener("keyup", doSomethingWithSelectedText);
+        if(Array.isArray(textItemsAux) && textItemsAux.length > 0){
+            var result = prompt("Title of these text selections", "");
+            var jsonText = new Object();
+            jsonText.name = result;
+            jsonText.value = textItemsAux;
+            var jsons = new Array();
+            try{
+                var textItems = JSON.parse(myStorage.getItem("textItems"));
+                if(Array.isArray(textItems) && textItems.length > 0){
+                    jsons = textItems;
+                }
+            } catch(e){}
+            jsons.push(jsonText);
+            myStorage.setItem("textItems", JSON.stringify(jsons));
+            textItemsAux = [];
+        }
+        activateTextDetector = !activateTextDetector;
     }
 
     closeAnnotationsMenu();
@@ -1138,10 +1171,40 @@ function getSelectedText() {
     return text;
 }
 
-function doSomethingWithSelectedText() {
+function saveTextSelected() {
     var selectedText = getSelectedText();
-    if (selectedText) {
-        alert("Got selected text " + selectedText);
+    console.log(selectedText);
+    if (selectedText && !textItemsAux.includes(selectedText)) {
+        textItemsAux.push(selectedText);
+        textItemsAux.push(" ");
+    }
+}
+
+function stopAnnotationsTextSections(){
+    if(activateTextDetector){
+        document.removeEventListener("mouseup", saveTextSelected);
+        document.removeEventListener("keyup", saveTextSelected);
+        document.getElementById("annotateTextA").text = "Annotate text sections";
+
+        toggleAnnotationsTextSections()
+        activateTextDetector = false;
+
+        // save sections names from paragraphItems
+        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        var textItems = JSON.parse(myStorage.getItem("textItems"));
+        var sectionsNames = [];
+        for(var i = 0; i < paragraphItems.length; i++){
+            sectionsNames.push(paragraphItems[i].name);
+        }
+        for(var j = 0; j < textItems.length; j++){
+            sectionsNames.push(textItems[j].name);
+        }
+        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+
+        toggleReadAloud();
+        updateGoToMenu();
+        updateReadMenu()
+        updateGrammar();
     }
 }
 
@@ -1732,6 +1795,15 @@ function readAloudFromSectionName(sectionName){
             }
         }
     }
+    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    for(var a = 0; a < textItems.length; a++){
+        if(textItems[a].name === sectionNameToRead){
+            for(var b = 0; b < textItems[a].value.length; b++){
+                readContent += textItems[a].value[b];
+                console.log("content: " + readContent);
+            }
+        }
+    }
     Read(readContent);
 }
 
@@ -1887,6 +1959,20 @@ function goToFromSectionName(sectionName){
         }
 
         toggleReadAloud();
+
+        textItems = JSON.parse(myStorage.getItem("textItems"));
+        for(var a = 0; a < textItems.length; a++){
+            if(textItems[a].name === sectionNameToGo){
+                if(textItems[a].value.length > 0){
+                    console.log("go to text: " + textItems[a].value[0]);
+                    var foundItem = $("*:contains('" + textItems[a].value[0] + "'):last").offset();
+                    if(typeof foundItem != 'undefined'){
+                        $(window).scrollTop(foundItem.top);
+                    }
+                }
+            }
+        }
+
 
 
     }
