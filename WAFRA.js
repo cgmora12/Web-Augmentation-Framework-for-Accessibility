@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.94
+// @version      0.95
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -237,7 +237,7 @@ function createWebAugmentedMenu(){
 
     divMenu = document.createElement("div");
     divMenu.id = "menu-webaugmentation";
-    divMenu.style = "position: fixed; left: 2%; top: 2%; z-index: 100; line-height: 125%;"
+    divMenu.style = "position: fixed; left: 2%; top: 2%; z-index: 100; line-height: 140%;"
     var menuLinkDiv = document.createElement("div");
     menuLinkDiv.id = "div-webaugmentation";
     var menuLink = document.createElement("a");
@@ -1132,11 +1132,16 @@ function stopAnnotationsParagraphSections(){
 function toggleAnnotationsTextSections(){
     activateTextDetector = !activateTextDetector;
 
+    var textSelectionDiv
     if(activateTextDetector){
         textItemsAux = [];
         document.addEventListener("mouseup", saveTextSelected);
         document.addEventListener("keyup", saveTextSelected);
         document.getElementById("annotateTextA").text = "Save text section";
+        textSelectionDiv = document.createElement("div");
+        textSelectionDiv.id = "textSelectionDiv";
+        textSelectionDiv.style = "position: fixed; top: 80%; margin: 10px; padding: 10px; width: 95%; height: 100px; overflow: scroll; background-color: #E6E6E6; border: 1px solid #00000F; display: none";
+        document.body.appendChild(textSelectionDiv);
     } else{
         if(Array.isArray(textItemsAux) && textItemsAux.length > 0){
             var result = prompt("Title of these text selections", "");
@@ -1153,6 +1158,10 @@ function toggleAnnotationsTextSections(){
             jsons.push(jsonText);
             myStorage.setItem("textItems", JSON.stringify(jsons));
             textItemsAux = [];
+
+
+            textSelectionDiv = document.getElementById("textSelectionDiv");
+            textSelectionDiv.innerHTML = "";
         }
         activateTextDetector = !activateTextDetector;
     }
@@ -1177,6 +1186,11 @@ function saveTextSelected() {
     if (selectedText && !textItemsAux.includes(selectedText)) {
         textItemsAux.push(selectedText);
         textItemsAux.push(" ");
+
+        var newContent = document.createTextNode(selectedText + " ");
+        var textSelectionDiv = document.getElementById("textSelectionDiv");
+        textSelectionDiv.appendChild(newContent);
+        textSelectionDiv.style.display = "block";
     }
 }
 
@@ -1205,6 +1219,10 @@ function stopAnnotationsTextSections(){
         updateGoToMenu();
         updateReadMenu()
         updateGrammar();
+
+
+        var textSelectionDiv = document.getElementById("textSelectionDiv");
+        document.body.removeChild(textSelectionDiv);
     }
 }
 
