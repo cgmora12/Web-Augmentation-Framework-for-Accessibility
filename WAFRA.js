@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.96
+// @version      0.961
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -45,8 +45,8 @@ var showSectionsCommand = "show sections"
 var showSectionCommand = "show section"
 var welcomeCommand = "welcome"
 
-var commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, welcomeCommand]
+var commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
+                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand]
 
 var changeCommand = "change command"
 var cancelCommand = "cancel"
@@ -231,8 +231,8 @@ function getAndSetStorage(){
         myStorage.setItem("breadcrumbCommandActive", breadcrumbCommandActive);
     }
 
-    commands = [increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, readCommand, goToCommand,
-                hiddenSectionsCommand, breadcrumbCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, welcomeCommand]
+    commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
+                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand]
 }
 
 
