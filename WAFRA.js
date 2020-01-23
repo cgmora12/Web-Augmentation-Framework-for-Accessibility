@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.95
+// @version      0.96
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -77,13 +77,18 @@ var annotationsParagraphActive = false;
 // Main method
 $(document).ready(function() {
     createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
-    createCSSSelector('.hideUselessSections', 'display: none');
+    createCSSSelector('.hideUselessSections', 'display: none !important;');
     createCSSSelector('.hoverColor:hover', 'background-color: grey !important;');
     createCSSSelector('.selectedColor', 'background-color: grey !important;;');
     $('*[class=""]').removeAttr('class');
     getAndSetStorage();
     createWebAugmentedMenu();
     addAugmentationOperations();
+
+    setTimeout(function(){
+        toggleHiddenSections();
+    }, 1000);
+
 });
 
 // Storage management
@@ -196,6 +201,15 @@ function getAndSetStorage(){
         myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
     }
 
+    if(myStorage.getItem("textItems") !== null){
+        try {
+            textItems = JSON.parse(myStorage.getItem("textItems"))
+        } catch (e) {
+        }
+    } else {
+        myStorage.setItem("textItems", JSON.stringify(textItems));
+    }
+
     if(myStorage.getItem("sectionsNames") !== null){
         try {
             sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"))
@@ -256,20 +270,6 @@ function createWebAugmentedMenu(){
     divButtons.id = "foldingMenu"
     divButtons.style = "padding: 10px; border: 2px solid black; display: none; background-color: white"
 
-    var a6 = document.createElement('a');
-    a6.id = "annotationsA";
-    a6.addEventListener("click", function(){
-        toggleMenu();
-        closeLanguageMenu();
-        closeCommandsMenu();
-        closeReadMenu();
-        toggleAnnotationsMenu();
-        closeOperationsMenu()
-    }, false);
-    a6.text = 'Annotations';
-    divButtons.appendChild(a6);
-    divButtons.appendChild(document.createElement('br'));
-
     var toggleListeningIcon = document.createElement("i");
     toggleListeningIcon.id = "toggleListeningIcon";
     toggleListeningIcon.className = "fa fa-circle";
@@ -282,23 +282,23 @@ function createWebAugmentedMenu(){
             recognition.abort();
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
-            toggleListeningIcon.style = "color:red";
+            toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else{
             recognition.start();
             aToggleListening.text = 'Stop Listening';
             listeningActive = true;
             inputVoiceCommands.checked = listeningActive;
-            toggleListeningIcon.style = "color:gray";
+            toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
         myStorage.setItem("listeningActive", listeningActive);
     }, false);
     if(listeningActive){
         aToggleListening.text = 'Stop Listening';
-        toggleListeningIcon.style = "color:gray";
+        toggleListeningIcon.style = "color:gray; margin-left: 8px";
     }
     else{
         aToggleListening.text = 'Start Listening';
-        toggleListeningIcon.style = "color:red";
+        toggleListeningIcon.style = "color:red; margin-left: 8px";
     }
     divButtons.appendChild(aToggleListening);
     divButtons.appendChild(toggleListeningIcon);
@@ -327,11 +327,11 @@ function createWebAugmentedMenu(){
             recognition.abort();
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
-            toggleListeningIcon.style = "color:red";
+            toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else{
             recognition.start();
             aToggleListening.text = 'Stop Listening';
-            toggleListeningIcon.style = "color:gray";
+            toggleListeningIcon.style = "color:gray; margin-left: 8px";
             listeningActive = true;
         }
         myStorage.setItem("listeningActive", listeningActive);
@@ -358,8 +358,134 @@ function createWebAugmentedMenu(){
     menuLinkDiv.appendChild(divButtons);
     document.body.appendChild(divMenu);
 
+    var divMenuAnnotations = document.createElement("div");
+    divMenuAnnotations.id = "menu-intermediary";
+    divMenuAnnotations.style = "position: fixed; right: 2%; top: 2%; z-index: 100; line-height: 140%;"
+    var menuAnnotationsLinkDiv = document.createElement("div");
+    menuAnnotationsLinkDiv.id = "div-intermediary";
+    menuAnnotationsLinkDiv.style = "text-align: right;";
+    var menuAnnotationsLink = document.createElement("a");
+    menuAnnotationsLink.id = "a-intermediary";
+    menuAnnotationsLink.href = "javascript:void(0);";
+    menuAnnotationsLink.className = "icon";
+    menuAnnotationsLink.addEventListener("click", toggleAnnotationsMenu)
+    var menuAnnotationsIcon = document.createElement("i");
+    menuAnnotationsIcon.className = "fa fa-pencil-square-o fa-2x fa-border";
+    menuAnnotationsIcon.style="background-color: white;";
+    menuAnnotationsLink.appendChild(menuAnnotationsIcon);
+
+    var aSave = document.createElement('a');
+    aSave.id = "saveAnnotationsA";
+    aSave.href = "javascript:void(0);";
+    aSave.className = "icon";
+    aSave.title = "Save";
+    aSave.style = "display: none";
+    aSave.addEventListener("click", saveAnnotationsSections, false);
+    var saveIcon = document.createElement("i");
+    saveIcon.className = "fa fa-floppy-o fa-2x fa-border";
+    saveIcon.style="background-color: white;";
+    aSave.appendChild(saveIcon);
+    menuAnnotationsLinkDiv.appendChild(aSave);
+
+    var aStop = document.createElement('a');
+    aStop.id = "stopAnnotationsA";
+    aStop.href = "javascript:void(0);";
+    aStop.className = "icon";
+    aStop.title = "Stop";
+    aStop.style = "display: none";
+    aStop.addEventListener("click", stopAnnotationsSections, false);
+    var stopIcon = document.createElement("i");
+    stopIcon.className = "fa fa-stop fa-2x fa-border";
+    stopIcon.style="background-color: white;";
+    aStop.appendChild(stopIcon);
+    menuAnnotationsLinkDiv.appendChild(aStop);
+
+    var aUndo = document.createElement('a');
+    aUndo.id = "undoAnnotationsA";
+    aUndo.href = "javascript:void(0);";
+    aUndo.className = "icon";
+    aUndo.title = "Undo";
+    aUndo.style = "display: none";
+    aUndo.addEventListener("click", undoAnnotationsSections, false);
+    var undoIcon = document.createElement("i");
+    undoIcon.className = "fa fa-undo fa-2x fa-border";
+    undoIcon.style="background-color: white;";
+    aUndo.appendChild(undoIcon);
+    menuAnnotationsLinkDiv.appendChild(aUndo);
+
+    menuAnnotationsLinkDiv.appendChild(menuAnnotationsLink);
+    divMenuAnnotations.appendChild(menuAnnotationsLinkDiv);
+
+    var divAnnotationsMenu = document.createElement("div")
+    divAnnotationsMenu.id = "menu-annotations";
+    divAnnotationsMenu.style = "z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    i = document.createElement('i');
+    i.className = 'fa fa-close'
+    i.style = "position: absolute; right: 1%; top: 31%; z-index: 100;"
+    i.addEventListener("click", function(){
+        closeAnnotationsMenu();
+    }, false);
+    divAnnotationsMenu.appendChild(i);
+
+    var a1 = document.createElement('a');
+    a1.id = "annotateTextA";
+    a1.text = "Annotate text sections";
+    a1.addEventListener("click", startAnnotationsTextSections, false);
+    divAnnotationsMenu.appendChild(a1);
+
+    var a2 = document.createElement('a');
+    a2.id = "resetTextSectionsA";
+    a2.className = "icon";
+    a2.title = "Reset text sections";
+    a2.addEventListener("click", resetTextSections, false);
+    var a2Icon = document.createElement("i");
+    a2Icon.className = "fa fa-trash-o";
+    a2Icon.style="margin-left: 8px";
+    a2.appendChild(a2Icon);
+    divAnnotationsMenu.appendChild(a2);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a3 = document.createElement('a');
+    a3.id = "annotateParagraphA";
+    a3.text = "Annotate paragraph sections";
+    a3.addEventListener("click", startAnnotationsParagraphSections, false);
+    divAnnotationsMenu.appendChild(a3);
+
+    var a4 = document.createElement('a');
+    a4.id = "resetParagraphSectionsA";
+    a4.className = "icon";
+    a4.title = "Reset paragraph sections";
+    a4.addEventListener("click", resetParagraphSections, false);
+    var a4Icon = document.createElement("i");
+    a4Icon.className = "fa fa-trash-o";
+    a4Icon.style="margin-left: 8px";
+    a4.appendChild(a4Icon);
+    divAnnotationsMenu.appendChild(a4);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a5b = document.createElement('a');
+    a5b.id = "annotateUselessA";
+    a5b.text = "Annotate useless sections";
+    a5b.addEventListener("click", startAnnotationsUselessSections, false);
+    divAnnotationsMenu.appendChild(a5b);
+
+    var a6 = document.createElement('a');
+    a6.id = "resetUselessSectionsA";
+    a6.className = "icon";
+    a6.title = "Reset useless sections";
+    a6.addEventListener("click", resetUselessSections, false);
+    var a6Icon = document.createElement("i");
+    a6Icon.className = "fa fa-trash-o";
+    a6Icon.style="margin-left: 8px";
+    a6.appendChild(a6Icon);
+    divAnnotationsMenu.appendChild(a6);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+    divMenuAnnotations.appendChild(divAnnotationsMenu);
+
+    document.body.appendChild(divMenuAnnotations);
+
     commandsMenu();
-    createAnnotationsMenu();
     createOperationsMenu();
     clickDetector();
 }
@@ -491,7 +617,6 @@ function createOperationsMenu(){
     aHiddenSections.id = "hiddenSectionsA";
     //aToggleSections.href = '';
     aHiddenSections.addEventListener("click", function(){
-        toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
@@ -507,7 +632,6 @@ function createOperationsMenu(){
     inputHiddenSections.value = 'hiddenSectionsInput';
     inputHiddenSections.checked = hiddenSectionsCommandActive;
     inputHiddenSections.addEventListener("change", function(){
-        toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
@@ -520,7 +644,6 @@ function createOperationsMenu(){
     var aBreadcrumb = document.createElement('a');
     aBreadcrumb.id = "breadcrumbA";
     aBreadcrumb.addEventListener("click", function(){
-        toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
@@ -537,7 +660,6 @@ function createOperationsMenu(){
     inputBreadcrumb.value = 'breadcrumbInput';
     inputBreadcrumb.checked = breadcrumbCommandActive;
     inputBreadcrumb.addEventListener("change", function(){
-        toggleMenu();
         closeLanguageMenu();
         closeCommandsMenu();
         closeReadMenu();
@@ -552,7 +674,6 @@ function createOperationsMenu(){
     a4.id = "languageA";
     //a4.href = '';
     a4.addEventListener("click", function(){
-        toggleMenu();
         closeCommandsMenu();
         toggleLanguageMenu();
         closeReadMenu();
@@ -823,7 +944,10 @@ function toggleBreadcrumb(){
 }
 
 function toggleHiddenSections(){
+    console.log("toggleHiddenSections");
 
+  $('.readAloudButton').attr('disabled', 'disabled');
+  hiddenItems = JSON.parse(myStorage.getItem("hiddenItems"));
   if (document.getElementById("hiddenSectionsInput").checked) {
     var all
     for(var i = 0; i < hiddenItems.length; i++){
@@ -863,6 +987,7 @@ function toggleHiddenSections(){
 
   closeMenu();
   closeOperationsMenu();
+  $('.readAloudButton').removeAttr('disabled');
 
 }
 
@@ -899,6 +1024,8 @@ function resetParagraphSections(){
 
     paragraphItems = [];
     myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
+
+    updateSectionNames();
     closeAnnotationsMenu();
     updateGoToMenu();
     updateReadMenu()
@@ -911,80 +1038,22 @@ function resetTextSections(){
     textItems = [];
     myStorage.setItem("textItems", JSON.stringify(textItems));
     closeAnnotationsMenu();
+    updateSectionNames();
     updateGoToMenu();
     updateReadMenu();
 }
 
-function createAnnotationsMenu(){
-
-    var divAnnotationsMenu = document.createElement("div")
-    divAnnotationsMenu.id = "menu-annotations";
-    divAnnotationsMenu.style = "z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
-
-    var i = document.createElement('i');
-    i.className = 'fa fa-close'
-    i.style = "position: absolute; right: 1%; top: 31%; z-index: 100;"
-    i.addEventListener("click", function(){
-        closeAnnotationsMenu();
-    }, false);
-    divAnnotationsMenu.appendChild(i);
-
-    var a1 = document.createElement('a');
-    a1.id = "annotateTextA";
-    a1.text = "Annotate text sections";
-    a1.addEventListener("click", toggleAnnotationsTextSections, false);
-    divAnnotationsMenu.appendChild(a1);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a1b = document.createElement('a');
-    a1b.id = "saveTextA";
-    a1b.text = "Stop and save text sections";
-    a1b.addEventListener("click", stopAnnotationsTextSections, false);
-    divAnnotationsMenu.appendChild(a1b);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a2 = document.createElement('a');
-    a2.id = "resetTextSectionsA";
-    a2.text = "Reset text sections";
-    a2.addEventListener("click", resetTextSections, false);
-    divAnnotationsMenu.appendChild(a2);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a3 = document.createElement('a');
-    a3.id = "annotateParagraphA";
-    a3.text = "Annotate paragraph sections";
-    a3.addEventListener("click", toggleAnnotationsParagraphSections, false);
-    divAnnotationsMenu.appendChild(a3);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a3b = document.createElement('a');
-    a3b.id = "saveParagraphA";
-    a3b.text = "Stop and save paragraph sections";
-    a3b.addEventListener("click", stopAnnotationsParagraphSections, false);
-    divAnnotationsMenu.appendChild(a3b);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a4 = document.createElement('a');
-    a4.id = "resetParagraphSectionsA";
-    a4.text = "Reset paragraph sections";
-    a4.addEventListener("click", resetParagraphSections, false);
-    divAnnotationsMenu.appendChild(a4);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a5 = document.createElement('a');
-    a5.id = "annotateUselessA";
-    a5.text = "Annotate useless sections";
-    a5.addEventListener("click", toggleAnnotationsUselessSections, false);
-    divAnnotationsMenu.appendChild(a5);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-
-    var a6 = document.createElement('a');
-    a6.id = "resetUselessSectionsA";
-    a6.text = "Reset useless sections";
-    a6.addEventListener("click", resetUselessSections, false);
-    divAnnotationsMenu.appendChild(a6);
-    divAnnotationsMenu.appendChild(document.createElement('br'));
-    document.getElementById("div-webaugmentation").appendChild(divAnnotationsMenu);
+function updateSectionNames(){
+    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    var sectionsNames = [];
+    for(var i = 0; i < paragraphItems.length; i++){
+        sectionsNames.push(paragraphItems[i].name);
+    }
+    for(var j = 0; j < textItems.length; j++){
+        sectionsNames.push(textItems[j].name);
+    }
+    myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
 }
 
 function toggleAnnotationsMenu(){
@@ -1003,32 +1072,251 @@ function closeAnnotationsMenu(){
   x.style.display = "none";
 }
 
-function toggleAnnotationsUselessSections(){
-    activateClickDetector = !activateClickDetector;
+function showAnnotationMainButton(){
+    var aIntermediary = document.getElementById("a-intermediary");
+    aIntermediary.style = "display: block";
+}
+
+function showAnnotationsButtons(){
+
+    var aSave = document.getElementById("saveAnnotationsA");
+    aSave.style = "display: block";
+
+    var aStop = document.getElementById("stopAnnotationsA");
+    aStop.style = "display: block";
+
+    var aUndo = document.getElementById("undoAnnotationsA");
+    aUndo.style = "display: block";
+
+}
+
+function hideAnnotationMainButton(){
+    var aIntermediary = document.getElementById("a-intermediary");
+    aIntermediary.style = "display: none";
+}
+
+function hideAnnotationsButtons(){
+
+    var aSave = document.getElementById("saveAnnotationsA");
+    aSave.style = "display: none";
+
+    var aStop = document.getElementById("stopAnnotationsA");
+    aStop.style = "display: none";
+
+    var aUndo = document.getElementById("undoAnnotationsA");
+    aUndo.style = "display: none";
+
+}
+
+function saveAnnotationsSections(){
+
+    if(annotationsUselessActive){
+        saveAnnotationsUselessSections();
+    } else if(annotationsParagraphActive){
+        saveAnnotationsParagraphSections();
+    } else if(annotationsTextActive){
+        saveAnnotationsTextSections();
+    }
+}
+
+function stopAnnotationsSections(){
+
+    if(annotationsUselessActive){
+        //stopAnnotationsUselessSections();
+    } else if(annotationsParagraphActive){
+        stopAnnotationsParagraphSections();
+    } else if(annotationsTextActive){
+        stopAnnotationsTextSections();
+    }
+}
+
+function undoAnnotationsSections(){
+
+    if(annotationsUselessActive){
+        undoAnnotationsUselessSections();
+    } else if(annotationsParagraphActive){
+        undoAnnotationsParagraphSections();
+    } else if(annotationsTextActive){
+        undoAnnotationsTextSections();
+    }
+}
+
+function startAnnotationsUselessSections(){
+    activateClickDetector = true;
     closeAnnotationsMenu()
 
-    var all;
-    if(activateClickDetector){
-        annotationsUselessActive = true;
-        document.getElementById("annotateUselessA").text = "Save annotated useless sections";
-        $('button').attr('disabled', 'disabled');
-        $('a').addClass("hideSectionsLinks");
-        /*all = document.body.getElementsByTagName("*");
+    annotationsUselessActive = true;
+    $('button').attr('disabled', 'disabled');
+    $('a').addClass("hideSectionsLinks");
+    /*all = document.body.getElementsByTagName("*");
         for (var i = 0; i < all.length; i++) {
             all[i].classList.add('hoverColor');
         }*/
-        //$('a').css({'pointer-events': 'none'});
-        $("#a-webaugmentation").css({'pointer-events': 'all'});
-        $("#annotationsA").css({'pointer-events': 'all'});
-        $("#annotateUselessA").css({'pointer-events': 'all'});
-        hiddenItemsAux = [];
-    } else {
-        annotationsUselessActive = false;
-        document.getElementById("annotateUselessA").text = "Annotate useless sections";
-        $('button').removeAttr('disabled');
-        //$('a').css({'pointer-events': 'all'});
-        $('a').removeClass("hideSectionsLinks");
-        all = document.body.getElementsByTagName("*");
+    //$('a').css({'pointer-events': 'none'});
+    showAnnotationsButtons();
+    hideAnnotationMainButton();
+
+    var aStop = document.getElementById("stopAnnotationsA");
+    aStop.style = "display: none";
+
+    $("#saveAnnotationsA").css({'pointer-events': 'all'});
+    //$("#stopAnnotationsA").css({'pointer-events': 'all'});
+    $("#undoAnnotationsA").css({'pointer-events': 'all'});
+    hiddenItemsAux = [];
+    alert("Please click on the elements of the page that you consider useless for final users.");
+
+}
+
+function saveAnnotationsUselessSections(){
+    annotationsUselessActive = false;
+    activateClickDetector = false;
+
+    $('button').removeAttr('disabled');
+    //$('a').css({'pointer-events': 'all'});
+    $('a').removeClass("hideSectionsLinks");
+    var all = document.body.getElementsByTagName("*");
+    for (var j = 0; j < all.length; j++) {
+        all[j].classList.remove('hoverColor');
+        all[j].classList.remove('selectedColor');
+    }
+
+    $('*[class=""]').removeAttr('class');
+
+    /*var hiddenItemsToAdd = []
+    for(var i = 0; i < hiddenItemsAux.length; i++){
+        var target = hiddenItemsAux[i];
+        console.log(JSON.stringify(target));
+        var childA = target.getElementsByTagName("a")
+        if(target.id !== null && target.id  !== '' && typeof target.id !== 'undefined'){
+            hiddenItemsToAdd.push(target.id);
+        } else {
+            for(i = 0; i < childA.length; i++){
+                childA[i].classList.remove("hideSectionsLinks");
+                if (childA[i].className == "")
+                    childA[i].removeAttribute('class');
+            }
+            target.classList.remove("hideSectionsLinks");
+            if (target.className == "")
+                target.removeAttribute('class');
+            hiddenItemsToAdd.push(target.outerHTML);
+            target.classList.add("hideUselessSections");
+            hiddenItemsToAdd.push(target.outerHTML);
+            target.classList.remove("hideUselessSections");
+        }
+    }*/
+
+
+    hiddenItems = hiddenItems.concat(hiddenItemsAux);
+    //hiddenItems = hiddenItems.concat(hiddenItemsToAdd);
+    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    hiddenItemsAux = [];
+
+    hideAnnotationsButtons();
+
+    toggleHiddenSections();
+    showAnnotationMainButton();
+    hideAnnotationsButtons();
+}
+
+
+function undoAnnotationsUselessSections(){
+
+    /*console.log("undoAnnotationsUselessSections")
+    try{
+        var lastHiddenItem = hiddenItemsAux[hiddenItemsAux.length -1];
+        lastHiddenItem.classList.remove('selectedColor');
+        hiddenItemsAux.pop();
+    } catch(e){
+        console.log("Error searching for undo");
+    }*/
+    try{
+        var lastHiddenItem = document.getElementById(hiddenItemsAux[hiddenItemsAux.length -1])
+        if(typeof lastHiddenItem !== "undefined" && lastHiddenItem !== null){
+            lastHiddenItem.classList.remove('selectedColor');
+            hiddenItemsAux.pop();
+        } else {
+            var all = document.body.getElementsByTagName("*");
+            for (var j=0, max=all.length; j < max; j++) {
+                var containsSelectedColor = false;
+                if(all[j].classList.contains('selectedColor')){
+                    all[j].classList.remove('selectedColor');
+                    if(all[j].classList.length === 0){
+                        all[j].removeAttribute('class');
+                    }
+                    containsSelectedColor = true;
+                }
+                if(all[j].outerHTML === hiddenItemsAux[hiddenItemsAux.length -1]){
+                    all[j].classList.remove('selectedColor');
+                    hiddenItemsAux.pop();
+                    hiddenItemsAux.pop();
+                    containsSelectedColor = false;
+                } else if(all[j].outerHTML === hiddenItemsAux[hiddenItemsAux.length -1 -1]){
+                    all[j].classList.remove('selectedColor');
+                    hiddenItemsAux.pop();
+                    hiddenItemsAux.pop();
+                    containsSelectedColor = false;
+                }
+
+                if(containsSelectedColor){
+                    all[j].classList.add('selectedColor');
+                    containsSelectedColor = false;
+                }
+            }
+        }
+    } catch(error){
+        console.log("Error searching for undo");
+        console.log(error.message);
+    }
+}
+
+/*function stopAnnotationsUselessSections(){
+    annotationsUselessActive = false;
+    $('button').removeAttr('disabled');
+    //$('a').css({'pointer-events': 'all'});
+    $('a').removeClass("hideSectionsLinks");
+    var all = document.body.getElementsByTagName("*");
+    for (var j = 0; j < all.length; j++) {
+        all[j].classList.remove('hoverColor');
+        all[j].classList.remove('selectedColor');
+    }
+
+    $('*[class=""]').removeAttr('class');
+
+    hiddenItems = hiddenItems.concat(hiddenItemsAux);
+    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    hiddenItemsAux = [];
+
+    toggleHiddenSections();
+    hideAnnotationsButtons();
+}*/
+
+function startAnnotationsParagraphSections(){
+    activateClickDetector = true;
+    annotationsParagraphActive = true;
+    closeAnnotationsMenu();
+
+    showAnnotationsButtons();
+    hideAnnotationMainButton();
+
+    $('button').attr('disabled', 'disabled');
+    $('a').addClass("hideSectionsLinks");
+    /*all = document.body.getElementsByTagName("*");
+        for (var i = 0; i < all.length; i++) {
+            all[i].classList.add('hoverColor');
+        }*/
+    //$('a').css({'pointer-events': 'none'});
+    $("#saveAnnotationsA").css({'pointer-events': 'all'});
+    $("#stopAnnotationsA").css({'pointer-events': 'all'});
+    $("#undoAnnotationsA").css({'pointer-events': 'all'});
+    paragraphItemsAux = [];
+    alert("Please click on the paragraphs from a specific section and then click the save icon.");
+}
+
+function saveAnnotationsParagraphSections(){
+    if(Array.isArray(paragraphItemsAux) && paragraphItemsAux.length > 0){
+        var result = prompt("Title of this paragraphs' section", "");
+
+        var all = document.body.getElementsByTagName("*");
         for (var j = 0; j < all.length; j++) {
             all[j].classList.remove('hoverColor');
             all[j].classList.remove('selectedColor');
@@ -1036,184 +1324,165 @@ function toggleAnnotationsUselessSections(){
 
         $('*[class=""]').removeAttr('class');
 
-        hiddenItems = hiddenItems.concat(hiddenItemsAux);
-        myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
-        hiddenItemsAux = [];
-
-        toggleHiddenSections();
-    }
-}
-
-function toggleAnnotationsParagraphSections(){
-    activateClickDetector = !activateClickDetector;
-    closeAnnotationsMenu();
-
-    var all;
-    if(activateClickDetector){
-        annotationsParagraphActive = true;
-        document.getElementById("annotateParagraphA").text = "Save paragraphs' section";
-        $('button').attr('disabled', 'disabled');
-        $('a').addClass("hideSectionsLinks");
-        /*all = document.body.getElementsByTagName("*");
-        for (var i = 0; i < all.length; i++) {
-            all[i].classList.add('hoverColor');
-        }*/
-        //$('a').css({'pointer-events': 'none'});
-        $("#a-webaugmentation").css({'pointer-events': 'all'});
-        $("#annotationsA").css({'pointer-events': 'all'});
-        $("#annotateParagraphA").css({'pointer-events': 'all'});
-        $("#saveParagraphA").css({'pointer-events': 'all'});
-        paragraphItemsAux = [];
-
-
-    } else {
-        if(Array.isArray(paragraphItemsAux) && paragraphItemsAux.length > 0){
-            var result = prompt("Title of this paragraphs' section", "");
-
-            all = document.body.getElementsByTagName("*");
-            for (var j = 0; j < all.length; j++) {
-                all[j].classList.remove('hoverColor');
-                all[j].classList.remove('selectedColor');
+        var jsonParagraph = new Object();
+        jsonParagraph.name = result;
+        jsonParagraph.value = paragraphItemsAux;
+        var jsons = new Array();
+        try{
+            var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+            if(Array.isArray(paragraphItems) && paragraphItems.length > 0){
+                jsons = paragraphItems;
             }
-
-            $('*[class=""]').removeAttr('class');
-
-            var jsonParagraph = new Object();
-            jsonParagraph.name = result;
-            jsonParagraph.value = paragraphItemsAux;
-            var jsons = new Array();
-            try{
-                var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
-                if(Array.isArray(paragraphItems) && paragraphItems.length > 0){
-                    jsons = paragraphItems;
-                }
-            } catch(e){}
-            jsons.push(jsonParagraph);
-            myStorage.setItem("paragraphItems", JSON.stringify(jsons));
-            paragraphItemsAux = [];
+        } catch(e){}
+        jsons.push(jsonParagraph);
+        myStorage.setItem("paragraphItems", JSON.stringify(jsons));
+        paragraphItemsAux = [];
+        if(annotationsParagraphActive){
+            alert("Please continue clicking on other paragraphs from other specific section (until you click the stop icon).");
         }
-        activateClickDetector = !activateClickDetector;
-
-        //toggleHiddenSections();
     }
 }
 
 function stopAnnotationsParagraphSections(){
-    if(activateClickDetector){
-        toggleAnnotationsParagraphSections()
-        annotationsParagraphActive = false;
-        document.getElementById("annotateParagraphA").text = "Annotate paragraph sections";
-        $('button').removeAttr('disabled');
-        //$('a').css({'pointer-events': 'all'});
-        $('a').removeClass("hideSectionsLinks");
-        activateClickDetector = !activateClickDetector;
-        $('*[class=""]').removeAttr('class');
+    saveAnnotationsParagraphSections()
+    annotationsParagraphActive = false;
+    $('button').removeAttr('disabled');
+    //$('a').css({'pointer-events': 'all'});
+    $('a').removeClass("hideSectionsLinks");
+    activateClickDetector = false;
+    $('*[class=""]').removeAttr('class');
 
-        // save sections names from paragraphItems
-        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
-        var textItems = JSON.parse(myStorage.getItem("textItems"));
-        var sectionsNames = [];
-        for(var i = 0; i < paragraphItems.length; i++){
-            sectionsNames.push(paragraphItems[i].name);
-        }
-        for(var j = 0; j < textItems.length; j++){
-            sectionsNames.push(textItems[j].name);
-        }
-        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+    // save sections names from paragraphItems
+    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    var sectionsNames = [];
+    for(var i = 0; i < paragraphItems.length; i++){
+        sectionsNames.push(paragraphItems[i].name);
+    }
+    for(var j = 0; j < textItems.length; j++){
+        sectionsNames.push(textItems[j].name);
+    }
+    myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
 
-        toggleReadAloud();
-        updateGoToMenu();
-        updateReadMenu()
-        updateGrammar();
+
+    hideAnnotationsButtons();
+    showAnnotationMainButton();
+
+    toggleReadAloud();
+    updateGoToMenu();
+    updateReadMenu()
+    updateGrammar();
+}
+
+function undoAnnotationsParagraphSections(){
+
+    try{
+        var lastParagraphItem = document.getElementById(paragraphItemsAux[paragraphItemsAux.length -1])
+        if(typeof lastParagraphItem !== "undefined" && lastParagraphItem !== null){
+            lastParagraphItem.classList.remove('selectedColor');
+            paragraphItemsAux.pop();
+        } else {
+            var all = document.body.getElementsByTagName("*");
+            for (var j=0, max=all.length; j < max; j++) {
+                var containsSelectedColor = false;
+                if(all[j].classList.contains('selectedColor')){
+                    all[j].classList.remove('selectedColor');
+                    if(all[j].classList.length === 0){
+                        all[j].removeAttribute('class');
+                    }
+                    containsSelectedColor = true;
+                }
+                if(all[j].outerHTML === paragraphItemsAux[paragraphItemsAux.length -1]){
+                    all[j].classList.remove('selectedColor');
+                    paragraphItemsAux.pop();
+                    containsSelectedColor = false;
+                }
+
+                if(containsSelectedColor){
+                    all[j].classList.add('selectedColor');
+                    containsSelectedColor = false;
+                }
+            }
+        }
+    } catch(error){
+        console.log("Error searching for undo");
+        console.log(error.message);
     }
 }
 
 
-function toggleAnnotationsTextSections(){
-    activateTextDetector = !activateTextDetector;
-
-    var textSelectionDiv
-    if(activateTextDetector){
-        textItemsAux = [];
-        document.addEventListener("mouseup", saveTextSelected);
-        document.addEventListener("keyup", saveTextSelected);
-        document.getElementById("annotateTextA").text = "Save text section";
-        textSelectionDiv = document.createElement("div");
-        textSelectionDiv.id = "textSelectionDiv";
-        textSelectionDiv.style = "position: fixed; top: 80%; margin: 10px; padding: 10px; width: 95%; height: 100px; overflow: scroll; background-color: #E6E6E6; border: 1px solid #00000F; display: none";
-        document.body.appendChild(textSelectionDiv);
-    } else{
-        if(Array.isArray(textItemsAux) && textItemsAux.length > 0){
-            var result = prompt("Title of these text selections", "");
-            var jsonText = new Object();
-            jsonText.name = result;
-            jsonText.value = textItemsAux;
-            var jsons = new Array();
-            try{
-                var textItems = JSON.parse(myStorage.getItem("textItems"));
-                if(Array.isArray(textItems) && textItems.length > 0){
-                    jsons = textItems;
-                }
-            } catch(e){}
-            jsons.push(jsonText);
-            myStorage.setItem("textItems", JSON.stringify(jsons));
-            textItemsAux = [];
-
-
-            textSelectionDiv = document.getElementById("textSelectionDiv");
-            textSelectionDiv.innerHTML = "";
-        }
-        activateTextDetector = !activateTextDetector;
-    }
-
+function startAnnotationsTextSections(){
+    activateTextDetector = true;
     closeAnnotationsMenu();
 
+    showAnnotationsButtons();
+    hideAnnotationMainButton();
+
+    var textSelectionDiv
+    annotationsTextActive = true;
+    textItemsAux = [];
+    document.addEventListener("mouseup", saveTextSelected);
+    document.addEventListener("keyup", saveTextSelected);
+    document.getElementById("annotateTextA").text = "Save text section";
+    textSelectionDiv = document.createElement("div");
+    textSelectionDiv.id = "textSelectionDiv";
+    textSelectionDiv.style = "position: fixed; top: 80%; margin: 10px; padding: 10px; width: 95%; height: 100px; overflow: scroll; background-color: #E6E6E6; border: 1px solid #00000F; display: none";
+    document.body.appendChild(textSelectionDiv);
+    alert("Please select text from a specific section with important information and then click the save icon.");
+
 }
 
-function getSelectedText() {
-    var text = "";
-    if (typeof window.getSelection != "undefined") {
-        text = window.getSelection().toString();
-    } else if (typeof document.selection != "undefined" && document.selection.type == "Text") {
-        text = document.selection.createRange().text;
-    }
-    return text;
-}
+function saveAnnotationsTextSections(){
+    if(Array.isArray(textItemsAux) && textItemsAux.length > 0){
+        var result = prompt("Title of these text selections", "");
+        var jsonText = new Object();
+        jsonText.name = result;
+        jsonText.value = textItemsAux;
+        var jsons = new Array();
+        try{
+            var textItems = JSON.parse(myStorage.getItem("textItems"));
+            if(Array.isArray(textItems) && textItems.length > 0){
+                jsons = textItems;
+            }
+        } catch(e){}
+        jsons.push(jsonText);
+        myStorage.setItem("textItems", JSON.stringify(jsons));
+        textItemsAux = [];
 
-function saveTextSelected() {
-    var selectedText = getSelectedText();
-    console.log(selectedText);
-    if (selectedText && !textItemsAux.includes(selectedText)) {
-        textItemsAux.push(selectedText);
-        textItemsAux.push(" ");
 
-        var newContent = document.createTextNode(selectedText + " ");
         var textSelectionDiv = document.getElementById("textSelectionDiv");
-        textSelectionDiv.appendChild(newContent);
-        textSelectionDiv.style.display = "block";
+        textSelectionDiv.innerHTML = "";
+    }
+
+    if(annotationsTextActive){
+        alert("Please continue selecting text from other specific section (until you click the stop icon).");
     }
 }
+
 
 function stopAnnotationsTextSections(){
     if(activateTextDetector){
         document.removeEventListener("mouseup", saveTextSelected);
         document.removeEventListener("keyup", saveTextSelected);
-        document.getElementById("annotateTextA").text = "Annotate text sections";
 
-        toggleAnnotationsTextSections()
+        annotationsTextActive = false;
+        saveAnnotationsTextSections()
         activateTextDetector = false;
 
         // save sections names from paragraphItems
         var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
-        var textItems = JSON.parse(myStorage.getItem("textItems"));
         var sectionsNames = [];
         for(var i = 0; i < paragraphItems.length; i++){
             sectionsNames.push(paragraphItems[i].name);
         }
+        var textItems = JSON.parse(myStorage.getItem("textItems"));
         for(var j = 0; j < textItems.length; j++){
             sectionsNames.push(textItems[j].name);
         }
         myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+
+        hideAnnotationsButtons();
+        showAnnotationMainButton();
 
         toggleReadAloud();
         updateGoToMenu();
@@ -1226,6 +1495,17 @@ function stopAnnotationsTextSections(){
     }
 }
 
+function undoAnnotationsTextSections(){
+    textItemsAux.pop();
+
+    var newContentString = "";
+    for(var i = 0; i < textItemsAux.length; i++){
+        newContentString += textItemsAux[i] + " ";
+    }
+    var textSelectionDiv = document.getElementById("textSelectionDiv");
+    textSelectionDiv.innerText = newContentString;
+}
+
 function clickDetector(){
     document.addEventListener('click', function(event) {
         //console.log('click');
@@ -1233,11 +1513,11 @@ function clickDetector(){
         var target= 'target' in event? event.target : event.srcElement;
 
         if(activateClickDetector){
-            console.log('clicked on ' + target.tagName);
             //TODO: avoid deleting/hiding some elements, and activate actions such as read aloud
             var menu = document.getElementById("menu-webaugmentation");
-            var menuAnnotations = document.getElementById("menu-annotations");
+            var menuAnnotations = document.getElementById("menu-intermediary");
             if(!menu.contains(target) && !menuAnnotations.contains(target)){
+                console.log('clicked on ' + target.tagName);
                 var childA = target.getElementsByTagName("a")
                 var i
                 if(annotationsUselessActive){
@@ -1304,6 +1584,43 @@ function clickDetector(){
         return !activateClickDetector;
     });*/
 }
+
+function getSelectedText() {
+    var text = "";
+    if (typeof window.getSelection != "undefined") {
+        text = window.getSelection().toString();
+    } else if (typeof document.selection != "undefined" && document.selection.type == "Text") {
+        text = document.selection.createRange().text;
+    }
+    return text;
+}
+
+function saveTextSelected() {
+    var selectedText = getSelectedText();
+    console.log(selectedText);
+    if (selectedText && !textItemsAux.includes(selectedText)) {
+        textItemsAux.push(selectedText);
+
+        var newContent = document.createTextNode(selectedText + " ");
+        var textSelectionDiv = document.getElementById("textSelectionDiv");
+        textSelectionDiv.appendChild(newContent);
+        textSelectionDiv.style.display = "block";
+    }
+    clearTextSelected();
+}
+
+function clearTextSelected() {
+    if (window.getSelection) {
+        if (window.getSelection().empty) {  // Chrome
+            window.getSelection().empty();
+        } else if (window.getSelection().removeAllRanges) {  // Firefox
+            window.getSelection().removeAllRanges();
+        }
+    } else if (document.selection) {  // IE?
+        document.selection.empty();
+    }
+}
+
 
 // Language management
 function changeLanguageMenu(){
@@ -1817,7 +2134,7 @@ function readAloudFromSectionName(sectionName){
     for(var a = 0; a < textItems.length; a++){
         if(textItems[a].name === sectionNameToRead){
             for(var b = 0; b < textItems[a].value.length; b++){
-                readContent += textItems[a].value[b];
+                readContent += textItems[a].value[b] + " ";
                 console.log("content: " + readContent);
             }
         }
@@ -2038,8 +2355,10 @@ function showResults(results) {
 }
 
 function goToVideos(){
+    closeOperationsMenu();
+    closeMenu();
+
     if(videosCommandActive){
-        toggleMenu();
         $(window).scrollTop($('#youtubeVideos').offset().top);
     }
 }
