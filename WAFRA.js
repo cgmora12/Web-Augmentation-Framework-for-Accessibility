@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.961
+// @version      0.962
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -73,6 +73,8 @@ var annotationsUselessActive = false;
 var annotationsTextActive = false;
 var annotationsParagraphActive = false;
 
+var localStoragePrefix;
+
 
 // Main method
 $(document).ready(function() {
@@ -81,6 +83,10 @@ $(document).ready(function() {
     createCSSSelector('.hoverColor:hover', 'background-color: grey !important;');
     createCSSSelector('.selectedColor', 'background-color: grey !important;;');
     $('*[class=""]').removeAttr('class');
+
+    // Local storage independent for each visitated website
+    localStoragePrefix = document.URL;
+
     getAndSetStorage();
     createWebAugmentedMenu();
     addAugmentationOperations();
@@ -89,146 +95,148 @@ $(document).ready(function() {
         toggleHiddenSections();
     }, 1000);
 
+
 });
 
 // Storage management
 function getAndSetStorage(){
-    if(myStorage.getItem("languageCodeSyntesis") !== null){
-        languageCodeSyntesis = myStorage.getItem("languageCodeSyntesis")
+
+    if(myStorage.getItem(localStoragePrefix + "languageCodeSyntesis") !== null){
+        languageCodeSyntesis = myStorage.getItem(localStoragePrefix + "languageCodeSyntesis")
     } else {
-        myStorage.setItem("languageCodeSyntesis", languageCodeSyntesis);
+        myStorage.setItem(localStoragePrefix + "languageCodeSyntesis", languageCodeSyntesis);
     }
 
-    if(myStorage.getItem("languageCodeCommands") !== null){
-        languageCodeCommands = myStorage.getItem("languageCodeCommands")
+    if(myStorage.getItem(localStoragePrefix + "languageCodeCommands") !== null){
+        languageCodeCommands = myStorage.getItem(localStoragePrefix + "languageCodeCommands")
     } else {
-        myStorage.setItem("languageCodeCommands", languageCodeCommands);
+        myStorage.setItem(localStoragePrefix + "languageCodeCommands", languageCodeCommands);
     }
 
-    if(myStorage.getItem("listeningActive") !== null){
-        listeningActive = (myStorage.getItem("listeningActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "listeningActive") !== null){
+        listeningActive = (myStorage.getItem(localStoragePrefix + "listeningActive") == 'true')
     } else {
-        myStorage.setItem("listeningActive", listeningActive);
+        myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
     }
 
-    if(myStorage.getItem("readCommand") !== null){
-        readCommand = myStorage.getItem("readCommand")
+    if(myStorage.getItem(localStoragePrefix + "readCommand") !== null){
+        readCommand = myStorage.getItem(localStoragePrefix + "readCommand")
     } else {
-        myStorage.setItem("readCommand", readCommand);
+        myStorage.setItem(localStoragePrefix + "readCommand", readCommand);
     }
 
-    if(myStorage.getItem("readCommandActive") !== null){
-        readCommandActive = (myStorage.getItem("readCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "readCommandActive") !== null){
+        readCommandActive = (myStorage.getItem(localStoragePrefix + "readCommandActive") == 'true')
     } else {
-        myStorage.setItem("readCommandActive", readCommandActive);
+        myStorage.setItem(localStoragePrefix + "readCommandActive", readCommandActive);
     }
 
-    if(myStorage.getItem("goToCommand") !== null){
-        goToCommand = myStorage.getItem("goToCommand")
+    if(myStorage.getItem(localStoragePrefix + "goToCommand") !== null){
+        goToCommand = myStorage.getItem(localStoragePrefix + "goToCommand")
     } else {
-        myStorage.setItem("goToCommand", goToCommand);
+        myStorage.setItem(localStoragePrefix + "goToCommand", goToCommand);
     }
 
-    if(myStorage.getItem("goToCommandActive") !== null){
-        goToCommandActive = (myStorage.getItem("goToCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "goToCommandActive") !== null){
+        goToCommandActive = (myStorage.getItem(localStoragePrefix + "goToCommandActive") == 'true')
     } else {
-        myStorage.setItem("goToCommandActive", goToCommandActive);
+        myStorage.setItem(localStoragePrefix + "goToCommandActive", goToCommandActive);
     }
 
-    if(myStorage.getItem("videosCommandActive") !== null){
-        videosCommandActive = (myStorage.getItem("videosCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "videosCommandActive") !== null){
+        videosCommandActive = (myStorage.getItem(localStoragePrefix + "videosCommandActive") == 'true')
     } else {
-        myStorage.setItem("videosCommandActive", videosCommandActive);
+        myStorage.setItem(localStoragePrefix + "videosCommandActive", videosCommandActive);
     }
 
-    if(myStorage.getItem("increaseFontSizeCommand") !== null){
-        increaseFontSizeCommand = myStorage.getItem("increaseFontSizeCommand")
+    if(myStorage.getItem(localStoragePrefix + "increaseFontSizeCommand") !== null){
+        increaseFontSizeCommand = myStorage.getItem(localStoragePrefix + "increaseFontSizeCommand")
     } else {
-        myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
+        myStorage.setItem(localStoragePrefix + "increaseFontSizeCommand", increaseFontSizeCommand);
     }
 
-    if(myStorage.getItem("increaseFontSizeCommandActive") !== null){
-        increaseFontSizeCommandActive = (myStorage.getItem("increaseFontSizeCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "increaseFontSizeCommandActive") !== null){
+        increaseFontSizeCommandActive = (myStorage.getItem(localStoragePrefix + "increaseFontSizeCommandActive") == 'true')
     } else {
-        myStorage.setItem("increaseFontSizeCommandActive", increaseFontSizeCommandActive);
+        myStorage.setItem(localStoragePrefix + "increaseFontSizeCommandActive", increaseFontSizeCommandActive);
     }
 
-    if(myStorage.getItem("decreaseFontSizeCommand") !== null){
-        decreaseFontSizeCommand = myStorage.getItem("decreaseFontSizeCommand")
+    if(myStorage.getItem(localStoragePrefix + "decreaseFontSizeCommand") !== null){
+        decreaseFontSizeCommand = myStorage.getItem(localStoragePrefix + "decreaseFontSizeCommand")
     } else {
-        myStorage.setItem("decreaseFontSizeCommand", decreaseFontSizeCommand);
+        myStorage.setItem(localStoragePrefix + "decreaseFontSizeCommand", decreaseFontSizeCommand);
     }
 
-    if(myStorage.getItem("decreaseFontSizeCommandActive") !== null){
-        decreaseFontSizeCommandActive = (myStorage.getItem("decreaseFontSizeCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "decreaseFontSizeCommandActive") !== null){
+        decreaseFontSizeCommandActive = (myStorage.getItem(localStoragePrefix + "decreaseFontSizeCommandActive") == 'true')
     } else {
-        myStorage.setItem("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
+        myStorage.setItem(localStoragePrefix + "decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
     }
 
-    if(myStorage.getItem("stopListeningCommand") !== null){
-        stopListeningCommand = myStorage.getItem("stopListeningCommand")
+    if(myStorage.getItem(localStoragePrefix + "stopListeningCommand") !== null){
+        stopListeningCommand = myStorage.getItem(localStoragePrefix + "stopListeningCommand")
     } else {
-        myStorage.setItem("stopListeningCommand", stopListeningCommand);
+        myStorage.setItem(localStoragePrefix + "stopListeningCommand", stopListeningCommand);
     }
 
-    if(myStorage.getItem("hiddenSectionsCommand") !== null){
-        hiddenSectionsCommand = myStorage.getItem("hiddenSectionsCommand")
+    if(myStorage.getItem(localStoragePrefix + "hiddenSectionsCommand") !== null){
+        hiddenSectionsCommand = myStorage.getItem(localStoragePrefix + "hiddenSectionsCommand")
     } else {
-        myStorage.setItem("hiddenSectionsCommand", hiddenSectionsCommand);
+        myStorage.setItem(localStoragePrefix + "hiddenSectionsCommand", hiddenSectionsCommand);
     }
 
-    if(myStorage.getItem("hiddenSectionsCommandActive") !== null){
-        hiddenSectionsCommandActive = (myStorage.getItem("hiddenSectionsCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "hiddenSectionsCommandActive") !== null){
+        hiddenSectionsCommandActive = (myStorage.getItem(localStoragePrefix + "hiddenSectionsCommandActive") == 'true')
     } else {
-        myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
+        myStorage.setItem(localStoragePrefix + "hiddenSectionsCommandActive", hiddenSectionsCommandActive);
     }
 
-    if(myStorage.getItem("hiddenItems") !== null){
+    if(myStorage.getItem(localStoragePrefix + "hiddenItems") !== null){
         try {
-            hiddenItems = JSON.parse(myStorage.getItem("hiddenItems"))
+            hiddenItems = JSON.parse(myStorage.getItem(localStoragePrefix + "hiddenItems"))
         } catch (e) {
         }
     } else {
-        myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+        myStorage.setItem(localStoragePrefix + "hiddenItems", JSON.stringify(hiddenItems));
     }
 
-    if(myStorage.getItem("paragraphItems") !== null){
+    if(myStorage.getItem(localStoragePrefix + "paragraphItems") !== null){
         try {
-            paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"))
+            paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"))
         } catch (e) {
         }
     } else {
-        myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
+        myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(paragraphItems));
     }
 
-    if(myStorage.getItem("textItems") !== null){
+    if(myStorage.getItem(localStoragePrefix + "textItems") !== null){
         try {
-            textItems = JSON.parse(myStorage.getItem("textItems"))
+            textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"))
         } catch (e) {
         }
     } else {
-        myStorage.setItem("textItems", JSON.stringify(textItems));
+        myStorage.setItem(localStoragePrefix + "textItems", JSON.stringify(textItems));
     }
 
-    if(myStorage.getItem("sectionsNames") !== null){
+    if(myStorage.getItem(localStoragePrefix + "sectionsNames") !== null){
         try {
-            sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"))
+            sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"))
         } catch (e) {
         }
     } else {
-        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+        myStorage.setItem(localStoragePrefix + "sectionsNames", JSON.stringify(sectionsNames));
     }
 
-    if(myStorage.getItem("breadcrumbCommand") !== null){
-        breadcrumbCommand = myStorage.getItem("breadcrumbCommand")
+    if(myStorage.getItem(localStoragePrefix + "breadcrumbCommand") !== null){
+        breadcrumbCommand = myStorage.getItem(localStoragePrefix + "breadcrumbCommand")
     } else {
-        myStorage.setItem("breadcrumbCommand", breadcrumbCommand);
+        myStorage.setItem(localStoragePrefix + "breadcrumbCommand", breadcrumbCommand);
     }
 
-    if(myStorage.getItem("breadcrumbCommandActive") !== null){
-        breadcrumbCommandActive = (myStorage.getItem("breadcrumbCommandActive") == 'true')
+    if(myStorage.getItem(localStoragePrefix + "breadcrumbCommandActive") !== null){
+        breadcrumbCommandActive = (myStorage.getItem(localStoragePrefix + "breadcrumbCommandActive") == 'true')
     } else {
-        myStorage.setItem("breadcrumbCommandActive", breadcrumbCommandActive);
+        myStorage.setItem(localStoragePrefix + "breadcrumbCommandActive", breadcrumbCommandActive);
     }
 
     commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
@@ -290,7 +298,7 @@ function createWebAugmentedMenu(){
             inputVoiceCommands.checked = listeningActive;
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
-        myStorage.setItem("listeningActive", listeningActive);
+        myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
     }, false);
     if(listeningActive){
         aToggleListening.text = 'Stop Listening';
@@ -334,7 +342,7 @@ function createWebAugmentedMenu(){
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
             listeningActive = true;
         }
-        myStorage.setItem("listeningActive", listeningActive);
+        myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
     }, false);
     divButtons.appendChild(inputVoiceCommands);
     divButtons.appendChild(document.createElement('br'));
@@ -743,7 +751,7 @@ function toggleIncreaseFontSize(){
         increaseFontSizeCommandActive = true;
         document.getElementById("increaseFontSizeA").style.setProperty("pointer-events", "all");
     }
-    myStorage.setItem("increaseFontSizeCommandActive", increaseFontSizeCommandActive);
+    myStorage.setItem(localStoragePrefix + "increaseFontSizeCommandActive", increaseFontSizeCommandActive);
 }
 function toggleDecreaseFontSize(){
     if(decreaseFontSizeCommandActive){
@@ -753,7 +761,7 @@ function toggleDecreaseFontSize(){
         decreaseFontSizeCommandActive = true;
         document.getElementById("decreaseFontSizeA").style.setProperty("pointer-events", "all");
     }
-    myStorage.setItem("decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
+    myStorage.setItem(localStoragePrefix + "decreaseFontSizeCommandActive", decreaseFontSizeCommandActive);
 }
 
 function createReadMenu(){
@@ -771,7 +779,7 @@ function createReadMenu(){
     divReadMenu.appendChild(i);
 
     try{
-        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
         for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
             var a1 = document.createElement('a');
             //a1.href = languages[languagesIndex].firstElementChild.href;
@@ -800,7 +808,7 @@ function updateReadMenu(){
     divReadMenu.appendChild(i);
 
     try{
-        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
         for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
             var a1 = document.createElement('a');
             //a1.href = languages[languagesIndex].firstElementChild.href;
@@ -843,7 +851,7 @@ function toggleReadAloud(){
             divsToHide[i2].style.display = "block";
         }
     }
-    myStorage.setItem("readCommandActive", readCommandActive);
+    myStorage.setItem(localStoragePrefix + "readCommandActive", readCommandActive);
 }
 
 
@@ -863,7 +871,7 @@ function createGoToMenu(){
 
     //headlines = document.getElementsByClassName("mw-headline")
     try{
-        sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
         for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
             var a1 = document.createElement('a');
             //a1.href = languages[languagesIndex].firstElementChild.href;
@@ -892,7 +900,7 @@ function updateGoToMenu(){
     divGoToMenu.appendChild(i);
 
     try{
-        var sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+        var sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
         for(var sectionsIndex = 0; sectionsIndex < sectionsNames.length; sectionsIndex ++){
             var a1 = document.createElement('a');
             //a1.href = languages[languagesIndex].firstElementChild.href;
@@ -929,7 +937,7 @@ function toggleGoTo(){
         goToCommandActive = true;
         document.getElementById("goToA").style.setProperty("pointer-events", "all");
     }
-    myStorage.setItem("goToCommandActive", goToCommandActive);
+    myStorage.setItem(localStoragePrefix + "goToCommandActive", goToCommandActive);
 }
 
 function toggleBreadcrumb(){
@@ -940,14 +948,14 @@ function toggleBreadcrumb(){
         breadcrumbCommandActive = false;
         document.getElementById("breadcrumb").style.setProperty("display", "none");
     }
-    myStorage.setItem("breadcrumbCommandActive", breadcrumbCommandActive);
+    myStorage.setItem(localStoragePrefix + "breadcrumbCommandActive", breadcrumbCommandActive);
 }
 
 function toggleHiddenSections(){
     console.log("toggleHiddenSections");
 
   $('.readAloudButton').attr('disabled', 'disabled');
-  hiddenItems = JSON.parse(myStorage.getItem("hiddenItems"));
+  hiddenItems = JSON.parse(myStorage.getItem(localStoragePrefix + "hiddenItems"));
   if (document.getElementById("hiddenSectionsInput").checked) {
     var all
     for(var i = 0; i < hiddenItems.length; i++){
@@ -983,7 +991,7 @@ function toggleHiddenSections(){
     hiddenSectionsCommandActive = false;
   }
 
-  myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
+  myStorage.setItem(localStoragePrefix + "hiddenSectionsCommandActive", hiddenSectionsCommandActive);
 
   closeMenu();
   closeOperationsMenu();
@@ -1009,10 +1017,10 @@ function resetUselessSections(){
     }
 
     hiddenSectionsCommandActive = false;
-    myStorage.setItem("hiddenSectionsCommandActive", hiddenSectionsCommandActive);
+    myStorage.setItem(localStoragePrefix + "hiddenSectionsCommandActive", hiddenSectionsCommandActive);
 
     hiddenItems = [];
-    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    myStorage.setItem(localStoragePrefix + "hiddenItems", JSON.stringify(hiddenItems));
     closeAnnotationsMenu();
 
 }
@@ -1020,10 +1028,10 @@ function resetUselessSections(){
 function resetParagraphSections(){
 
     paragraphSectionsCommandActive = false;
-    myStorage.setItem("paragraphSectionsCommandActive", paragraphSectionsCommandActive);
+    myStorage.setItem(localStoragePrefix + "paragraphSectionsCommandActive", paragraphSectionsCommandActive);
 
     paragraphItems = [];
-    myStorage.setItem("paragraphItems", JSON.stringify(paragraphItems));
+    myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(paragraphItems));
 
     updateSectionNames();
     closeAnnotationsMenu();
@@ -1036,7 +1044,7 @@ function resetTextSections(){
 
     //remove text selections
     textItems = [];
-    myStorage.setItem("textItems", JSON.stringify(textItems));
+    myStorage.setItem(localStoragePrefix + "textItems", JSON.stringify(textItems));
     closeAnnotationsMenu();
     updateSectionNames();
     updateGoToMenu();
@@ -1044,8 +1052,8 @@ function resetTextSections(){
 }
 
 function updateSectionNames(){
-    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
-    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
+    var textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
     var sectionsNames = [];
     for(var i = 0; i < paragraphItems.length; i++){
         sectionsNames.push(paragraphItems[i].name);
@@ -1053,7 +1061,7 @@ function updateSectionNames(){
     for(var j = 0; j < textItems.length; j++){
         sectionsNames.push(textItems[j].name);
     }
-    myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+    myStorage.setItem(localStoragePrefix + "sectionsNames", JSON.stringify(sectionsNames));
 }
 
 function toggleAnnotationsMenu(){
@@ -1208,7 +1216,7 @@ function saveAnnotationsUselessSections(){
 
     hiddenItems = hiddenItems.concat(hiddenItemsAux);
     //hiddenItems = hiddenItems.concat(hiddenItemsToAdd);
-    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    myStorage.setItem(localStoragePrefix + "hiddenItems", JSON.stringify(hiddenItems));
     hiddenItemsAux = [];
 
     hideAnnotationsButtons();
@@ -1283,7 +1291,7 @@ function undoAnnotationsUselessSections(){
     $('*[class=""]').removeAttr('class');
 
     hiddenItems = hiddenItems.concat(hiddenItemsAux);
-    myStorage.setItem("hiddenItems", JSON.stringify(hiddenItems));
+    myStorage.setItem(localStoragePrefix + "hiddenItems", JSON.stringify(hiddenItems));
     hiddenItemsAux = [];
 
     toggleHiddenSections();
@@ -1329,13 +1337,13 @@ function saveAnnotationsParagraphSections(){
         jsonParagraph.value = paragraphItemsAux;
         var jsons = new Array();
         try{
-            var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+            var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
             if(Array.isArray(paragraphItems) && paragraphItems.length > 0){
                 jsons = paragraphItems;
             }
         } catch(e){}
         jsons.push(jsonParagraph);
-        myStorage.setItem("paragraphItems", JSON.stringify(jsons));
+        myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(jsons));
         paragraphItemsAux = [];
         if(annotationsParagraphActive){
             alert("Please continue clicking on other paragraphs from other specific section (until you click the stop icon).");
@@ -1353,8 +1361,8 @@ function stopAnnotationsParagraphSections(){
     $('*[class=""]').removeAttr('class');
 
     // save sections names from paragraphItems
-    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
-    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
+    var textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
     var sectionsNames = [];
     for(var i = 0; i < paragraphItems.length; i++){
         sectionsNames.push(paragraphItems[i].name);
@@ -1362,7 +1370,7 @@ function stopAnnotationsParagraphSections(){
     for(var j = 0; j < textItems.length; j++){
         sectionsNames.push(textItems[j].name);
     }
-    myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+    myStorage.setItem(localStoragePrefix + "sectionsNames", JSON.stringify(sectionsNames));
 
 
     hideAnnotationsButtons();
@@ -1440,13 +1448,13 @@ function saveAnnotationsTextSections(){
         jsonText.value = textItemsAux;
         var jsons = new Array();
         try{
-            var textItems = JSON.parse(myStorage.getItem("textItems"));
+            var textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
             if(Array.isArray(textItems) && textItems.length > 0){
                 jsons = textItems;
             }
         } catch(e){}
         jsons.push(jsonText);
-        myStorage.setItem("textItems", JSON.stringify(jsons));
+        myStorage.setItem(localStoragePrefix + "textItems", JSON.stringify(jsons));
         textItemsAux = [];
 
 
@@ -1470,16 +1478,16 @@ function stopAnnotationsTextSections(){
         activateTextDetector = false;
 
         // save sections names from paragraphItems
-        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
         var sectionsNames = [];
         for(var i = 0; i < paragraphItems.length; i++){
             sectionsNames.push(paragraphItems[i].name);
         }
-        var textItems = JSON.parse(myStorage.getItem("textItems"));
+        var textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
         for(var j = 0; j < textItems.length; j++){
             sectionsNames.push(textItems[j].name);
         }
-        myStorage.setItem("sectionsNames", JSON.stringify(sectionsNames));
+        myStorage.setItem(localStoragePrefix + "sectionsNames", JSON.stringify(sectionsNames));
 
         hideAnnotationsButtons();
         showAnnotationMainButton();
@@ -1709,7 +1717,7 @@ function commandsMenu(){
             return item !== readCommand
         })
         readCommand = result.toLowerCase();
-        myStorage.setItem("readCommand", readCommand);
+        myStorage.setItem(localStoragePrefix + "readCommand", readCommand);
         console.log(result);
     }, false);
     var a1i = document.createElement('i');
@@ -1727,7 +1735,7 @@ function commandsMenu(){
             return item !== goToCommand
         })
         goToCommand = result.toLowerCase();
-        myStorage.setItem("goToCommand", goToCommand);
+        myStorage.setItem(localStoragePrefix + "goToCommand", goToCommand);
         console.log(result);
     }, false);
     var aGoToi = document.createElement('i');
@@ -1745,7 +1753,7 @@ function commandsMenu(){
             return item !== increaseFontSizeCommand
         })
         increaseFontSizeCommand = result.toLowerCase();
-        myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
+        myStorage.setItem(localStoragePrefix + "increaseFontSizeCommand", increaseFontSizeCommand);
         console.log(result);
     }, false);
     var a2i = document.createElement('i');
@@ -1763,7 +1771,7 @@ function commandsMenu(){
             return item !== decreaseFontSizeCommand
         })
         decreaseFontSizeCommand = result.toLowerCase();
-        myStorage.setItem("decreaseFontSizeCommand", decreaseFontSizeCommand);
+        myStorage.setItem(localStoragePrefix + "decreaseFontSizeCommand", decreaseFontSizeCommand);
         console.log(result);
     }, false);
     var a3i = document.createElement('i');
@@ -1781,7 +1789,7 @@ function commandsMenu(){
             return item !== stopListeningCommand
         })
         stopListeningCommand = result.toLowerCase();
-        myStorage.setItem("stopListeningCommand", stopListeningCommand);
+        myStorage.setItem(localStoragePrefix + "stopListeningCommand", stopListeningCommand);
         console.log(result);
     }, false);
     var a4i = document.createElement('i');
@@ -1907,7 +1915,7 @@ function addAugmentationOperations(){
 // Speech recognition
 function audioToText(){
     //headlines = document.getElementsByClassName("mw-headline")
-    sectionsNames = JSON.parse(myStorage.getItem("sectionsNames"));
+    sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
 
     updateGrammar();
     recognition.lang = languageCodeCommands;
@@ -2008,19 +2016,19 @@ function audioToText(){
                         Read(speechToText + " is the new command");
                         if(newCommandString === readCommand){
                             readCommand = speechToText.toLowerCase();
-                            myStorage.setItem("readCommand", readCommand);
+                            myStorage.setItem(localStoragePrefix + "readCommand", readCommand);
                         } else if(newCommandString === increaseFontSizeCommand){
                             increaseFontSizeCommand = speechToText.toLowerCase();
-                            myStorage.setItem("increaseFontSizeCommand", increaseFontSizeCommand);
+                            myStorage.setItem(localStoragePrefix + "increaseFontSizeCommand", increaseFontSizeCommand);
                         } else if(newCommandString === goToCommand){
                             goToCommand = speechToText.toLowerCase();
-                            myStorage.setItem("goToCommand", goToCommand);
+                            myStorage.setItem(localStoragePrefix + "goToCommand", goToCommand);
                         } else if(newCommandString === stopListeningCommand){
                             stopListeningCommand = speechToText.toLowerCase();
-                            myStorage.setItem("stopListeningCommand", stopListeningCommand);
+                            myStorage.setItem(localStoragePrefix + "stopListeningCommand", stopListeningCommand);
                         } else if(newCommandString === changeCommand){
                             changeCommand = speechToText.toLowerCase();
-                            myStorage.setItem("changeCommand", changeCommand);
+                            myStorage.setItem(localStoragePrefix + "changeCommand", changeCommand);
                         }
                         /*eval(camelize(newCommandString) + "Command = '" + speechToText.toLowerCase() + "'");
                         var variableName = camelize(newCommandString) + "Command";
@@ -2119,7 +2127,7 @@ function readAloudFromSectionName(sectionName){
     }
     console.log("sectionNameToRead: " + sectionNameToRead);
     var readContent = ""
-    var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+    var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
     for(var i = 0; i < paragraphItems.length; i++){
         if(paragraphItems[i].name === sectionNameToRead){
             for(var j = 0; j < paragraphItems[i].value.length; j++){
@@ -2130,7 +2138,7 @@ function readAloudFromSectionName(sectionName){
             }
         }
     }
-    var textItems = JSON.parse(myStorage.getItem("textItems"));
+    var textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
     for(var a = 0; a < textItems.length; a++){
         if(textItems[a].name === sectionNameToRead){
             for(var b = 0; b < textItems[a].value.length; b++){
@@ -2241,13 +2249,13 @@ function goToFromSectionName(sectionName){
 
     $('*[class=""]').removeAttr('class');
 
-    var sectionsNames = myStorage.getItem("sectionsNames");
+    var sectionsNames = myStorage.getItem(localStoragePrefix + "sectionsNames");
     if(sectionsNames.includes(sectionNameToGo)){
 
         $('.readAloudButton').attr('disabled', 'disabled');
 
         var textElement
-        var paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        var paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
         for(var i = 0; i < paragraphItems.length; i++){
             if(sectionNameToGo === paragraphItems[i].name){
 
@@ -2274,7 +2282,7 @@ function goToFromSectionName(sectionName){
                 //$('.readAloudButton').removeAttr('disabled');
             }
         }
-        paragraphItems = JSON.parse(myStorage.getItem("paragraphItems"));
+        paragraphItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItems"));
         for(i = 0; i < paragraphItems.length; i++){
             if(sectionNameToGo === paragraphItems[i].name){
 
@@ -2295,7 +2303,7 @@ function goToFromSectionName(sectionName){
 
         toggleReadAloud();
 
-        textItems = JSON.parse(myStorage.getItem("textItems"));
+        textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"));
         for(var a = 0; a < textItems.length; a++){
             if(textItems[a].name === sectionNameToGo){
                 if(textItems[a].value.length > 0){
@@ -2380,7 +2388,7 @@ function toggleYoutubeVideos(){
     document.getElementById("goToVideosA").style.setProperty("pointer-events", "all");
     videosCommandActive = true;
   }
-  myStorage.setItem("videosCommandActive", videosCommandActive);
+  myStorage.setItem(localStoragePrefix + "videosCommandActive", videosCommandActive);
 }
 
 // Wikipedia Links
@@ -2404,23 +2412,23 @@ function breadCrumb(){
     breadcrumb.id = "breadcrumb";
 
     var maxBreadCrumb = 4;
-    if(myStorage.getItem("lastVisitedSitesTitle" + "0") !== document.title){
+    if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + "0") !== document.title){
         lastVisitedSitesURL.push(location.href)
         lastVisitedSitesTitle.push(document.title)
     } else{
         maxBreadCrumb++;
     }
     for(var i = 0; i < maxBreadCrumb; i++){
-        if(myStorage.getItem("lastVisitedSitesURL" + i) !== null){
-            lastVisitedSitesURL.push(myStorage.getItem("lastVisitedSitesURL" + i))
+        if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesURL" + i) !== null){
+            lastVisitedSitesURL.push(myStorage.getItem(localStoragePrefix + "lastVisitedSitesURL" + i))
         }
-        if(myStorage.getItem("lastVisitedSitesTitle" + i) !== null){
-            lastVisitedSitesTitle.push(myStorage.getItem("lastVisitedSitesTitle" + i))
+        if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + i) !== null){
+            lastVisitedSitesTitle.push(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + i))
         }
     }
     for(var lastVisitedSitesIndex = 0; lastVisitedSitesIndex < lastVisitedSitesURL.length; lastVisitedSitesIndex++){
-        myStorage.setItem("lastVisitedSitesURL" + lastVisitedSitesIndex, lastVisitedSitesURL[lastVisitedSitesIndex])
-        myStorage.setItem("lastVisitedSitesTitle" + lastVisitedSitesIndex, lastVisitedSitesTitle[lastVisitedSitesIndex])
+        myStorage.setItem(localStoragePrefix + "lastVisitedSitesURL" + lastVisitedSitesIndex, lastVisitedSitesURL[lastVisitedSitesIndex])
+        myStorage.setItem(localStoragePrefix + "lastVisitedSitesTitle" + lastVisitedSitesIndex, lastVisitedSitesTitle[lastVisitedSitesIndex])
     }
     document.body.appendChild(breadcrumb);
     $('#breadcrumb').css({
