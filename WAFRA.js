@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.962
+// @version      0.963
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -45,10 +45,10 @@ var showSectionsCommand = "show sections"
 var showSectionCommand = "show section"
 var welcomeCommand = "welcome"
 
-var commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
-                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand]
-
 var changeCommand = "change command"
+var commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
+                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand, changeCommand]
+
 var cancelCommand = "cancel"
 var changeCommandQuestion = "which command"
 var newCommandQuestion = "which is the new command"
@@ -73,6 +73,9 @@ var annotationsUselessActive = false;
 var annotationsTextActive = false;
 var annotationsParagraphActive = false;
 
+var recognitionFailedFirstTime = true;
+var recognitionFailedText = "Command not recognised, please try again.";
+
 var localStoragePrefix;
 
 
@@ -96,7 +99,26 @@ $(document).ready(function() {
     }, 1000);
 
 
+    document.onkeydown = KeyPress;
+
 });
+
+// Start listening by ctrl + space
+function KeyPress(e) {
+    var evtobj = window.event? event : e
+
+    if (evtobj.keyCode == 32 && evtobj.ctrlKey){
+        recognition.start();
+        var aToggleListening = document.getElementById("toggleListeningA");
+        aToggleListening.text = 'Stop Listening';
+        listeningActive = true;
+        var inputVoiceCommands = document.getElementById("voiceCommandsInput");
+        inputVoiceCommands.checked = listeningActive;
+        var toggleListeningIcon = document.getElementById("toggleListeningIcon");
+        toggleListeningIcon.style = "color:gray; margin-left: 8px";
+        Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command to disable all voice commands.");
+    }
+}
 
 // Storage management
 function getAndSetStorage(){
@@ -240,7 +262,7 @@ function getAndSetStorage(){
     }
 
     commands = [welcomeCommand, showOperationsCommand, showSectionsCommand, showSectionCommand, readCommand, goToCommand,
-                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand]
+                increaseFontSizeCommand, decreaseFontSizeCommand, stopListeningCommand, hiddenSectionsCommand, breadcrumbCommand, changeCommand]
 }
 
 
@@ -1986,6 +2008,15 @@ function audioToText(){
                 listeningActive = false;
                 document.getElementById("toggleListeningA").text = "Start Listening";
                 document.getElementById("toggleListeningIcon").style = "color:red";
+                Read("Listening stopped, to start listening use control and space keys.");
+            } else {
+                if(recognitionFailedFirstTime){
+                    recognitionFailedFirstTime = false;
+                    Read(recognitionFailedText + " Use " + showOperationsCommand + " to know which operations are available and "
+                         + showSectionsCommand + " to know which sections can be read aloud.");
+                } else {
+                    Read(recognitionFailedText);
+                }
             }
         } else {
             if(changeCommandInProcess1){
