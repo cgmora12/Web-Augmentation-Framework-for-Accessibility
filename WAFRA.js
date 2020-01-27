@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.963
+// @version      0.964
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -88,7 +88,7 @@ $(document).ready(function() {
     $('*[class=""]').removeAttr('class');
 
     // Local storage independent for each visitated website
-    localStoragePrefix = document.URL;
+    localStoragePrefix = encodeURI(document.URL);
 
     getAndSetStorage();
     createWebAugmentedMenu();
@@ -511,7 +511,36 @@ function createWebAugmentedMenu(){
     a6.appendChild(a6Icon);
     divAnnotationsMenu.appendChild(a6);
     divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a7 = document.createElement('a');
+    a7.id = "loadAnnotationsA";
+    a7.text = "Load annotations";
+    a7.addEventListener("click", loadAnnotations, false);
+    divAnnotationsMenu.appendChild(a7);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+    var a8 = document.createElement('a');
+    a8.id = "saveAnnotationsA";
+    a8.text = "Save annotations";
+    a8.addEventListener("click", saveAnnotations, false);
+    divAnnotationsMenu.appendChild(a8);
+    divAnnotationsMenu.appendChild(document.createElement('br'));
+
+
+    var divLoadAnnotations = document.createElement('div')
+    divLoadAnnotations.id = "menu-loadAnnotations"
+    divLoadAnnotations.style = "z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white"
+
+    var iLoad = document.createElement('i');
+    iLoad.className = 'fa fa-close'
+    iLoad.style = "position: absolute; right: 1%; top: 91%; z-index: 100;"
+    iLoad.addEventListener("click", function(){
+        closeLoadMenu();
+    }, false);
+    divLoadAnnotations.appendChild(iLoad);
+
     divMenuAnnotations.appendChild(divAnnotationsMenu);
+    divMenuAnnotations.appendChild(divLoadAnnotations);
 
     document.body.appendChild(divMenuAnnotations);
 
@@ -1394,7 +1423,6 @@ function stopAnnotationsParagraphSections(){
     }
     myStorage.setItem(localStoragePrefix + "sectionsNames", JSON.stringify(sectionsNames));
 
-
     hideAnnotationsButtons();
     showAnnotationMainButton();
 
@@ -1651,6 +1679,101 @@ function clearTextSelected() {
     }
 }
 
+function loadAnnotations(){
+    var menuLoadAnnotations = document.getElementById("menu-loadAnnotations");
+    menuLoadAnnotations.style.display = "block";
+    var xmlhttp = new XMLHttpRequest();
+    var url = "https://wake.dlsi.ua.es/AnnotationsServer/?operation=loadWebsite&website="+encodeURI(document.URL);
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var annotationsLoaded = JSON.parse(this.responseText).results;
+            console.log("annotationsLoaded: " + JSON.stringify(annotationsLoaded));
+            for(var i = 0; i < annotationsLoaded.length; i++){
+                var a = document.createElement('a');
+                a.text = annotationsLoaded[i].title;
+                a.addEventListener("click", loadAnnotationByTitleAndWebsite, false);
+                a.title = annotationsLoaded[i].title;
+                menuLoadAnnotations.appendChild(a);
+                menuLoadAnnotations.appendChild(document.createElement('br'));
+            }
+        }
+    };
+
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
+
+function closeLoadMenu(){
+    document.getElementById("menu-loadAnnotations").style.display = "none";
+}
+
+function loadAnnotationByTitleAndWebsite(title){
+    var titleToLoad = title;
+    if(typeof title.parentElement === 'undefined' && typeof title.currentTarget !== 'undefined'){
+        titleToLoad = title.currentTarget.title
+    }
+    var xmlhttp = new XMLHttpRequest();
+    var url = "https://wake.dlsi.ua.es/AnnotationsServer/?operation=loadAnnotation&title="+titleToLoad+"&website="+encodeURI(document.URL);
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var annotationsLoaded = JSON.parse(this.responseText).results;
+            if(annotationsLoaded.length > 0){
+                //var annotationsJSON = JSON.parse(annotationsLoaded[0]);
+                var annotationsJSON = annotationsLoaded[0];
+                console.log(annotationsJSON);
+                console.log(localStoragePrefix + "sectionsNames");
+                console.log(annotationsJSON[localStoragePrefix + "sectionsNames"]);
+                myStorage.setItem(localStoragePrefix + "sectionsNames", annotationsJSON[localStoragePrefix + "sectionsNames"]);
+                myStorage.setItem(localStoragePrefix + "textItems", annotationsJSON[localStoragePrefix + "textItems"]);
+                myStorage.setItem(localStoragePrefix + "hiddenItems", annotationsJSON[localStoragePrefix + "hiddenItems"]);
+                myStorage.setItem(localStoragePrefix + "paragraphItems", annotationsJSON[localStoragePrefix + "paragraphItems"]);
+
+                updateGoToMenu();
+                updateReadMenu()
+                updateGrammar();
+
+                alert("Annotations loaded!");
+            }
+            //console.log(JSON.stringify(annotationsLoaded));
+        }
+    };
+
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
+
+function saveAnnotations(){
+    var result = prompt("Title for annotations", "");
+    if(result!=null){
+        var annotationsObject = {};
+        annotationsObject.title = result;
+        annotationsObject.website = encodeURI(document.URL);
+        annotationsObject[localStoragePrefix + "sectionsNames"] = myStorage.getItem(localStoragePrefix + "sectionsNames");
+        annotationsObject[localStoragePrefix + "textItems"] = myStorage.getItem(localStoragePrefix + "textItems");
+        annotationsObject[localStoragePrefix + "hiddenItems"] = myStorage.getItem(localStoragePrefix + "hiddenItems");
+        annotationsObject[localStoragePrefix + "paragraphItems"] = myStorage.getItem(localStoragePrefix + "paragraphItems");
+        console.log(JSON.stringify(annotationsObject));
+        var xmlhttp = new XMLHttpRequest();
+        var url = "https://wake.dlsi.ua.es/AnnotationsServer/";
+
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var annotationsSaved = JSON.parse(this.responseText);
+                console.log(JSON.stringify(annotationsSaved));
+            }
+        };
+
+        xmlhttp.open("POST", url, true);
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        var params = {}
+        params.operation = "save";
+        params.annotations = JSON.stringify(annotationsObject);
+        //console.log(JSON.stringify(params));
+        xmlhttp.send(JSON.stringify(params));
+    }
+}
 
 // Language management
 function changeLanguageMenu(){
