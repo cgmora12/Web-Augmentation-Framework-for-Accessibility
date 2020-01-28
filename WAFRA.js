@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.965
+// @version      0.966
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -73,8 +73,11 @@ var annotationsUselessActive = false;
 var annotationsTextActive = false;
 var annotationsParagraphActive = false;
 
+var recognitionActive;
 var recognitionFailedFirstTime = true;
 var recognitionFailedText = "Command not recognised, please try again.";
+var reading = false;
+var readFirstTime = true;
 
 var localStoragePrefix;
 
@@ -86,6 +89,11 @@ $(document).ready(function() {
     createCSSSelector('.hoverColor:hover', 'background-color: grey !important;');
     createCSSSelector('.selectedColor', 'background-color: grey !important;;');
     $('*[class=""]').removeAttr('class');
+
+    var hiddenButton = document.createElement("button");
+    hiddenButton.style.display = "none";
+    document.body.appendChild(hiddenButton);
+    hiddenButton.click();
 
     // Local storage independent for each visitated website
     localStoragePrefix = encodeURI(document.URL);
@@ -108,15 +116,20 @@ function KeyPress(e) {
     var evtobj = window.event? event : e
 
     if (evtobj.keyCode == 32 && evtobj.ctrlKey){
-        recognition.start();
-        var aToggleListening = document.getElementById("toggleListeningA");
-        aToggleListening.text = 'Stop Listening';
-        listeningActive = true;
-        var inputVoiceCommands = document.getElementById("voiceCommandsInput");
-        inputVoiceCommands.checked = listeningActive;
-        var toggleListeningIcon = document.getElementById("toggleListeningIcon");
-        toggleListeningIcon.style = "color:gray; margin-left: 8px";
-        Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command to disable all voice commands.");
+        if(reading){
+            stopReading();
+        }
+        else if(!listeningActive && !recognitionActive){
+            recognition.start();
+            var aToggleListening = document.getElementById("toggleListeningA");
+            aToggleListening.text = 'Stop Listening';
+            listeningActive = true;
+            var inputVoiceCommands = document.getElementById("voiceCommandsInput");
+            inputVoiceCommands.checked = listeningActive;
+            var toggleListeningIcon = document.getElementById("toggleListeningIcon");
+            toggleListeningIcon.style = "color:gray; margin-left: 8px";
+            Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command to disable all voice commands.");
+        }
     }
 }
 
@@ -309,12 +322,16 @@ function createWebAugmentedMenu(){
     aToggleListening.addEventListener("click", function(){
         closeMenu();
         if(listeningActive){
-            recognition.abort();
+            if(recognitionActive){
+                recognition.abort();
+            }
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
             toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else{
-            recognition.start();
+            if(!recognitionActive){
+                recognition.start();
+            }
             aToggleListening.text = 'Stop Listening';
             listeningActive = true;
             inputVoiceCommands.checked = listeningActive;
@@ -354,12 +371,16 @@ function createWebAugmentedMenu(){
     inputVoiceCommands.checked = listeningActive;
     inputVoiceCommands.addEventListener("change", function(){
         if(!this.checked){
-            recognition.abort();
+            if(recognitionActive){
+                recognition.abort();
+            }
             aToggleListening.text = 'Start Listening';
             listeningActive = false;
             toggleListeningIcon.style = "color:red; margin-left: 8px";
-        } else{
-            recognition.start();
+        } else {
+            if(!recognitionActive){
+                recognition.start();
+            }
             aToggleListening.text = 'Stop Listening';
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
             listeningActive = true;
@@ -2068,7 +2089,7 @@ function audioToText(){
     recognition.lang = languageCodeCommands;
     recognition.interimResults = false;
     recognition.continuous = true;
-    if(listeningActive){
+    if(listeningActive && !recognitionActive){
         recognition.start();
     }
 
@@ -2129,7 +2150,9 @@ function audioToText(){
                 Read(changeCommandQuestion + "?");
             }
             else if(speechToText.includes(stopListeningCommand)){
-                recognition.abort();
+                if(recognitionActive){
+                    recognition.abort();
+                }
                 listeningActive = false;
                 document.getElementById("toggleListeningA").text = "Start Listening";
                 document.getElementById("toggleListeningIcon").style = "color:red";
@@ -2200,6 +2223,17 @@ function audioToText(){
                 }
             }
         }
+    }
+
+    recognition.onend = event => {
+        if(listeningActive && !reading){
+            recognition.start();
+        } else {
+            recognitionActive = false;
+        }
+    }
+    recognition.onstart = event => {
+        recognitionActive = true;
     }
 }
 
@@ -2288,6 +2322,11 @@ function readAloudFromSectionName(sectionName){
         if(paragraphItems[i].name === sectionNameToRead){
             for(var j = 0; j < paragraphItems[i].value.length; j++){
                 var domParser = new DOMParser().parseFromString(paragraphItems[i].value[j], 'text/html');
+                readContent += "Section " + sectionNameToRead + ". " ;
+                if(readFirstTime){
+                    readFirstTime = false;
+                    readContent += "You can use control + space to stop the reading aloud operation. ";
+                }
                 readContent += domParser.body.innerText;
                 console.log("domParser: " + JSON.stringify(domParser));
                 console.log("content: " + readContent);
@@ -2298,6 +2337,11 @@ function readAloudFromSectionName(sectionName){
     for(var a = 0; a < textItems.length; a++){
         if(textItems[a].name === sectionNameToRead){
             for(var b = 0; b < textItems[a].value.length; b++){
+                readContent += "Section " + sectionNameToRead + ". " ;
+                if(readFirstTime){
+                    readFirstTime = false;
+                    readContent += "You can use control + space to stop the reading aloud operation. ";
+                }
                 readContent += textItems[a].value[b] + " ";
                 console.log("content: " + readContent);
             }
@@ -2314,13 +2358,17 @@ function Read(message){
     reader.rate = 0.75;
     reader.lang = languageCodeSyntesis;
     reader.onstart = function(event) {
-        recognition.abort();
+        reading = true;
+        if(recognitionActive){
+            recognition.abort();
+        }
         resumeInfinity();
     };
     reader.onend = function(event) {
+        reading = false;
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
-        if(listeningActive){
+        if(listeningActive && !recognitionActive){
             recognition.start();
         }
     };
@@ -2329,6 +2377,7 @@ function Read(message){
 }
 
 function resumeInfinity() {
+    reading = true;
     window.speechSynthesis.pause();
     window.speechSynthesis.resume();
     timeoutResumeInfinity = setTimeout(resumeInfinity, 10000);
@@ -2336,6 +2385,7 @@ function resumeInfinity() {
 }
 
 function stopReading(){
+    reading = false;
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     $('#cancel').css('visibility', 'hidden');
