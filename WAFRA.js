@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.966
+// @version      0.967
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -96,7 +96,7 @@ $(document).ready(function() {
     hiddenButton.click();
 
     // Local storage independent for each visitated website
-    localStoragePrefix = encodeURI(document.URL);
+    localStoragePrefix = encodeURI(document.URL) + "_";
 
     getAndSetStorage();
     createWebAugmentedMenu();
