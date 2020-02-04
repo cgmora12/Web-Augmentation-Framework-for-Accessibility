@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.967
+// @version      0.968
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -2614,43 +2614,52 @@ function toggleYoutubeVideos(){
 function breadCrumb(){
     var lastVisitedSitesURL = []
     var lastVisitedSitesTitle = []
-    var breadcrumb = document.createElement('div');
+    var breadcrumb = document.createElement('ol');
     breadcrumb.id = "breadcrumb";
+    breadcrumb.setAttribute('vocab',"https://schema.org/");
+    breadcrumb.setAttribute('typeof',"BreadcrumbList");
 
     var maxBreadCrumb = 4;
-    if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + "0") !== document.title){
+    if(myStorage.getItem("lastVisitedSitesTitle" + "0") !== document.title){
         lastVisitedSitesURL.push(location.href)
         lastVisitedSitesTitle.push(document.title)
     } else{
         maxBreadCrumb++;
     }
     for(var i = 0; i < maxBreadCrumb; i++){
-        if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesURL" + i) !== null){
-            lastVisitedSitesURL.push(myStorage.getItem(localStoragePrefix + "lastVisitedSitesURL" + i))
+        if(myStorage.getItem("lastVisitedSitesURL" + i) !== null){
+            lastVisitedSitesURL.push(myStorage.getItem("lastVisitedSitesURL" + i))
         }
-        if(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + i) !== null){
-            lastVisitedSitesTitle.push(myStorage.getItem(localStoragePrefix + "lastVisitedSitesTitle" + i))
+        if(myStorage.getItem("lastVisitedSitesTitle" + i) !== null){
+            lastVisitedSitesTitle.push(myStorage.getItem("lastVisitedSitesTitle" + i))
         }
     }
     for(var lastVisitedSitesIndex = 0; lastVisitedSitesIndex < lastVisitedSitesURL.length; lastVisitedSitesIndex++){
-        myStorage.setItem(localStoragePrefix + "lastVisitedSitesURL" + lastVisitedSitesIndex, lastVisitedSitesURL[lastVisitedSitesIndex])
-        myStorage.setItem(localStoragePrefix + "lastVisitedSitesTitle" + lastVisitedSitesIndex, lastVisitedSitesTitle[lastVisitedSitesIndex])
+        myStorage.setItem("lastVisitedSitesURL" + lastVisitedSitesIndex, lastVisitedSitesURL[lastVisitedSitesIndex])
+        myStorage.setItem("lastVisitedSitesTitle" + lastVisitedSitesIndex, lastVisitedSitesTitle[lastVisitedSitesIndex])
     }
     document.body.appendChild(breadcrumb);
     $('#breadcrumb').css({
-        'position': 'absolute',
+        'position': 'fixed',
         'height': '50px',
         'left': '15%',
         'top': '0',
         //'width': '100%',
         'padding': '10px',
-        //'background-color': '#FFFFFF',
+        'background-color': '#FFFFFF',
         'vertical-align': 'bottom',
         'visibility': 'visible',
+        'border': 'solid black',
+        'z-index': '100'
     });
     var lastVisitedSitesURLReverse = lastVisitedSitesURL.reverse()
     var lastVisitedSitesTitleReverse = lastVisitedSitesTitle.reverse()
     for(var x = 0; x < lastVisitedSitesURLReverse.length; x++){
+        var li = document.createElement("li");
+        li.setAttribute('property',"itemListElement");
+        li.setAttribute('typeof',"ListItem");
+        li.style.display = "inline";
+
         var link = document.createElement("a");
         if(x < lastVisitedSitesURLReverse.length - 1) {
             link.href = lastVisitedSitesURLReverse[x];
@@ -2658,10 +2667,21 @@ function breadCrumb(){
         } else {
             link.style = "color: #000000 !important;text-decoration: none;"
         }
-        link.innerText = lastVisitedSitesTitleReverse[x];
+        link.setAttribute('property',"item");
+        link.setAttribute('typeof',"WebPage");
         link.className = "linkBread";
-        $('#breadcrumb').append(link);
-        document.getElementById("breadcrumb").innerHTML += " > ";
+        var span = document.createElement("span");
+        span.setAttribute('property',"name");
+        span.innerText = lastVisitedSitesTitleReverse[x];
+        var meta = document.createElement("meta");
+        meta.setAttribute('property',"position");
+        var position = x+1;
+        meta.setAttribute('content',position+"");
+        link.appendChild(span);
+        li.appendChild(link);
+        li.appendChild(meta);
+        li.innerHTML += " > ";
+        $('#breadcrumb').append(li);
     }
     $('.linkBread').each(function(){
         $(this).css({
@@ -2757,6 +2777,25 @@ function createCSSSelector (selector, style) {
     }
     styleSheet.insertRule(selector + '{' + style + '}', styleSheetLength);
   }
+}
+
+function getXPathForElement(element) {
+    const idx = (sib, name) => sib
+        ? idx(sib.previousElementSibling, name||sib.localName) + (sib.localName == name)
+        : 1;
+    const segs = elm => !elm || elm.nodeType !== 1
+        ? ['']
+        : elm.id && document.getElementById(elm.id) === elm
+            ? [`id("${elm.id}")`]
+            : [...segs(elm.parentNode), `${elm.localName.toLowerCase()}[${idx(elm)}]`];
+    return segs(element).join('/');
+}
+
+function getElementByXPath(path) {
+    return (new XPathEvaluator())
+        .evaluate(path, document.documentElement, null,
+                        XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+        .singleNodeValue;
 }
 
 
