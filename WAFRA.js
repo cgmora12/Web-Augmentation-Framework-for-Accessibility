@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.968
+// @version      0.969
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -64,6 +64,8 @@ var hiddenItems = [];
 var hiddenItemsAux = [];
 var paragraphItems = [];
 var paragraphItemsAux = [];
+var paragraphItemsXPath = [];
+var paragraphItemsXPathAux = [];
 var textItems = [];
 var textItemsAux = [];
 var sectionsNames = [];
@@ -244,6 +246,15 @@ function getAndSetStorage(){
         myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(paragraphItems));
     }
 
+    if(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath") !== null){
+        try {
+            paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+        } catch (e) {
+        }
+    } else {
+        myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", JSON.stringify(paragraphItemsXPath));
+    }
+
     if(myStorage.getItem(localStoragePrefix + "textItems") !== null){
         try {
             textItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textItems"))
@@ -411,7 +422,7 @@ function createWebAugmentedMenu(){
 
     var divMenuAnnotations = document.createElement("div");
     divMenuAnnotations.id = "menu-intermediary";
-    divMenuAnnotations.style = "position: fixed; right: 2%; top: 2%; z-index: 100; line-height: 140%;"
+    divMenuAnnotations.style = "position: fixed; right: 2%; top: 2%; z-index: 101 !important; line-height: 140%;"
     var menuAnnotationsLinkDiv = document.createElement("div");
     menuAnnotationsLinkDiv.id = "div-intermediary";
     menuAnnotationsLinkDiv.style = "text-align: right;";
@@ -772,6 +783,7 @@ function createOperationsMenu(){
     toggleHiddenSections();
     createReadMenu();
     createGoToMenu();
+    createSpeakableAnnotations();
     if(listeningActive){
         readWelcome();
     }
@@ -1103,12 +1115,15 @@ function resetParagraphSections(){
     myStorage.setItem(localStoragePrefix + "paragraphSectionsCommandActive", paragraphSectionsCommandActive);
 
     paragraphItems = [];
+    paragraphItemsXPath = [];
     myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(paragraphItems));
+    myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", JSON.stringify(paragraphItemsXPath));
 
     updateSectionNames();
     closeAnnotationsMenu();
     updateGoToMenu();
-    updateReadMenu()
+    updateReadMenu();
+    updateScriptXPath();
 
 }
 
@@ -1417,6 +1432,22 @@ function saveAnnotationsParagraphSections(){
         jsons.push(jsonParagraph);
         myStorage.setItem(localStoragePrefix + "paragraphItems", JSON.stringify(jsons));
         paragraphItemsAux = [];
+
+
+        var jsonParagraphXPath = new Object();
+        jsonParagraphXPath.name = result;
+        jsonParagraphXPath.value = paragraphItemsXPathAux;
+        var jsonsXPath = new Array();
+        try{
+            var paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"));
+            if(Array.isArray(paragraphItemsXPath) && paragraphItemsXPath.length > 0){
+                jsonsXPath = paragraphItemsXPath;
+            }
+        } catch(e){}
+        jsonsXPath.push(jsonParagraphXPath);
+        myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", JSON.stringify(jsonsXPath));
+        paragraphItemsXPathAux = [];
+
         if(annotationsParagraphActive){
             alert("Please continue clicking on other paragraphs from other specific section (until you click the stop icon).");
         }
@@ -1451,6 +1482,7 @@ function stopAnnotationsParagraphSections(){
     updateGoToMenu();
     updateReadMenu()
     updateGrammar();
+    updateScriptXPath();
 }
 
 function undoAnnotationsParagraphSections(){
@@ -1460,6 +1492,7 @@ function undoAnnotationsParagraphSections(){
         if(typeof lastParagraphItem !== "undefined" && lastParagraphItem !== null){
             lastParagraphItem.classList.remove('selectedColor');
             paragraphItemsAux.pop();
+            paragraphItemsXPathAux.pop();
         } else {
             var all = document.body.getElementsByTagName("*");
             for (var j=0, max=all.length; j < max; j++) {
@@ -1474,6 +1507,7 @@ function undoAnnotationsParagraphSections(){
                 if(all[j].outerHTML === paragraphItemsAux[paragraphItemsAux.length -1]){
                     all[j].classList.remove('selectedColor');
                     paragraphItemsAux.pop();
+                    paragraphItemsXPathAux.pop();
                     containsSelectedColor = false;
                 }
 
@@ -1639,6 +1673,9 @@ function clickDetector(){
                         target.classList.remove("hideUselessSections");*/
                     }
 
+                    console.log(getXPathForElement(target));
+                    paragraphItemsXPathAux.push(getXPathForElement(target))
+
                     //if(!target.classList.contains('selectedColor')){
                         target.classList.add('selectedColor');
                     /*} else {
@@ -1750,10 +1787,12 @@ function loadAnnotationByTitleAndWebsite(title){
                 myStorage.setItem(localStoragePrefix + "textItems", annotationsJSON[localStoragePrefix + "textItems"]);
                 myStorage.setItem(localStoragePrefix + "hiddenItems", annotationsJSON[localStoragePrefix + "hiddenItems"]);
                 myStorage.setItem(localStoragePrefix + "paragraphItems", annotationsJSON[localStoragePrefix + "paragraphItems"]);
+                myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", annotationsJSON[localStoragePrefix + "paragraphItemsXPath"]);
 
                 updateGoToMenu();
                 updateReadMenu()
                 updateGrammar();
+                updateScriptXPath();
 
                 toggleHiddenSections();
 
@@ -1777,6 +1816,7 @@ function saveAnnotations(){
         annotationsObject[localStoragePrefix + "textItems"] = myStorage.getItem(localStoragePrefix + "textItems");
         annotationsObject[localStoragePrefix + "hiddenItems"] = myStorage.getItem(localStoragePrefix + "hiddenItems");
         annotationsObject[localStoragePrefix + "paragraphItems"] = myStorage.getItem(localStoragePrefix + "paragraphItems");
+        annotationsObject[localStoragePrefix + "paragraphItemsXPath"] = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
         console.log(JSON.stringify(annotationsObject));
         var xmlhttp = new XMLHttpRequest();
         var url = "https://wake.dlsi.ua.es/AnnotationsServer/";
@@ -1796,6 +1836,50 @@ function saveAnnotations(){
         //console.log(JSON.stringify(params));
         xmlhttp.send(JSON.stringify(params));
     }
+}
+
+function createSpeakableAnnotations(){
+    var script = document.createElement('script'); // Create a script element
+    script.id = "Annotations";
+    script.type = "application/ld+json";
+    script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+
+    paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+
+    var all
+    var added = false;
+    for(var i = 0; i < paragraphItemsXPath.length; i++){
+        if(typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
+            script.text += '"' + paragraphItemsXPath[i].value[0] + '",';
+            added = true;
+        }
+    }
+    if(added){
+        script.text += script.text.substring(0, script.text.length - 1);
+    }
+    script.text += ']  }, "url": "' + document.URL + '" }';
+    document.body.appendChild(script);
+}
+
+function updateScriptXPath(){
+    var script = document.getElementById("Annotations");
+    script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+
+    paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+
+    var all
+    var added = false;
+    for(var i = 0; i < paragraphItemsXPath.length; i++){
+        if(typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
+            script.text += '"' + paragraphItemsXPath[i].value[0] + '",';
+            added = true;
+        }
+    }
+    if(added){
+        script.text += script.text.substring(0, script.text.length - 1);
+    }
+    script.text += ']  }, "url": "' + document.URL + '" }';
+    document.body.appendChild(script);
 }
 
 // Language management
@@ -2680,8 +2764,8 @@ function breadCrumb(){
         link.appendChild(span);
         li.appendChild(link);
         li.appendChild(meta);
-        li.innerHTML += " > ";
-        $('#breadcrumb').append(li);
+        breadcrumb.appendChild(li);
+        breadcrumb.innerHTML += " > ";
     }
     $('.linkBread').each(function(){
         $(this).css({
@@ -2788,7 +2872,7 @@ function getXPathForElement(element) {
         : elm.id && document.getElementById(elm.id) === elm
             ? [`id("${elm.id}")`]
             : [...segs(elm.parentNode), `${elm.localName.toLowerCase()}[${idx(elm)}]`];
-    return segs(element).join('/');
+    return segs(element).join('/').split('"').join("'");
 }
 
 function getElementByXPath(path) {
