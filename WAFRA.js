@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.97
+// @version      0.98
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1146,6 +1146,8 @@ function stopAnnotationsTextSections(){
             }
         }
 
+        toggleHiddenSections();
+
     }
 }
 
@@ -1182,6 +1184,8 @@ function stopAnnotationsElements(){
             updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
         }
     }
+
+    toggleHiddenSections();
 }
 
 function undoAnnotations(annotation){
@@ -1255,6 +1259,8 @@ function resetAnnotationsById(id){
             updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
         }
     }
+
+    toggleHiddenSections();
 }
 
 function clickDetector(){
@@ -1744,7 +1750,7 @@ function audioToText(){
                     if(speechToText.includes(operations[i].voiceCommand) && operations[i].active){
                         if(operations[i].annotations.length > 0) {
                             for(var j = 0; j < operations[i].annotations.length; j++){
-                                var items = myStorage.getItem(operations[i].annotations[j]);
+                                var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
                                 for(var k = 0; k < items.length; k++){
                                     if(speechToText.includes(operations[i].voiceCommand + items[k].name) && operations[i].active){
                                         var params = {};
@@ -1775,20 +1781,23 @@ function audioToText(){
             if(changeCommandInProcess1){
                 //Command change in process
                 if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                    if(speechToText.toLowerCase() == cancelCommand) {
+                        console.log("Cancel change of command")
+                        changeCommandInProcess1 = false;
+                        changeCommandInProcess2 = false;
+                        return;
+                    }
                     for(var opIndex = 0; opIndex < operations.length; opIndex++){
                         if(speechToText.includes(operations[opIndex].voiceCommand)){
                             Read(newCommandQuestion + "?");
                             newCommandString = speechToText.toLowerCase();
                             changeCommandInProcess1 = false;
                             changeCommandInProcess2 = true;
-                        } else if(speechToText.toLowerCase() == cancelCommand) {
-                            console.log("Cancel change of command")
-                            changeCommandInProcess1 = false;
-                            changeCommandInProcess2 = false;
-                        } else {
-                            Read(speechToText + " is not an existing command. Try again.");
+                            return;
                         }
                     }
+
+                    Read(speechToText + " is not an existing command. Try again.");
                 }
             } else if(changeCommandInProcess2){
                 //Command change in process
