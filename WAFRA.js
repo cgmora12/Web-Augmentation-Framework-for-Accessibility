@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      0.99
+// @version      1.0
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -15,6 +15,7 @@
 // ==/UserScript==
 
 
+/*********************** Variables ************************/
 var myStorage = window.localStorage;
 const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
@@ -30,7 +31,6 @@ var reading = false;
 var readFirstTime = true;
 
 var localStoragePrefix;
-
 
 var operations = [];
 var annotations = [];
@@ -64,6 +64,7 @@ var annotationElements = [];
 var operationToChange;
 
 
+/*********************** Page is loaded ************************/
 $(document).ready(function() {
     createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
     createCSSSelector('.hideUselessSections', 'display: none !important;');
@@ -81,12 +82,13 @@ $(document).ready(function() {
     // Local storage independent for each visitated website
     localStoragePrefix = encodeURI(document.URL) + "_";
 
-    // Add new annotations here
+
+    /*********************** Add new annotations here ************************/
     var textAnnotation = new TextAnnotation("textAnnotation", "Text Annotation", ["text"], []);
     var paragraphAnnotation = new ParagraphAnnotation("paragraphAnnotation", "Paragraph Annotation", ["P"], []);
     var uselessAnnotation = new UselessAnnotation("uselessAnnotation", "Useless sections Annotation", ["all"], []);
 
-    // Add new operations here
+    /*********************** Add new operations here ************************/
     var increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Increase Font Size", "increase font size", true, true, true, false, []);
     var decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Decrease Font Size", "decrease font size", true, true, true, false, []);
     var readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
@@ -99,7 +101,6 @@ $(document).ready(function() {
     textToAudio();
     audioToText();
 
-    //TODO: instantiate classes and methods
     var wafra = new WAFRA();
     wafra.getAndSetStorage();
     wafra.createWebAugmentedMenu();
@@ -150,6 +151,16 @@ class WAFRA {
             } else {
                 myStorage.setItem(localStoragePrefix + operations[operationsIndex].id + "Active", operations[operationsIndex].active);
             }
+        }
+
+        //TODO: refactor
+        if(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath") !== null){
+            try {
+                paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+            } catch (e) {
+            }
+        } else {
+            myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", JSON.stringify(paragraphItemsXPath));
         }
     }
 
@@ -335,6 +346,8 @@ class UselessAnnotation extends Annotation {
     }
 }
 
+
+/*********************** Add new annotations classes here ************************/
 
 
 /**
@@ -654,6 +667,9 @@ class HideOperation extends Operation {
         console.log("Stop operation");
     }
 }
+
+
+/*********************** Add new operations classes here ************************/
 
 
 // *************************** Helpers ***************************
@@ -1177,7 +1193,6 @@ function stopAnnotationsElements(){
     hideAnnotationsButtons();
     showAnnotationMainButton();
 
-    //TODO: refactor update submenus
     updateScriptXPath();
     toggleReadAloud();
 
@@ -1578,12 +1593,16 @@ function readOperations(){
 }
 
 function readSections(){
-    //TODO: get section name from specific annotations
-    var sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
     var readContent = "The sections of the website are: ";
-    for(var i = 0; i < sectionsNames.length; i++){
-        readContent += sectionsNames[i] + ", ";
+    for(var i = 0; i < operations.length; i++){
+        for(var j = 0; j < operations.annotations.length; j++){
+            var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+            for(var k = 0; k < items.length; k++){
+                readContent += items[k].name + ", ";
+            }
+        }
     }
+
     Read(readContent);
 }
 
@@ -1754,7 +1773,7 @@ function audioToText(){
                             for(var j = 0; j < operations[i].annotations.length; j++){
                                 var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
                                 for(var k = 0; k < items.length; k++){
-                                    if(speechToText.includes(operations[i].voiceCommand + items[k].name) && operations[i].active){
+                                    if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
                                         var params = {};
                                         var current = {};
                                         params.currentTarget = current;
@@ -1779,7 +1798,7 @@ function audioToText(){
                     Read(recognitionFailedText);
                 }
             }
-        } else { //TODO: refactor
+        } else {
             if(changeCommandInProcess1){
                 //Command change in process
                 if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
@@ -2248,16 +2267,13 @@ function loadAnnotationByTitleAndWebsite(title){
             if(annotationsLoaded.length > 0){
                 //var annotationsJSON = JSON.parse(annotationsLoaded[0]);
                 var annotationsJSON = annotationsLoaded[0];
+                //TODO: refactor
                 console.log(annotationsJSON);
-                console.log(localStoragePrefix + "sectionsNames");
-                console.log(annotationsJSON[localStoragePrefix + "sectionsNames"]);
-                myStorage.setItem(localStoragePrefix + "sectionsNames", annotationsJSON[localStoragePrefix + "sectionsNames"]);
-                myStorage.setItem(localStoragePrefix + "textItems", annotationsJSON[localStoragePrefix + "textItems"]);
-                myStorage.setItem(localStoragePrefix + "hiddenItems", annotationsJSON[localStoragePrefix + "hiddenItems"]);
-                myStorage.setItem(localStoragePrefix + "paragraphItems", annotationsJSON[localStoragePrefix + "paragraphItems"]);
-                myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", annotationsJSON[localStoragePrefix + "paragraphItemsXPath"]);
 
-                //TODO: update submenus
+                for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
+                    myStorage.setItem(localStoragePrefix + annotations[annotationsIndex].id, annotationsJSON[localStoragePrefix + annotations[annotationsIndex].id]);
+                }
+                myStorage.setItem(localStoragePrefix + "paragraphItemsXPath", annotationsJSON[localStoragePrefix + "paragraphItemsXPath"]);
 
                 for(var i = 0; i < operations.length; i++){
                     if(operations[i].hasMenu){
@@ -2285,10 +2301,10 @@ function saveAnnotationsFromServer(){
         var annotationsObject = {};
         annotationsObject.title = result;
         annotationsObject.website = encodeURI(document.URL);
-        annotationsObject[localStoragePrefix + "sectionsNames"] = myStorage.getItem(localStoragePrefix + "sectionsNames");
-        annotationsObject[localStoragePrefix + "textItems"] = myStorage.getItem(localStoragePrefix + "textItems");
-        annotationsObject[localStoragePrefix + "hiddenItems"] = myStorage.getItem(localStoragePrefix + "hiddenItems");
-        annotationsObject[localStoragePrefix + "paragraphItems"] = myStorage.getItem(localStoragePrefix + "paragraphItems");
+
+        for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
+            annotationsObject[localStoragePrefix + annotations[annotationsIndex].id] = myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id);
+        }
         annotationsObject[localStoragePrefix + "paragraphItemsXPath"] = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
         console.log(JSON.stringify(annotationsObject));
         var xmlhttp = new XMLHttpRequest();
