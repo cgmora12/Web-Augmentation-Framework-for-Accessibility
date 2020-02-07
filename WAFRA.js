@@ -61,6 +61,8 @@ var annotationId = "";
 var annotatedItemsAux = [];
 var annotationElements = [];
 
+var operationToChange;
+
 
 $(document).ready(function() {
     createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
@@ -1791,6 +1793,7 @@ function audioToText(){
                         if(speechToText.includes(operations[opIndex].voiceCommand)){
                             Read(newCommandQuestion + "?");
                             newCommandString = speechToText.toLowerCase();
+                            operationToChange = operations[opIndex];
                             changeCommandInProcess1 = false;
                             changeCommandInProcess2 = true;
                             return;
@@ -1808,30 +1811,11 @@ function audioToText(){
                         changeCommandInProcess2 = false;
                     } else {
                         Read(speechToText + " is the new command");
-                        myStorage.setItem(localStoragePrefix + newCommandString, speechToText.toLowerCase());
-                        /*if(newCommandString === readCommand){
-                            readCommand = speechToText.toLowerCase();
-                            myStorage.setItem(localStoragePrefix + "readCommand", readCommand);
-                        } else if(newCommandString === increaseFontSizeCommand){
-                            increaseFontSizeCommand = speechToText.toLowerCase();
-                            myStorage.setItem(localStoragePrefix + "increaseFontSizeCommand", increaseFontSizeCommand);
-                        } else if(newCommandString === goToCommand){
-                            goToCommand = speechToText.toLowerCase();
-                            myStorage.setItem(localStoragePrefix + "goToCommand", goToCommand);
-                        } else if(newCommandString === stopListeningCommand){
-                            stopListeningCommand = speechToText.toLowerCase();
-                            myStorage.setItem(localStoragePrefix + "stopListeningCommand", stopListeningCommand);
-                        } else if(newCommandString === changeCommand){
-                            changeCommand = speechToText.toLowerCase();
-                            myStorage.setItem(localStoragePrefix + "changeCommand", changeCommand);
-                        }*/
+                        myStorage.setItem(localStoragePrefix + operationToChange.id, speechToText.toLowerCase());
+                        operationToChange.voiceCommand = speechToText.toLowerCase();
                         //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
                         changeCommandInProcess1 = false;
                         changeCommandInProcess2 = false;
-                        /*commands.push(speechToText.toLowerCase());
-                        commands = commands.filter(function(item) {
-                            return item !== newCommandString
-                        })*/
                     }
                 }
             }
