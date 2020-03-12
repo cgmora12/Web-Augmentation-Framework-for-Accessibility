@@ -38,9 +38,9 @@ var annotations = [];
 var languageCodeSyntesis = "en";
 var languageCodeCommands = "en";
 
-var showOperationsCommand = "show operations";
-var showSectionsCommand = "show sections";
-var showSectionCommand = "show section";
+var listOperationsCommand = "list operations";
+var listSectionsCommand = "list sections";
+var listSectionCommand = "list section";
 var welcomeCommand = "welcome";
 var stopListeningCommand = "stop listening";
 var changeCommand = "change command";
@@ -1744,13 +1744,13 @@ function audioToText(){
         const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
         console.log(speechToText);
         if(!changeCommandInProcess1 && !changeCommandInProcess2){
-            if(speechToText.includes(showOperationsCommand)){
+            if(speechToText.includes(listOperationsCommand)){
                 readOperations();
             }
             else if(speechToText.includes(welcomeCommand)){
                 readWelcome();
             }
-            else if(speechToText.includes(showSectionsCommand)|| speechToText.includes(showSectionCommand)){
+            else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand)){
                 readSections();
             }
             else if(speechToText.includes(changeCommand)){
@@ -1792,8 +1792,8 @@ function audioToText(){
                 }
                 if(recognitionFailedFirstTime){
                     recognitionFailedFirstTime = false;
-                    Read(recognitionFailedText + " Use " + showOperationsCommand + " to know which operations are available and "
-                         + showSectionsCommand + " to know which sections can be read aloud.");
+                    Read(recognitionFailedText + " Use " + listOperationsCommand + " to know which operations are available and "
+                         + listSectionsCommand + " to know which sections can be read aloud.");
                 } else {
                     Read(recognitionFailedText);
                 }
