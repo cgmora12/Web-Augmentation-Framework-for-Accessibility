@@ -2055,6 +2055,7 @@ function toggleHiddenSections(){
     console.log("toggleHiddenSections");
     var hiddenSectionsCommandActive;
     //$('.readAloudButton').attr('disabled', 'disabled');
+    try{
     var hiddenItems = JSON.parse(myStorage.getItem(localStoragePrefix + "uselessAnnotation"));
     if(hiddenItems !== null){
         for(var i = 0; i < hiddenItems.length; i++){
@@ -2075,6 +2076,9 @@ function toggleHiddenSections(){
 
     closeMenu();
     closeOperationsMenu();
+    } catch(e){
+        
+    }
     //$('.readAloudButton').removeAttr('disabled');
 
 }
