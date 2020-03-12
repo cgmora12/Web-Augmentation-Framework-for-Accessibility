@@ -1704,8 +1704,10 @@ function Read(message){
     hiddenButton.style.display = "none";
     document.body.appendChild(hiddenButton);
     hiddenButton.click();
-    
-    window.speechSynthesis.speak(reader);
+
+    try{
+        window.speechSynthesis.speak(reader);
+    } catch(e){}
     $('#cancel').css('visibility', 'visible');
 }
 
