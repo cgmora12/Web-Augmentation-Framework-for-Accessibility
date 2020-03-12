@@ -1698,6 +1698,13 @@ function Read(message){
             recognition.start();
         }
     };
+
+
+    var hiddenButton = document.createElement("button");
+    hiddenButton.style.display = "none";
+    document.body.appendChild(hiddenButton);
+    hiddenButton.click();
+    
     window.speechSynthesis.speak(reader);
     $('#cancel').css('visibility', 'visible');
 }
