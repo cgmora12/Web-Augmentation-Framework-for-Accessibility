@@ -1581,6 +1581,7 @@ function readWelcome(){
     for(var i = 0; i < operations.length; i++){
         readContent += operations[i].name + ", ";
     }
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand;
     Read(readContent);
 }
 
@@ -1589,13 +1590,15 @@ function readOperations(){
     for(var i = 0; i < operations.length; i++){
         readContent += operations[i].name + ", ";
     }
+    
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand;
     Read(readContent);
 }
 
 function readSections(){
     var readContent = "The sections of the website are: ";
     for(var i = 0; i < operations.length; i++){
-        for(var j = 0; j < operations.annotations.length; j++){
+        for(var j = 0; j < operations[i].annotations.length; j++){
             var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
             for(var k = 0; k < items.length; k++){
                 readContent += items[k].name + ", ";
