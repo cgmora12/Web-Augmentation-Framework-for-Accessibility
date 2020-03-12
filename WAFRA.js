@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.0.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -2056,28 +2056,28 @@ function toggleHiddenSections(){
     var hiddenSectionsCommandActive;
     //$('.readAloudButton').attr('disabled', 'disabled');
     try{
-    var hiddenItems = JSON.parse(myStorage.getItem(localStoragePrefix + "uselessAnnotation"));
-    if(hiddenItems !== null){
-        for(var i = 0; i < hiddenItems.length; i++){
-            for(var j = 0; j < hiddenItems[i].value.length; j++){
-                    var element = getElementByXPath(hiddenItems[i].value[j]);
-                if (document.getElementById("hideInput").checked) {
-                    element.classList.add("hideUselessSections");
-                    hiddenSectionsCommandActive = true;
-                } else {
-                    element.classList.remove("hideUselessSections");
-                    hiddenSectionsCommandActive = false;
+        var hiddenItems = JSON.parse(myStorage.getItem(localStoragePrefix + "uselessAnnotation"));
+        if(hiddenItems !== null){
+            for(var i = 0; i < hiddenItems.length; i++){
+                for(var j = 0; j < hiddenItems[i].value.length; j++){
+                        var element = getElementByXPath(hiddenItems[i].value[j]);
+                    if (document.getElementById("hideInput").checked) {
+                        element.classList.add("hideUselessSections");
+                        hiddenSectionsCommandActive = true;
+                    } else {
+                        element.classList.remove("hideUselessSections");
+                        hiddenSectionsCommandActive = false;
+                    }
                 }
             }
         }
-    }
 
-    myStorage.setItem(localStoragePrefix + "hideActive", hiddenSectionsCommandActive);
+        myStorage.setItem(localStoragePrefix + "hideActive", hiddenSectionsCommandActive);
 
-    closeMenu();
-    closeOperationsMenu();
+        closeMenu();
+        closeOperationsMenu();
     } catch(e){
-        
+
     }
     //$('.readAloudButton').removeAttr('disabled');
 
