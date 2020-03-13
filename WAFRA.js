@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0.54
+// @version      1.0.55
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -24,7 +24,7 @@ var timeoutResumeInfinity;
 
 var listeningActive = true;
 
-var recognitionActive = true;
+var recognitionActive;
 var recognitionFailedFirstTime = true;
 var recognitionFailedText = "Command not recognised, please try again.";
 var reading = false;
@@ -715,6 +715,8 @@ function createMenus(){
     } else {
         myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
     }
+
+    recognitionActive = listeningActive;
 
     var toggleListeningIcon = document.createElement("i");
     toggleListeningIcon.id = "toggleListeningIcon";
@@ -1753,7 +1755,7 @@ function audioToText(){
     updateGrammar();
     recognition.lang = languageCodeCommands;
     recognition.interimResults = false;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
     recognition.onresult = event => {
         if(reading === false) {
