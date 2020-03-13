@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.6
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1586,15 +1586,22 @@ function readOperations(){
 
 function readSections(){
     var readContent = "The sections of the website are: ";
+    var names = [];
     for(var i = 0; i < operations.length; i++){
         try{
             for(var j = 0; j < operations[i].annotations.length; j++){
                 var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
                 for(var k = 0; k < items.length; k++){
-                    readContent += items[k].name + ", ";
+                    if(!names.includes(items[k].name)){
+                        names.push(items[k].name);
+                    }
                 }
             }
         } catch(e){}
+    }
+
+    for(var index = 0; index < names.length; index++){
+        readContent += names[index] + ", ";
     }
 
     Read(readContent);
@@ -1685,7 +1692,7 @@ function Read(message){
             if(recognitionActive){
                 recognition.start();
             }
-        }, 2000);
+        }, 1000);
     };
 
 
@@ -1700,17 +1707,19 @@ function Read(message){
             recognition.abort();
         }
         window.speechSynthesis.speak(reader);
-    } catch(e){}
+    } catch(e){
+        stopReading();
+    }
     $('#cancel').css('visibility', 'visible');
 }
 
 function stopReading(){
     window.speechSynthesis.cancel();
-    /*clearTimeout(timeoutResumeInfinity);
+    clearTimeout(timeoutResumeInfinity);
     $('#cancel').css('visibility', 'hidden');
     setTimeout(function(){
         reading = false;
-    }, 2000);*/
+    }, 1000);
 }
 
 function KeyPress(e) {
@@ -1857,7 +1866,7 @@ function audioToText(){
                 console.log("recognition reset");
                 recognition.start();
             }
-        }, 2000);
+        }, 1000);
     }
     /*recognition.onstart = event => {
         recognitionActive = true;
