@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0.3
+// @version      1.0.43
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1853,15 +1853,17 @@ function audioToText(){
         }
     }
 
-    recognition.onend = event => {
+    /*recognition.onend = event => {
         if(listeningActive && !reading){
             recognition.start();
         } else {
             recognitionActive = false;
+            listeningActive = false;
         }
-    }
+    }*/
     recognition.onstart = event => {
         recognitionActive = true;
+        listeningActive = true;
     }
 }
 
