@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0.50
+// @version      1.0.51
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1686,20 +1686,12 @@ function Read(message){
     reader.rate = 0.75;
     reader.lang = languageCodeSyntesis;
     reader.onstart = function(event) {
-        reading = true;
-        if(recognitionActive){
-            recognition.abort();
-        }
         resumeInfinity();
     };
     reader.onend = function(event) {
         reading = false;
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
-        if(listeningActive && !recognitionActive){
-            recognitionActive = true;
-            recognition.start();
-        }
     };
 
 
@@ -1709,6 +1701,10 @@ function Read(message){
     hiddenButton.click();
 
     try{
+        reading = true;
+        /*if(recognitionActive){
+            recognition.abort();
+        }*/
         window.speechSynthesis.speak(reader);
     } catch(e){}
     $('#cancel').css('visibility', 'visible');
@@ -1758,100 +1754,102 @@ function audioToText(){
     }
 
     recognition.onresult = event => {
-        const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
-        console.log(speechToText);
-        if(!changeCommandInProcess1 && !changeCommandInProcess2){
-            if(speechToText.includes(listOperationsCommand)){
-                readOperations();
-            }
-            else if(speechToText.includes(welcomeCommand)){
-                readWelcome();
-            }
-            else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand)){
-                readSections();
-            }
-            else if(speechToText.includes(changeCommand)){
-                console.log("changeCommandInProcess = true")
-                changeCommandInProcess1 = true;
-                Read(changeCommandQuestion + "?");
-            }
-            else if(speechToText.includes(stopListeningCommand)){
-                if(recognitionActive){
-                    recognition.abort();
+        if(reading === false) {
+            const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
+            console.log(speechToText);
+            if(!changeCommandInProcess1 && !changeCommandInProcess2){
+                if(speechToText.includes(listOperationsCommand)){
+                    readOperations();
                 }
-                listeningActive = false;
-                document.getElementById("toggleListeningA").text = "Start Listening";
-                document.getElementById("toggleListeningIcon").style = "color:red";
-                Read("Listening stopped, to start listening use control and space keys.");
-            } else {
-                for(var i = 0; i < operations.length; i++){
-                    if(speechToText.includes(operations[i].voiceCommand) && operations[i].active){
-                        if(operations[i].annotations.length > 0) {
-                            for(var j = 0; j < operations[i].annotations.length; j++){
-                                var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
-                                for(var k = 0; k < items.length; k++){
-                                    if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
-                                        var params = {};
-                                        var current = {};
-                                        params.currentTarget = current;
-                                        params.currentTarget.sectionName = items[k].name;
-                                        params.currentTarget.operation = operations[i];
-                                        operations[i].startOperation(params);
-                                        return;
+                else if(speechToText.includes(welcomeCommand)){
+                    readWelcome();
+                }
+                else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand)){
+                    readSections();
+                }
+                else if(speechToText.includes(changeCommand)){
+                    console.log("changeCommandInProcess = true")
+                    changeCommandInProcess1 = true;
+                    Read(changeCommandQuestion + "?");
+                }
+                else if(speechToText.includes(stopListeningCommand)){
+                    if(recognitionActive){
+                        recognition.abort();
+                    }
+                    listeningActive = false;
+                    document.getElementById("toggleListeningA").text = "Start Listening";
+                    document.getElementById("toggleListeningIcon").style = "color:red";
+                    Read("Listening stopped, to start listening use control and space keys.");
+                } else {
+                    for(var i = 0; i < operations.length; i++){
+                        if(speechToText.includes(operations[i].voiceCommand) && operations[i].active){
+                            if(operations[i].annotations.length > 0) {
+                                for(var j = 0; j < operations[i].annotations.length; j++){
+                                    var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                                    for(var k = 0; k < items.length; k++){
+                                        if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
+                                            var params = {};
+                                            var current = {};
+                                            params.currentTarget = current;
+                                            params.currentTarget.sectionName = items[k].name;
+                                            params.currentTarget.operation = operations[i];
+                                            operations[i].startOperation(params);
+                                            return;
+                                        }
                                     }
                                 }
+                            } else {
+                                operations[i].startOperation();
+                                return;
                             }
-                        } else {
-                            operations[i].startOperation();
-                            return;
                         }
                     }
-                }
-                if(recognitionFailedFirstTime){
-                    recognitionFailedFirstTime = false;
-                    Read(recognitionFailedText + " Use " + listOperationsCommand + " to know which operations are available and "
-                         + listSectionsCommand + " to know which sections can be read aloud.");
-                } else {
-                    Read(recognitionFailedText);
-                }
-            }
-        } else {
-            if(changeCommandInProcess1){
-                //Command change in process
-                if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
-                    if(speechToText.toLowerCase() == cancelCommand) {
-                        console.log("Cancel change of command")
-                        changeCommandInProcess1 = false;
-                        changeCommandInProcess2 = false;
-                        return;
-                    }
-                    for(var opIndex = 0; opIndex < operations.length; opIndex++){
-                        if(speechToText.includes(operations[opIndex].voiceCommand)){
-                            Read(newCommandQuestion + "?");
-                            newCommandString = speechToText.toLowerCase();
-                            operationToChange = operations[opIndex];
-                            changeCommandInProcess1 = false;
-                            changeCommandInProcess2 = true;
-                            return;
-                        }
-                    }
-
-                    Read(speechToText + " is not an existing command. Try again.");
-                }
-            } else if(changeCommandInProcess2){
-                //Command change in process
-                if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
-                    if(speechToText.toLowerCase() == cancelCommand) {
-                        console.log("Cancel change of command")
-                        changeCommandInProcess1 = false;
-                        changeCommandInProcess2 = false;
+                    if(recognitionFailedFirstTime){
+                        recognitionFailedFirstTime = false;
+                        Read(recognitionFailedText + " Use " + listOperationsCommand + " to know which operations are available and "
+                             + listSectionsCommand + " to know which sections can be read aloud.");
                     } else {
-                        Read(speechToText + " is the new command");
-                        myStorage.setItem(localStoragePrefix + operationToChange.id, speechToText.toLowerCase());
-                        operationToChange.voiceCommand = speechToText.toLowerCase();
-                        //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
-                        changeCommandInProcess1 = false;
-                        changeCommandInProcess2 = false;
+                        Read(recognitionFailedText);
+                    }
+                }
+            } else {
+                if(changeCommandInProcess1){
+                    //Command change in process
+                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                        if(speechToText.toLowerCase() == cancelCommand) {
+                            console.log("Cancel change of command")
+                            changeCommandInProcess1 = false;
+                            changeCommandInProcess2 = false;
+                            return;
+                        }
+                        for(var opIndex = 0; opIndex < operations.length; opIndex++){
+                            if(speechToText.includes(operations[opIndex].voiceCommand)){
+                                Read(newCommandQuestion + "?");
+                                newCommandString = speechToText.toLowerCase();
+                                operationToChange = operations[opIndex];
+                                changeCommandInProcess1 = false;
+                                changeCommandInProcess2 = true;
+                                return;
+                            }
+                        }
+
+                        Read(speechToText + " is not an existing command. Try again.");
+                    }
+                } else if(changeCommandInProcess2){
+                    //Command change in process
+                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                        if(speechToText.toLowerCase() == cancelCommand) {
+                            console.log("Cancel change of command")
+                            changeCommandInProcess1 = false;
+                            changeCommandInProcess2 = false;
+                        } else {
+                            Read(speechToText + " is the new command");
+                            myStorage.setItem(localStoragePrefix + operationToChange.id, speechToText.toLowerCase());
+                            operationToChange.voiceCommand = speechToText.toLowerCase();
+                            //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
+                            changeCommandInProcess1 = false;
+                            changeCommandInProcess2 = false;
+                        }
                     }
                 }
             }
