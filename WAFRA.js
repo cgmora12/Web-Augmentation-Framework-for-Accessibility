@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0.57
+// @version      1.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1594,12 +1594,14 @@ function readOperations(){
 function readSections(){
     var readContent = "The sections of the website are: ";
     for(var i = 0; i < operations.length; i++){
-        for(var j = 0; j < operations[i].annotations.length; j++){
-            var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
-            for(var k = 0; k < items.length; k++){
-                readContent += items[k].name + ", ";
+        try{
+            for(var j = 0; j < operations[i].annotations.length; j++){
+                var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                for(var k = 0; k < items.length; k++){
+                    readContent += items[k].name + ", ";
+                }
             }
-        }
+        } catch(e){}
     }
 
     Read(readContent);
@@ -1773,25 +1775,27 @@ function audioToText(){
                 } else {
                     for(var i = 0; i < operations.length; i++){
                         if(speechToText.includes(operations[i].voiceCommand) && operations[i].active){
-                            if(operations[i].annotations.length > 0) {
-                                for(var j = 0; j < operations[i].annotations.length; j++){
-                                    var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
-                                    for(var k = 0; k < items.length; k++){
-                                        if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
-                                            var params = {};
-                                            var current = {};
-                                            params.currentTarget = current;
-                                            params.currentTarget.sectionName = items[k].name;
-                                            params.currentTarget.operation = operations[i];
-                                            operations[i].startOperation(params);
-                                            return;
+                            try{
+                                if(operations[i].annotations.length > 0) {
+                                    for(var j = 0; j < operations[i].annotations.length; j++){
+                                        var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                                        for(var k = 0; k < items.length; k++){
+                                            if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
+                                                var params = {};
+                                                var current = {};
+                                                params.currentTarget = current;
+                                                params.currentTarget.sectionName = items[k].name;
+                                                params.currentTarget.operation = operations[i];
+                                                operations[i].startOperation(params);
+                                                return;
+                                            }
                                         }
                                     }
+                                } else {
+                                    operations[i].startOperation();
+                                    return;
                                 }
-                            } else {
-                                operations[i].startOperation();
-                                return;
-                            }
+                            }catch(e){}
                         }
                     }
                     if(recognitionFailedFirstTime){
