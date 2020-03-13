@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.0.43
+// @version      1.0.5
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -733,6 +733,7 @@ function createMenus(){
             toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else{
             if(!recognitionActive){
+                recognitionActive = true;
                 recognition.start();
             }
             aToggleListening.text = 'Stop Listening';
@@ -780,6 +781,7 @@ function createMenus(){
             toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else {
             if(!recognitionActive){
+                recognitionActive = true;
                 recognition.start();
             }
             aToggleListening.text = 'Stop Listening';
@@ -1695,6 +1697,7 @@ function Read(message){
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
         if(listeningActive && !recognitionActive){
+            recognitionActive = true;
             recognition.start();
         }
     };
@@ -1727,6 +1730,7 @@ function KeyPress(e) {
         }
         else if(!listeningActive && !recognitionActive){
             recognition.start();
+            recognitionActive = true;
             var aToggleListening = document.getElementById("toggleListeningA");
             aToggleListening.text = 'Stop Listening';
             listeningActive = true;
@@ -1750,6 +1754,7 @@ function audioToText(){
     recognition.continuous = true;
     if(listeningActive && !recognitionActive){
         recognition.start();
+        recognitionActive = true;
     }
 
     recognition.onresult = event => {
@@ -1861,10 +1866,10 @@ function audioToText(){
             listeningActive = false;
         }
     }*/
-    recognition.onstart = event => {
+    /*recognition.onstart = event => {
         recognitionActive = true;
         listeningActive = true;
-    }
+    }*/
 }
 
 function updateGrammar(){
