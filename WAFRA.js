@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.2.5
+// @version      1.3
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1678,11 +1678,11 @@ function Read(message){
         resumeInfinity();
     };
     reader.onend = function(event) {
-        setTimeout(function(){
-            reading = false;
-        }, 1000);
         clearTimeout(timeoutResumeInfinity);
         $('#cancel').css('visibility', 'hidden');
+        setTimeout(function(){
+            reading = false;
+        }, 2000);
     };
 
 
@@ -1702,10 +1702,12 @@ function Read(message){
 }
 
 function stopReading(){
-    reading = false;
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     $('#cancel').css('visibility', 'hidden');
+    setTimeout(function(){
+        reading = false;
+    }, 2000);
 }
 
 function KeyPress(e) {
@@ -1847,12 +1849,12 @@ function audioToText(){
 
     recognition.onspeechend = function() {
         console.log("onspeechend");
-        if(recognitionActive){
-            console.log("recognition reset");
-            setTimeout(function(){
+        setTimeout(function(){
+            if(recognitionActive){
+                console.log("recognition reset");
                 recognition.start();
-            }, 1000);
-        }
+            }
+        }, 2000);
     }
     /*recognition.onstart = event => {
         recognitionActive = true;
