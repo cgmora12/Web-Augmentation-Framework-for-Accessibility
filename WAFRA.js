@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.7
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1570,7 +1570,8 @@ function readWelcome(){
     for(var i = 0; i < operations.length; i++){
         readContent += operations[i].name + ", ";
     }
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand;
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ". ";
+    readContent += sectionsToString();
     Read(readContent);
 }
 
@@ -1580,11 +1581,19 @@ function readOperations(){
         readContent += operations[i].name + ", ";
     }
     
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand;
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ". ";
+    readContent += sectionsToString();
     Read(readContent);
 }
 
 function readSections(){
+    var readContent = sectionsToString()
+
+    Read(readContent);
+}
+
+function sectionsToString(){
+
     var readContent = "The sections of the website are: ";
     var names = [];
     for(var i = 0; i < operations.length; i++){
@@ -1604,7 +1613,7 @@ function readSections(){
         readContent += names[index] + ", ";
     }
 
-    Read(readContent);
+    return readContent;
 }
 
 function textToAudio(){
