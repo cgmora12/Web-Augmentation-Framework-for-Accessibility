@@ -24,7 +24,7 @@ var timeoutResumeInfinity;
 
 var listeningActive = true;
 
-var recognitionActive;
+var recognitionActive = true;
 var recognitionFailedFirstTime = true;
 var recognitionFailedText = "Command not recognised, please try again.";
 var reading = false;
@@ -726,6 +726,7 @@ function createMenus(){
         closeMenu();
         if(listeningActive){
             if(recognitionActive){
+                console.log("recognition deactivated")
                 recognitionActive = false;
                 recognition.abort();
             }
@@ -733,7 +734,8 @@ function createMenus(){
             listeningActive = false;
             toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else{
-            if(!recognitionActive){
+            if(!recognitionActive){                
+                console.log("recognition activated")
                 recognitionActive = true;
                 recognition.start();
             }
@@ -744,7 +746,7 @@ function createMenus(){
         }
         myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
     }, false);
-    if(listeningActive){
+    if(recognitionActive){
         aToggleListening.text = 'Stop Listening';
         toggleListeningIcon.style = "color:gray; margin-left: 8px";
     }
@@ -775,6 +777,7 @@ function createMenus(){
     inputVoiceCommands.addEventListener("change", function(){
         if(!this.checked){
             if(recognitionActive){
+                console.log("recognition deactivated")
                 recognitionActive = false;
                 recognition.abort();
             }
@@ -783,6 +786,7 @@ function createMenus(){
             toggleListeningIcon.style = "color:red; margin-left: 8px";
         } else {
             if(!recognitionActive){
+                console.log("recognition activated")
                 recognitionActive = true;
                 recognition.start();
             }
@@ -1772,6 +1776,7 @@ function audioToText(){
                 }
                 else if(speechToText.includes(stopListeningCommand)){
                     if(recognitionActive){
+                        console.log("recognition deactivated")
                         recognitionActive = false;
                         recognition.abort();
                     }
