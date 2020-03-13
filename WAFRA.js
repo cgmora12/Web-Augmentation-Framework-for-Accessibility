@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -710,13 +710,11 @@ function createMenus(){
     divButtons.id = "foldingMenu";
     divButtons.style = "padding: 10px; border: 2px solid black; display: none; background-color: white";
 
-    /*if(myStorage.getItem(localStoragePrefix + "listeningActive") !== null){
-        listeningActive = (myStorage.getItem(localStoragePrefix + "listeningActive") == 'true')
+    if(myStorage.getItem("recognitionActive") !== null){
+        recognitionActive = (myStorage.getItem("recognitionActive") == 'true')
     } else {
-        myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
+        myStorage.setItem("recognitionActive", recognitionActive);
     }
-
-    recognitionActive = listeningActive;*/
 
     var toggleListeningIcon = document.createElement("i");
     toggleListeningIcon.id = "toggleListeningIcon";
@@ -740,7 +738,8 @@ function createMenus(){
             inputVoiceCommands.checked = recognitionActive;
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
-        //myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
+        document.getElementById("voiceCommandsInput").checked = recognitionActive;
+        myStorage.setItem("recognitionActive", recognitionActive);
     }, false);
     if(recognitionActive){
         aToggleListening.text = 'Stop Listening';
@@ -784,7 +783,7 @@ function createMenus(){
             aToggleListening.text = 'Stop Listening';
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
-        //myStorage.setItem(localStoragePrefix + "listeningActive", listeningActive);
+        myStorage.setItem("recognitionActive", recognitionActive);
     }, false);
     divButtons.appendChild(inputVoiceCommands);
     divButtons.appendChild(document.createElement('br'));
@@ -1721,8 +1720,8 @@ function KeyPress(e) {
             stopReading();
         }
         else if(!recognitionActive){
-            recognition.start();
             recognitionActive = true;
+            recognition.start();
             var aToggleListening = document.getElementById("toggleListeningA");
             aToggleListening.text = 'Stop Listening';
             var inputVoiceCommands = document.getElementById("voiceCommandsInput");
@@ -1850,14 +1849,12 @@ function audioToText(){
         }
     }
 
-    /*recognition.onend = event => {
-        if(listeningActive && !reading){
+    recognition.onend = event => {
+        if(recognitionActive){
+            console.log("recgonition reset");
             recognition.start();
-        } else {
-            recognitionActive = false;
-            listeningActive = false;
         }
-    }*/
+    }
     /*recognition.onstart = event => {
         recognitionActive = true;
         listeningActive = true;
