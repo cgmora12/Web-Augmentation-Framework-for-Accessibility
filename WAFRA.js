@@ -107,6 +107,7 @@ $(document).ready(function() {
     wafra.createAnnotationsMenu();
     wafra.createOperationsMenu();
     wafra.createCommandsMenu();
+    wafra.basicAnnotation();
     document.onkeydown = KeyPress;
 
     setTimeout(function(){
@@ -134,7 +135,11 @@ class WAFRA {
             if(myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id) !== null){
                 annotations[annotationsIndex].items = myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id);
             } else {
-                myStorage.setItem(localStoragePrefix + annotations[annotationsIndex].id, annotations[annotationsIndex].items);
+                if(annotations[annotationsIndex].items.length > 0){
+                    myStorage.setItem(localStoragePrefix + annotations[annotationsIndex].id, annotations[annotationsIndex].items);
+                } else {
+                    myStorage.setItem(localStoragePrefix + annotations[annotationsIndex].id, "[]");
+                }
             }
         }
         for(var operationsIndex = 0; operationsIndex < operations.length; operationsIndex++){
@@ -179,6 +184,10 @@ class WAFRA {
 
     createCommandsMenu(){
         createCommandsMenu();
+    }
+
+    basicAnnotation(){
+        basicAnnotation();
     }
 
 }
@@ -724,7 +733,7 @@ function createMenus(){
             aToggleListening.text = 'Start Listening';
             toggleListeningIcon.style = "color:red; margin-left: 8px";
             recognition.abort();
-        } else{   
+        } else{
             console.log("recognition activated")
             recognitionActive = true;
             recognition.start();
@@ -1049,6 +1058,38 @@ function saveAnnotations(annotation){
 function saveAnnotationsTextSections(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
         var result = prompt("Title of these text selections", "");
+
+
+        var exists = false;
+        try{
+            var currentItems = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
+            var otherItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphAnnotation"))
+            var allItems = currentItems.concat(otherItems);
+            if(Array.isArray(allItems) && allItems.length > 0){
+                for(var i = 0; i < allItems.length; i++){
+                    if(allItems[i].name.toLowerCase() === result.toLowerCase()){
+                        exists = true;
+                    }
+                }
+            }
+        } catch(e){
+            console.log("error merging elements");
+        }
+
+        while(exists){
+            exists = false;
+            result = prompt("Title of these text selections (choose a title that does not exist)", "");
+            try{
+                if(Array.isArray(allItems) && allItems.length > 0){
+                    for(var j = 0; j < allItems.length; j++){
+                        if(allItems[j].name.toLowerCase() === result.toLowerCase()){
+                            exists = true;
+                        }
+                    }
+                }
+            } catch(e){}
+        }
+
         var jsonText = new Object();
         jsonText.name = result;
         jsonText.value = annotatedItemsAux;
@@ -1076,6 +1117,38 @@ function saveAnnotationsElements(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
         var result = prompt("Title of this section", "");
         if(result !== null){
+
+
+        var exists = false;
+        try{
+            var currentItems = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
+            var otherItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textAnnotation"))
+            var allItems = currentItems.concat(otherItems);
+            if(Array.isArray(allItems) && allItems.length > 0){
+                for(var i = 0; i < allItems.length; i++){
+                    if(allItems[i].name.toLowerCase() === result.toLowerCase()){
+                        exists = true;
+                    }
+                }
+            }
+        } catch(e){
+            console.log("error merging elements");
+        }
+
+        while(exists){
+            exists = false;
+            result = prompt("Title of this section (choose a title that does not exist)", "");
+            try{
+                if(Array.isArray(allItems) && allItems.length > 0){
+                    for(var j = 0; j < allItems.length; j++){
+                        if(allItems[j].name.toLowerCase() === result.toLowerCase()){
+                            exists = true;
+                        }
+                    }
+                }
+            } catch(e){}
+        }
+
             var all = document.body.getElementsByTagName("*");
             for (var j = 0; j < all.length; j++) {
                 all[j].classList.remove('hoverColor');
@@ -1334,6 +1407,97 @@ function clearTextSelected() {
     }
 }
 
+function basicAnnotation(){
+    var queryURL = "https://live.dbpedia.org/sparql";
+
+    var propertyName1 = "name"
+    var propertyURL1 = "http://xmlns.com/foaf/0.1/name";
+    var property1 = {name : propertyName1, URL: propertyURL1};
+    basicAnnotationByQueryAndProperty(queryURL, property1);
+
+    var propertyURL2 = "http://dbpedia.org/ontology/abstract";
+    var propertyName2 = "summary";
+    var property2 = {name : propertyName2, URL: propertyURL2};
+    basicAnnotationByQueryAndProperty(queryURL, property2);
+
+}
+
+function basicAnnotationByQueryAndProperty(queryURL, property){
+
+    var exists = false;
+
+    var annotationId = "textAnnotation";
+    try{
+        var items = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
+        if(Array.isArray(items) && items.length > 0){
+            for(var i = 0; i < items.length; i++){
+                if(items[i].name === property.name){
+                    exists = true;
+                }
+            }
+        }
+    } catch(e){}
+
+    if(!exists){
+        var currentURL = window.location.hostname + window.location.pathname;
+        var queryPart1 = encodeURIComponent([
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+            "SELECT distinct ?stripped_value",
+            "WHERE {",
+            "<http://"
+        ].join(" "));
+
+        var queryPart2 = encodeURIComponent([
+            "> foaf:primaryTopic ?label.",
+            "?label <" + property.URL + "> ?value",
+            "FILTER (LANG(?value)='en')",
+            "BIND (STR(?value)  AS ?stripped_value)",
+            "} LIMIT 1"
+        ].join(" "));
+
+        var query = queryPart1 + currentURL + queryPart2;
+
+        var queryUrl = queryURL+"?query="+ query +"&format=json";
+        console.log("query: " + query);
+        console.log("queryUrl: " + queryUrl);
+        $.ajax({
+            dataType: "jsonp",
+            url: queryUrl,
+            success: function( data ) {
+                console.log(JSON.stringify(data));
+                var results = data.results.bindings;
+                if(results.length > 0) {
+                    var res = results[0].stripped_value.value;
+                    console.log("query result: " + res);
+
+                    var annotationId = "textAnnotation";
+                    var jsons = new Array();
+                    try{
+                        var items = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
+                        if(Array.isArray(items) && items.length > 0){
+                            jsons = items;
+                        }
+                    } catch(e){}
+                    var newItem = {name: property.name, value: [res]};
+                    jsons.push(newItem);
+                    console.log("saved annotations: " + JSON.stringify(jsons));
+                    myStorage.setItem(localStoragePrefix + annotationId, JSON.stringify(jsons));
+                    //myStorage.setItem(localStoragePrefix + propertyName.name, res);
+
+                    for(var i = 0; i < operations.length; i++){
+                        if(operations[i].hasMenu){
+                            updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
+                        }
+                    }
+                }
+            },
+            error: function(data) {
+                console.log(JSON.stringify(data));
+            }
+        });
+    }
+}
+
 function createOperationsMenu(){
     var divButtons = document.createElement('div')
     divButtons.id = "menu-operations"
@@ -1580,7 +1744,7 @@ function readOperations(){
     for(var i = 0; i < operations.length; i++){
         readContent += operations[i].name + ", ";
     }
-    
+
     readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ". ";
     readContent += sectionsToString();
     Read(readContent);
