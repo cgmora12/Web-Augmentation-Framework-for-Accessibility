@@ -63,7 +63,6 @@ var annotationElements = [];
 
 var operationToChange;
 
-
 /*********************** Page is loaded ************************/
 $(document).ready(function() {
     createCSSSelector('.hideSectionsLinks', 'pointer-events: none');
@@ -72,10 +71,19 @@ $(document).ready(function() {
     createCSSSelector('.selectedColor', 'background-color: grey !important;;');
     $('*[class=""]').removeAttr('class');
 
+    // Browsers require user interaction for speech synthesis
     var hiddenButton = document.createElement("button");
-    hiddenButton.style.display = "none";
+    //hiddenButton.onclick = function(){readWelcome();}
     document.body.appendChild(hiddenButton);
-    hiddenButton.click();
+    //hiddenButton.focus();
+    hiddenButton.style.display = "none";
+    //swal("Click OK to speak").then(() => hiddenButton.click());
+    /*var firstTimeReadWelcome = function(){
+        console.log("Read welcome onmouseover");
+        document.body.removeEventListener("mouseover", firstTimeReadWelcome);
+        readWelcome();
+    }
+    document.body.addEventListener("mouseover", firstTimeReadWelcome);*/
 
     clickDetector();
 
@@ -734,6 +742,7 @@ function initWAFRA() {
     menuLinkDiv.appendChild(menuLink);
     divMenu.appendChild(menuLinkDiv);
     document.body.appendChild(divMenu);
+
 }
 
 
@@ -1602,13 +1611,20 @@ function createOperationsMenu(){
     /*  createReadMenu();
         createGoToMenu();*/
     createSpeakableAnnotations();
-    readWelcome();
+    //readWelcome();
+    setTimeout(function() { say(); }, 1000);
 
     //TODO: refactor Toggle some operations
     toggleYoutubeVideos();
     toggleReadAloud();
     toggleBreadcrumb();
     toggleHiddenSections();
+}
+
+
+function say() {
+    //speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
+    readWelcome();
 }
 
 
@@ -1877,6 +1893,7 @@ function Read(message){
     clearTimeout(timeoutResumeInfinity);
 
     if(!document[hidden]){
+
         var reader = new SpeechSynthesisUtterance(message);
         reader.rate = 0.75;
         reader.lang = languageCodeSyntesis;
@@ -1894,12 +1911,6 @@ function Read(message){
             }, 1000);
         };
 
-
-        var hiddenButton = document.createElement("button");
-        hiddenButton.style.display = "none";
-        document.body.appendChild(hiddenButton);
-        hiddenButton.click();
-
         try{
             reading = true;
             if(recognitionActive){
@@ -1909,7 +1920,11 @@ function Read(message){
         } catch(e){
             stopReading();
         }
-        $('#cancel').css('visibility', 'visible');
+        if(window.speechSynthesis.speaking){
+            $('#cancel').css('visibility', 'visible');
+        } else {
+            stopReading();
+        }
 
     } else {
         console.log("Window tab is not focused, reading aloud not allowed");
@@ -1932,7 +1947,13 @@ function stopReading(){
 function KeyPress(e) {
     var evtobj = window.event? event : e
 
-    if (evtobj.keyCode == 32 && evtobj.ctrlKey){
+
+    if(evtobj.keyCode == 32 && evtobj.ctrlKey && evtobj.shiftKey){
+        if(!reading){
+            readWelcome();
+        }
+    }
+    else if (evtobj.keyCode == 32 && evtobj.ctrlKey){
         if(reading){
             stopReading();
         }
@@ -1945,7 +1966,18 @@ function KeyPress(e) {
             inputVoiceCommands.checked = recognitionActive;
             var toggleListeningIcon = document.getElementById("toggleListeningIcon");
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
-            Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command to disable all voice commands.");
+            Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command, which disables all voice commands.");
+        }
+        else {
+            recognitionActive = false;
+            recognition.abort();
+            var aToggleListening2 = document.getElementById("toggleListeningA");
+            aToggleListening2.text = 'Start Listening';
+            var inputVoiceCommands2 = document.getElementById("voiceCommandsInput");
+            inputVoiceCommands2.checked = recognitionActive;
+            var toggleListeningIcon2 = document.getElementById("toggleListeningIcon");
+            toggleListeningIcon2.style = "color:red; margin-left: 8px";
+            Read("Listening stop, to start listening use the control and space keys, which enables all voice commands.");
         }
     }
 }
