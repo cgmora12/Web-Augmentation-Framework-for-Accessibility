@@ -97,6 +97,7 @@ $(document).ready(function() {
     var breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "breadcrumb", true, true, true, false, []);
     var hideOperation = new HideOperation("hide", "Hide useless sections", "hide", true, true, true, false, ["uselessAnnotation"]);
 
+    checkFocus();
     initWAFRA();
     textToAudio();
     audioToText();
@@ -683,6 +684,29 @@ class HideOperation extends Operation {
 
 // *************************** Helpers ***************************
 
+var hidden, visibilityChange, state;
+function checkFocus(){
+    // Set the name of the hidden property and the change event for visibility
+    if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+        hidden = "hidden";
+        visibilityChange = "visibilitychange";
+        state = "visibilityState";
+    } else if (typeof document.mozHidden !== "undefined") {
+        hidden = "mozHidden";
+        visibilityChange = "mozvisibilitychange";
+        state = "mozVisibilityState";
+    } else if (typeof document.msHidden !== "undefined") {
+        hidden = "msHidden";
+        visibilityChange = "msvisibilitychange";
+        state = "msVisibilityState";
+    } else if (typeof document.webkitHidden !== "undefined") {
+        hidden = "webkitHidden";
+        visibilityChange = "webkitvisibilitychange";
+        state = "webkitVisibilityState";
+    }
+
+}
+
 function initWAFRA() {
     var link1 = document.createElement('link');
     link1.rel = 'stylesheet';
@@ -1150,9 +1174,9 @@ function saveAnnotationsElements(){
         }
 
             var all = document.body.getElementsByTagName("*");
-            for (var j = 0; j < all.length; j++) {
-                all[j].classList.remove('hoverColor');
-                all[j].classList.remove('selectedColor');
+            for (var k = 0; k < all.length; k++) {
+                all[k].classList.remove('hoverColor');
+                all[k].classList.remove('selectedColor');
             }
 
             $('*[class=""]').removeAttr('class');
@@ -1851,39 +1875,45 @@ function Read(message){
     //console.log("Read function: " + message)
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
-    var reader = new SpeechSynthesisUtterance(message);
-    reader.rate = 0.75;
-    reader.lang = languageCodeSyntesis;
-    reader.onstart = function(event) {
-        resumeInfinity();
-    };
-    reader.onend = function(event) {
-        clearTimeout(timeoutResumeInfinity);
-        $('#cancel').css('visibility', 'hidden');
-        setTimeout(function(){
-            reading = false;
+
+    if(!document[hidden]){
+        var reader = new SpeechSynthesisUtterance(message);
+        reader.rate = 0.75;
+        reader.lang = languageCodeSyntesis;
+        reader.onstart = function(event) {
+            resumeInfinity();
+        };
+        reader.onend = function(event) {
+            clearTimeout(timeoutResumeInfinity);
+            $('#cancel').css('visibility', 'hidden');
+            setTimeout(function(){
+                reading = false;
+                if(recognitionActive){
+                    recognition.start();
+                }
+            }, 1000);
+        };
+
+
+        var hiddenButton = document.createElement("button");
+        hiddenButton.style.display = "none";
+        document.body.appendChild(hiddenButton);
+        hiddenButton.click();
+
+        try{
+            reading = true;
             if(recognitionActive){
-                recognition.start();
+                recognition.abort();
             }
-        }, 1000);
-    };
-
-
-    var hiddenButton = document.createElement("button");
-    hiddenButton.style.display = "none";
-    document.body.appendChild(hiddenButton);
-    hiddenButton.click();
-
-    try{
-        reading = true;
-        if(recognitionActive){
-            recognition.abort();
+            window.speechSynthesis.speak(reader);
+        } catch(e){
+            stopReading();
         }
-        window.speechSynthesis.speak(reader);
-    } catch(e){
-        stopReading();
+        $('#cancel').css('visibility', 'visible');
+
+    } else {
+        console.log("Window tab is not focused, reading aloud not allowed");
     }
-    $('#cancel').css('visibility', 'visible');
 }
 
 function stopReading(){
@@ -1892,6 +1922,10 @@ function stopReading(){
     $('#cancel').css('visibility', 'hidden');
     setTimeout(function(){
         reading = false;
+
+        if(recognitionActive){
+            recognition.start();
+        }
     }, 1000);
 }
 
@@ -1920,6 +1954,8 @@ function KeyPress(e) {
 function audioToText(){
     //headlines = document.getElementsByClassName("mw-headline")
     //sectionsNames = JSON.parse(myStorage.getItem(localStoragePrefix + "sectionsNames"));
+
+    console.log("Configure speech recognition");
 
     updateGrammar();
     recognition.lang = languageCodeCommands;
@@ -2034,6 +2070,16 @@ function audioToText(){
 
     recognition.onspeechend = function() {
         console.log("onspeechend");
+        /*setTimeout(function(){
+            if(recognitionActive && !reading){
+                console.log("recognition reset");
+                recognition.start();
+            }
+        }, 1000);*/
+    }
+
+    recognition.onend = function() {
+        console.log("onend");
         setTimeout(function(){
             if(recognitionActive && !reading){
                 console.log("recognition reset");
@@ -2041,23 +2087,45 @@ function audioToText(){
             }
         }, 1000);
     }
-    /*recognition.onstart = event => {
-        recognitionActive = true;
-        listeningActive = true;
-    }*/
 
-    if(myStorage.getItem("recognitionActive") !== null){
-        recognitionActive = (myStorage.getItem("recognitionActive") == 'true')
-    } else {
+    recognition.onerror = function(event) {
+        console.log("onerror");
+        console.log('Speech recognition error detected: ' + event.error);
+        event.preventDefault();
+        return false;
+    }
+
+    recognition.onstart = function() {
+        console.log("onstart");
+    }
+
+
+    if(document[hidden]){
+        recognitionActive = false;
         myStorage.setItem("recognitionActive", recognitionActive);
+
+        console.log("Window tab is not focused, listening not allowed");
+    } else {
+        if(myStorage.getItem("recognitionActive") !== null){
+            recognitionActive = (myStorage.getItem("recognitionActive") == 'true')
+        } else {
+            myStorage.setItem("recognitionActive", recognitionActive);
+        }
     }
 
-    if(recognitionActive){
-        recognitionActive = true;
-        recognition.start();
-        console.log("recognition activated")
-    }
+    //setInterval(function(){
+        if(recognitionActive && !reading){
+            try{
+                recognitionActive = true;
+                recognition.start();
+                console.log("recognition activated")
+            } catch(e){
+
+            }
+        }
+    //}, 1000);
 }
+
 
 function updateGrammar(){
 
