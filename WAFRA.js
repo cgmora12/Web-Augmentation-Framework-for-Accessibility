@@ -47,6 +47,8 @@ var changeCommand = "change";
 var cancelCommand = "cancel";
 var activateCommand = "activate";
 var deactivateCommand = "deactivate";
+var loadAnnotationsCommand = "load annotations";
+var loadAnnotationCommand = "load annotation";
 var changeCommandQuestion = "which command";
 var newCommandQuestion = "which is the new command";
 var changeCommandInProcess1 = false;
@@ -71,6 +73,15 @@ $(document).ready(function() {
     createCSSSelector('.hideUselessSections', 'display: none !important;');
     createCSSSelector('.hoverColor:hover', 'background-color: grey !important;');
     createCSSSelector('.selectedColor', 'background-color: grey !important;;');
+    createCSSSelector('.modal', 'display: none; position: fixed; z-index: 1; padding-top: 100px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);');
+    createCSSSelector('.modal-content', 'background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; width: 70% !important;');
+    createCSSSelector('.close', 'color: #aaaaaa; position: absolute; right: 5%; font-size: 28px; font-weight: bold;');
+    createCSSSelector('.close:hover', 'color: #000; text-decoration: none; cursor: pointer;');
+    createCSSSelector('.close:focus', 'color: #000; text-decoration: none; cursor: pointer;');
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css';
+    document.head.appendChild(link);
     $('*[class=""]').removeAttr('class');
 
     // Browsers require user interaction for speech synthesis
@@ -979,7 +990,7 @@ function createAnnotationsMenu(){
     var a8 = document.createElement('a');
     a8.id = "saveAnnotationsA";
     a8.text = "Save annotations";
-    a8.addEventListener("click", saveAnnotationsFromServer, false);
+    a8.addEventListener("click", askAnnotationsInfoForServer, false);
     divAnnotationsMenu.appendChild(a8);
     divAnnotationsMenu.appendChild(document.createElement('br'));
 
@@ -1000,6 +1011,160 @@ function createAnnotationsMenu(){
     divMenuAnnotations.appendChild(divLoadAnnotations);
 
     document.body.appendChild(divMenuAnnotations);
+
+
+    var saveModal = document.createElement("div");
+    saveModal.id = "saveModal";
+    saveModal.classList.add("modal");
+    var saveModalContent = document.createElement("div");
+    saveModalContent.classList.add("modal-content");
+    var spanClose = document.createElement("span");
+    spanClose.classList.add("close");
+    spanClose.innerHTML = "&times;";
+    spanClose.onclick = function(){
+        saveModal.style.display = "none";
+    };
+    saveModalContent.appendChild(spanClose);
+
+    var h2 = document.createElement("h2");
+    h2.innerHTML = "Save annotations in server";
+    saveModalContent.appendChild(h2);
+
+    var form = document.createElement("form");
+
+    // title should be unique and easy to say (recongnisable)
+    var labelTitleModal = document.createElement("label");
+    labelTitleModal.innerHTML = "Title of annotations: ";
+    labelTitleModal.for = "inputTitleModal";
+    form.appendChild(labelTitleModal);
+
+    var inputTitleModal = document.createElement("input");
+    inputTitleModal.id = "inputTitleModal";
+    inputTitleModal.type = "text";
+    inputTitleModal.classList.add("form-control");
+    inputTitleModal.required = true;
+    inputTitleModal.placeholder = "A unique title that can be recognised by voice";
+    form.appendChild(inputTitleModal);
+
+    var br = document.createElement("br");
+    form.appendChild(br);
+
+    var labelDescriptionModal = document.createElement("label");
+    labelDescriptionModal.innerHTML = "Description of annotations: ";
+    labelDescriptionModal.for = "inputDescriptionModal";
+    form.appendChild(labelDescriptionModal);
+
+    var inputDescriptionModal = document.createElement("input");
+    inputDescriptionModal.id = "inputDescriptionModal";
+    inputDescriptionModal.type = "text";
+    inputDescriptionModal.classList.add("form-control");
+    inputDescriptionModal.placeholder = "A description about the annotations done";
+    form.appendChild(inputDescriptionModal);
+
+    br = document.createElement("br");
+    form.appendChild(br);
+
+    var labelTargetUsersModal = document.createElement("label");
+    labelTargetUsersModal.innerHTML = "Target users: ";
+    labelTargetUsersModal.for = "selectTargetUsersModal";
+    form.appendChild(labelTargetUsersModal);
+
+    var selectTargetUsersModal = document.createElement("select");
+    selectTargetUsersModal.id = "selectTargetUsersModal";
+    //selectTargetUsersModal.type = "text";
+    selectTargetUsersModal.classList.add("form-control");
+    //selectTargetUsersModal.placeholder = "A description about the annotations done";
+
+    var option1 = document.createElement("option");
+    option1.text = "All users";
+    selectTargetUsersModal.add(option1);
+    var option2 = document.createElement("option");
+    option2.text = "Users with some visual impairment";
+    selectTargetUsersModal.add(option2);
+    var option3 = document.createElement("option");
+    option3.text = "Blind people";
+    selectTargetUsersModal.add(option3);
+
+    form.appendChild(selectTargetUsersModal);
+
+    br = document.createElement("br");
+    form.appendChild(br);
+
+    var labelCategoryModal = document.createElement("label");
+    labelCategoryModal.innerHTML = "Category: ";
+    labelCategoryModal.for = "selectCategoryModal";
+    form.appendChild(labelCategoryModal);
+
+    var selectCategoryModal = document.createElement("select");
+    selectCategoryModal.id = "selectCategoryModal";
+    //selectCategoryModal.type = "text";
+    selectCategoryModal.classList.add("form-control");
+    //selectCategoryModal.placeholder = "A description about the annotations done";
+
+    var selectCategoryModalOption1 = document.createElement("option");
+    selectCategoryModalOption1.text = "General overview";
+    selectCategoryModal.add(selectCategoryModalOption1);
+    var selectCategoryModalOption2 = document.createElement("option");
+    selectCategoryModalOption2.text = "Detailed information";
+    selectCategoryModal.add(selectCategoryModalOption2);
+
+    form.appendChild(selectCategoryModal);
+
+    br = document.createElement("br");
+    form.appendChild(br);
+
+    var buttonSaveModal = document.createElement("button");
+    buttonSaveModal.id = "buttonSaveModal";
+    buttonSaveModal.innerHTML = "Save";
+    buttonSaveModal.classList.add("btn");
+    buttonSaveModal.classList.add("btn-primary");
+    buttonSaveModal.style = "margin: auto !important; display: block !important;"
+    buttonSaveModal.onclick = function () {
+        //TODO: create form with onclick to saveAnnotationsInServer with object param obj: {title: "", category: "", targetUsers: "", "description: ""}
+        var selectTargetUsersModal = document.getElementById("selectTargetUsersModal");
+        var selectTargetUsersModalValue = selectTargetUsersModal.options[selectTargetUsersModal.selectedIndex].text;
+        var selectCategoryModal = document.getElementById("selectCategoryModal");
+        var selectCategoryModalValue = selectCategoryModal.options[selectCategoryModal.selectedIndex].text;
+
+        var obj = {};
+        obj.title = document.getElementById("inputTitleModal").value;
+        obj.description = document.getElementById("inputDescriptionModal").value;
+        obj.category = selectCategoryModalValue;
+        obj.targetUsers = selectTargetUsersModalValue;
+        event.preventDefault();
+        saveAnnotationsInServer(obj);
+
+    }
+    form.appendChild(buttonSaveModal);
+    saveModalContent.appendChild(form);
+
+    saveModal.appendChild(saveModalContent);
+    document.body.appendChild(saveModal);
+
+    var loadModal = document.createElement("div");
+    loadModal.id = "loadModal";
+    loadModal.classList.add("modal");
+    var loadModalContent = document.createElement("div");
+    loadModalContent.classList.add("modal-content");
+    loadModalContent.id = "loadModalContent";
+    var spanLoadClose = document.createElement("span");
+    spanLoadClose.classList.add("close");
+    spanLoadClose.innerHTML = "&times;";
+    spanLoadClose.onclick = function(){
+        loadModal.style.display = "none";
+    };
+    loadModalContent.appendChild(spanLoadClose);
+
+    var h2Load = document.createElement("h2");
+    h2Load.innerHTML = "Load annotations from server";
+    loadModalContent.appendChild(h2Load);
+
+    var divLoad = document.createElement("div");
+    divLoad.id = "divLoad";
+    loadModalContent.appendChild(divLoad);
+
+    loadModal.appendChild(loadModalContent);
+    document.body.appendChild(loadModal);
 
 }
 
@@ -1112,8 +1277,8 @@ function saveAnnotations(annotation){
 
 function saveAnnotationsTextSections(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
-        var result = prompt("Title of these text selections", "");
 
+        var result = prompt("Title of these text selections", "");
 
         var exists = false;
         try{
@@ -1800,6 +1965,8 @@ function readWelcome(){
     readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
         + activateCommand + ", " + deactivateCommand + ". ";
     readContent += sectionsToString();
+
+    //TODO: explain and add loadAnnotations operation
     Read(readContent);
 }
 
@@ -1823,7 +1990,7 @@ function readSections(){
 
 function sectionsToString(){
 
-    var readContent = "The sections of the website are: ";
+    var readContent = "";
     var names = [];
     for(var i = 0; i < operations.length; i++){
         try{
@@ -1838,9 +2005,15 @@ function sectionsToString(){
         } catch(e){}
     }
 
+    if(names.length > 0){
+        readContent += "The sections of the website are: ";
+    }
+
     for(var index = 0; index < names.length; index++){
         readContent += names[index] + ", ";
     }
+
+    readContent += "but if you can dowload more annotations using the voice command: " + loadAnnotationsCommand;
 
     return readContent;
 }
@@ -2007,6 +2180,8 @@ function KeyPress(e) {
     }
 }
 
+var commandListened;
+
 // Speech recognition
 function audioToText(){
     //headlines = document.getElementsByClassName("mw-headline")
@@ -2022,6 +2197,7 @@ function audioToText(){
     recognition.onresult = event => {
         if(reading === false) {
             const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
+            commandListened = speechToText;
             console.log(speechToText);
             if(!changeCommandInProcess1 && !changeCommandInProcess2){
                 if(speechToText.includes(listOperationsCommand)){
@@ -2058,6 +2234,9 @@ function audioToText(){
                             Read("Operation " + operations[b].voiceCommand + " deactivated.");
                         }
                     }
+                }
+                else if(speechToText.includes(loadAnnotationsCommand) || speechToText.includes(loadAnnotationCommand)){
+                    loadAnnotationsFromServerByVoice();
                 }
                 else if(speechToText.includes(changeCommand)){
                     console.log("changeCommandInProcess = true")
@@ -2590,9 +2769,21 @@ function undoAnnotationsSections(){
     }
 }*/
 
+
+function hideLoadAnnotationsInfoForServer(){
+    var loadModal = document.getElementById("loadModal");
+    loadModal.style.display = "none";
+}
+
 function loadAnnotationsFromServer(){
-    var menuLoadAnnotations = document.getElementById("menu-loadAnnotations");
-    menuLoadAnnotations.style.display = "block";
+    //var menuLoadAnnotations = document.getElementById("menu-loadAnnotations");
+    //menuLoadAnnotations.style.display = "block";
+
+    closeAnnotationsMenu();
+    var loadModal = document.getElementById("loadModal");
+    loadModal.style.display = "block";
+    var divLoad = document.getElementById("divLoad");
+
     var xmlhttp = new XMLHttpRequest();
     var url = "https://wake.dlsi.ua.es/AnnotationsServer/?operation=loadWebsite&website="+encodeURI(document.URL);
 
@@ -2600,13 +2791,91 @@ function loadAnnotationsFromServer(){
         if (this.readyState == 4 && this.status == 200) {
             var annotationsLoaded = JSON.parse(this.responseText).results;
             console.log("annotationsLoaded: " + JSON.stringify(annotationsLoaded));
+            divLoad.innerHTML = "";
+
             for(var i = 0; i < annotationsLoaded.length; i++){
                 var a = document.createElement('a');
                 a.text = annotationsLoaded[i].title;
-                a.addEventListener("click", loadAnnotationByTitleAndWebsite, false);
+                a.href = "#";
+                var title = annotationsLoaded[i].title;
                 a.title = annotationsLoaded[i].title;
-                menuLoadAnnotations.appendChild(a);
-                menuLoadAnnotations.appendChild(document.createElement('br'));
+                a.addEventListener("click", function(title){
+                    loadAnnotationByTitleAndWebsite(title);
+                    return false;
+                }, false);
+                divLoad.appendChild(a);
+                divLoad.appendChild(document.createElement('br'));
+
+                if(typeof annotationsLoaded[i].description != 'undefined'){
+                    var label = document.createElement('label');
+                    label.innerHTML = "<b>Description: </b>" + annotationsLoaded[i].description;
+                    divLoad.appendChild(label);
+                    divLoad.appendChild(document.createElement('br'));
+                }
+                if(typeof annotationsLoaded[i].category != 'undefined'){
+                    var label2 = document.createElement('label');
+                    label2.innerHTML = "<b>Category: </b>" + annotationsLoaded[i].category;
+                    divLoad.appendChild(label2);
+                    divLoad.appendChild(document.createElement('br'));
+                }
+                if(typeof annotationsLoaded[i].targetUsers != 'undefined'){
+                    var label3 = document.createElement('label');
+                    label3.innerHTML = "<b>Target users: </b>" + annotationsLoaded[i].targetUsers;
+                    divLoad.appendChild(label3);
+                    divLoad.appendChild(document.createElement('br'));
+                }
+                divLoad.appendChild(document.createElement('br'));
+            }
+        }
+    };
+
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
+
+function loadAnnotationsFromServerByVoice(){
+
+    var xmlhttp = new XMLHttpRequest();
+    var url = "https://wake.dlsi.ua.es/AnnotationsServer/?operation=loadWebsite&website="+encodeURI(document.URL);
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var annotationsLoaded = JSON.parse(this.responseText).results;
+            console.log("annotationsLoaded: " + JSON.stringify(annotationsLoaded));
+
+            var annotationsToRead = "";
+
+            if(annotationsLoaded.length > 0){
+                annotationsToRead += "The available annotations to download are: ";
+            }
+
+            var title = ""
+            for(var i = 0; i < annotationsLoaded.length; i++){
+                title = annotationsLoaded[i].title;
+                var description = annotationsLoaded[i].description;
+                var category = annotationsLoaded[i].category;
+                var targetUsers = annotationsLoaded[i].targetUsers;
+                if(commandListened.toLowerCase().includes(title.toLowerCase())){
+                    loadAnnotationByTitleAndWebsite(title, true);
+                    return;
+                } else {
+                    annotationsToRead += "title: " + title;
+                    if(typeof description != 'undefined'){
+                        annotationsToRead += "; description: " + description;
+                    }
+                    if(typeof targetUsers != 'undefined'){
+                        annotationsToRead += "; for: " + targetUsers;
+                    }
+                    if(typeof category != 'undefined'){
+                        annotationsToRead += "; category: " + category;
+                    }
+                    annotationsToRead += ".  ";
+                }
+            }
+
+            if(annotationsLoaded.length > 0){
+                annotationsToRead += ". If you want to download one of these annotations just say: load annotations " + title;
+                Read(annotationsToRead);
             }
         }
     };
@@ -2619,7 +2888,7 @@ function closeLoadMenu(){
     document.getElementById("menu-loadAnnotations").style.display = "none";
 }
 
-function loadAnnotationByTitleAndWebsite(title){
+function loadAnnotationByTitleAndWebsite(title, byVoice){
     var titleToLoad = title;
     if(typeof title.parentElement === 'undefined' && typeof title.currentTarget !== 'undefined'){
         titleToLoad = title.currentTarget.title
@@ -2651,7 +2920,12 @@ function loadAnnotationByTitleAndWebsite(title){
                 //TODO: toggle operations that are toggleable(?)
                 toggleHiddenSections();
 
-                alert("Annotations loaded!");
+                if(byVoice === true){
+                    Read("Annotations loaded, use list sections to know the new sections available.");
+                } else {
+                    alert("Annotations loaded!");
+                    hideLoadAnnotationsInfoForServer();
+                }
             }
             //console.log(JSON.stringify(annotationsLoaded));
         }
@@ -2661,11 +2935,29 @@ function loadAnnotationByTitleAndWebsite(title){
     xmlhttp.send();
 }
 
-function saveAnnotationsFromServer(){
-    var result = prompt("Title for annotations", "");
-    if(result!=null){
+function askAnnotationsInfoForServer(){
+    closeAnnotationsMenu();
+    var saveModal = document.getElementById("saveModal");
+    saveModal.style.display = "block";
+}
+
+
+function hideAnnotationsInfoForServer(){
+    var saveModal = document.getElementById("saveModal");
+    saveModal.style.display = "none";
+}
+
+function saveAnnotationsInServer(result){
+    console.log("saveAnnotationsInServer: " + JSON.stringify(result));
+    //TODO: pass all params to annotationsServer
+
+    //var result = prompt("Title for annotations", "");
+    if(result!=null && result.title != null){
         var annotationsObject = {};
-        annotationsObject.title = result;
+        annotationsObject.title = result.title;
+        annotationsObject.description = result.description;
+        annotationsObject.targetUsers = result.targetUsers;
+        annotationsObject.category = result.category;
         annotationsObject.website = encodeURI(document.URL);
 
         for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
@@ -2690,17 +2982,26 @@ function saveAnnotationsFromServer(){
         params.annotations = JSON.stringify(annotationsObject);
         //console.log(JSON.stringify(params));
         xmlhttp.send(JSON.stringify(params));
+
+        hideAnnotationsInfoForServer();
+    } else {
+        //TODO: check if title already exists for that website
+        console.log("error");
     }
 }
 
 
 function createSpeakableAnnotations(){
     var script = document.createElement('script'); // Create a script element
-    script.id = "Annotations";
     script.type = "application/ld+json";
+    script.id = "AnnotationsScript";
     script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
-    var paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+    var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
+    try{
+        paragraphItemsXPath = JSON.parse(paragraphItemsXPath);
+    } catch(e){
+    }
 
     if(paragraphItemsXPath !== null){
         var all
@@ -2720,26 +3021,33 @@ function createSpeakableAnnotations(){
 }
 
 function updateScriptXPath(){
-    var script = document.getElementById("Annotations");
-    script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+    try{
+        var script = document.getElementById("AnnotationsScript");
+        script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
-    var paragraphItemsXPath = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath"))
+        var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
+        try{
+            paragraphItemsXPath = JSON.parse(paragraphItemsXPath);
+        } catch(e){
+        }
 
-    if(paragraphItemsXPath !== null){
-        var all
-        var added = false;
-        for(var i = 0; i < paragraphItemsXPath.length; i++){
-            if(typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
-                script.text += '"' + paragraphItemsXPath[i].value[0] + '",';
-                added = true;
+        if(paragraphItemsXPath !== null){
+            var all
+            var added = false;
+            for(var i = 0; i < paragraphItemsXPath.length; i++){
+                if(typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
+                    script.text += '"' + paragraphItemsXPath[i].value[0] + '",';
+                    added = true;
+                }
+            }
+            if(added){
+                script.text += script.text.substring(0, script.text.length - 1);
             }
         }
-        if(added){
-            script.text += script.text.substring(0, script.text.length - 1);
-        }
+        script.text += ']  }, "url": "' + document.URL + '" }';
+        document.body.appendChild(script);
+    } catch(e){
     }
-    script.text += ']  }, "url": "' + document.URL + '" }';
-    document.body.appendChild(script);
 }
 
 function createCSSSelector (selector, style) {
