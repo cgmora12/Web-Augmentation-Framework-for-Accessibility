@@ -43,8 +43,10 @@ var listSectionsCommand = "list sections";
 var listSectionCommand = "list section";
 var welcomeCommand = "welcome";
 var stopListeningCommand = "stop listening";
-var changeCommand = "change command";
+var changeCommand = "change";
 var cancelCommand = "cancel";
+var activateCommand = "activate";
+var deactivateCommand = "deactivate";
 var changeCommandQuestion = "which command";
 var newCommandQuestion = "which is the new command";
 var changeCommandInProcess1 = false;
@@ -102,8 +104,8 @@ $(document).ready(function() {
     var readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
     var goToOperation = new GoToOperation("goTo", "Go To", "go to", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
     var videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
-    var breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "breadcrumb", true, true, true, false, []);
-    var hideOperation = new HideOperation("hide", "Hide useless sections", "hide", true, true, true, false, ["uselessAnnotation"]);
+    var breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
+    var hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
 
     checkFocus();
     initWAFRA();
@@ -686,6 +688,26 @@ class HideOperation extends Operation {
     }
 }
 
+// Show sections
+class ShowOperation extends Operation {
+    constructor(id, name, voiceCommand, activable, active, editable, hasMenu, annotations){
+        super();
+        this.initOperation(id, name, voiceCommand, activable, active, editable, hasMenu, annotations);
+    }
+
+    configureOperation() {
+
+    }
+
+    startOperation() {
+
+    }
+
+    stopOperation() {
+        console.log("Stop operation");
+    }
+}
+
 
 /*********************** Add new operations classes here ************************/
 
@@ -771,10 +793,10 @@ function createMenus(){
             recognitionActive = true;
             recognition.start();
             aToggleListening.text = 'Stop Listening';
-            inputVoiceCommands.checked = recognitionActive;
+            //inputVoiceCommands.checked = recognitionActive;
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
-        document.getElementById("voiceCommandsInput").checked = recognitionActive;
+        //document.getElementById("voiceCommandsInput").checked = recognitionActive;
         myStorage.setItem("recognitionActive", recognitionActive);
     }, false);
     if(recognitionActive){
@@ -800,7 +822,7 @@ function createMenus(){
     }, false);
     a5.text = 'Voice commands';
     divButtons.appendChild(a5);
-    var inputVoiceCommands = document.createElement('input');
+    /*var inputVoiceCommands = document.createElement('input');
     inputVoiceCommands.type = 'checkbox';
     inputVoiceCommands.id = 'voiceCommandsInput';
     inputVoiceCommands.value = 'voiceCommandsInput';
@@ -821,7 +843,7 @@ function createMenus(){
         }
         myStorage.setItem("recognitionActive", recognitionActive);
     }, false);
-    divButtons.appendChild(inputVoiceCommands);
+    divButtons.appendChild(inputVoiceCommands);*/
     divButtons.appendChild(document.createElement('br'));
 
     var aOperations = document.createElement('a');
@@ -1569,6 +1591,7 @@ function createOperationsMenu(){
             } else {
                 a.style.setProperty("pointer-events", "none");
             }
+            //Refactor for reusability
             input.addEventListener("change", function(){
                 for(var operationsI = 0; operationsI < operations.length; operationsI++){
                     if(operations[operationsI].id === this.id.split("Input").join("")){
@@ -1772,9 +1795,10 @@ function closeSubmenu(menuId){
 function readWelcome(){
     var readContent = "Welcome to " + document.title + "! The voice commands available are: ";
     for(var i = 0; i < operations.length; i++){
-        readContent += operations[i].name + ", ";
+        readContent += operations[i].voiceCommand + ", ";
     }
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ". ";
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
+        + activateCommand + ", " + deactivateCommand + ". ";
     readContent += sectionsToString();
     Read(readContent);
 }
@@ -1782,10 +1806,11 @@ function readWelcome(){
 function readOperations(){
     var readContent = "The voice commands available are: ";
     for(var i = 0; i < operations.length; i++){
-        readContent += operations[i].name + ", ";
+        readContent += operations[i].voiceCommand + ", ";
     }
 
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ". ";
+    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
+        + activateCommand + ", " + deactivateCommand + ". ";
     readContent += sectionsToString();
     Read(readContent);
 }
@@ -2008,6 +2033,32 @@ function audioToText(){
                 else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand)){
                     readSections();
                 }
+                else if(speechToText.includes(activateCommand) && !speechToText.includes(deactivateCommand)){
+                    console.log("Activate operation: ");
+                    for(var a = 0; a < operations.length; a++){
+                        if(speechToText.includes(activateCommand + " " + operations[a].voiceCommand) && !operations[a].active){
+                            console.log(operations[a].name);
+                            var input = document.getElementById(operations[a].id + "Input");
+                            input.checked = true;
+                            var eventChange = new Event('change');
+                            input.dispatchEvent(eventChange);
+                            Read("Operation " + operations[a].voiceCommand + " activated.");
+                        }
+                    }
+                }
+                else if(speechToText.includes(deactivateCommand)){
+                    console.log("Deactivate operation: ");
+                    for(var b = 0; b < operations.length; b++){
+                        if(speechToText.includes(deactivateCommand + " " + operations[b].voiceCommand) && operations[b].active){
+                            console.log(operations[b].name);
+                            var input2 = document.getElementById(operations[b].id + "Input");
+                            input2.checked = false;
+                            var eventChange2 = new Event('change');
+                            input2.dispatchEvent(eventChange2);
+                            Read("Operation " + operations[b].voiceCommand + " deactivated.");
+                        }
+                    }
+                }
                 else if(speechToText.includes(changeCommand)){
                     console.log("changeCommandInProcess = true")
                     changeCommandInProcess1 = true;
@@ -2024,33 +2075,38 @@ function audioToText(){
                     Read("Listening stopped, to start listening use control and space keys.");
                 } else {
                     for(var i = 0; i < operations.length; i++){
-                        if(speechToText.includes(operations[i].voiceCommand) && operations[i].active){
-                            try{
-                                if(operations[i].annotations.length > 0) {
-                                    for(var j = 0; j < operations[i].annotations.length; j++){
-                                        var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
-                                        for(var k = 0; k < items.length; k++){
-                                            if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name) && operations[i].active){
-                                                var params = {};
-                                                var current = {};
-                                                params.currentTarget = current;
-                                                params.currentTarget.sectionName = items[k].name;
-                                                params.currentTarget.operation = operations[i];
-                                                operations[i].startOperation(params);
-                                                return;
+                        if(speechToText.startsWith(operations[i].voiceCommand)){
+                            if(operations[i].active){
+                                try{
+                                    if(operations[i].annotations.length > 0) {
+                                        for(var j = 0; j < operations[i].annotations.length; j++){
+                                            var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                                            for(var k = 0; k < items.length; k++){
+                                                if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name)){
+                                                    var params = {};
+                                                    var current = {};
+                                                    params.currentTarget = current;
+                                                    params.currentTarget.sectionName = items[k].name;
+                                                    params.currentTarget.operation = operations[i];
+                                                    operations[i].startOperation(params);
+                                                    return;
+                                                }
                                             }
                                         }
+                                    } else {
+                                        operations[i].startOperation();
+                                        return;
                                     }
-                                } else {
-                                    operations[i].startOperation();
-                                    return;
-                                }
-                            }catch(e){}
+                                }catch(e){}
+                            } else {
+                                Read("Operation " + operations[i].voiceCommand + " is not activated, please activate using the voice command: activate " + operations[i].voiceCommand + ".");
+                                return;
+                            }
                         }
                     }
                     if(recognitionFailedFirstTime){
                         recognitionFailedFirstTime = false;
-                        Read(recognitionFailedText + " Use " + listOperationsCommand + " to know which operations are available and "
+                        Read(recognitionFailedText + " You can use: " + listOperationsCommand + " to know which operations are available and: "
                              + listSectionsCommand + " to know which sections can be read aloud.");
                     } else {
                         Read(recognitionFailedText);
