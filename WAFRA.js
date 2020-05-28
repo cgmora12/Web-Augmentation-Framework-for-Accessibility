@@ -86,9 +86,10 @@ $(document).ready(function() {
 
     // Browsers require user interaction for speech synthesis
     var hiddenButton = document.createElement("button");
-    //hiddenButton.onclick = function(){readWelcome();}
+    hiddenButton.onclick = function(){console.log("User interaction");}
     document.body.appendChild(hiddenButton);
     //hiddenButton.focus();
+    hiddenButton.click();
     hiddenButton.style.display = "none";
     //swal("Click OK to speak").then(() => hiddenButton.click());
     /*var firstTimeReadWelcome = function(){
@@ -114,6 +115,7 @@ $(document).ready(function() {
     var decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Decrease Font Size", "decrease font size", true, true, true, false, []);
     var readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
     var goToOperation = new GoToOperation("goTo", "Go To", "go to", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
+    var goBackOperation = new GoBackOperation("goBack", "Go Back", "go back", true, true, true, false, []);
     var videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
     var breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
     var hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
@@ -179,6 +181,7 @@ class WAFRA {
                 myStorage.setItem(localStoragePrefix + operations[operationsIndex].id + "Active", operations[operationsIndex].active);
             }
         }
+
 
         //TODO: refactor
         if(myStorage.getItem(localStoragePrefix + "paragraphItemsXPath") !== null){
@@ -640,6 +643,24 @@ function goToFromSectionName(menuId, operation, sectionName){
 
 }
 
+// Go back
+class GoBackOperation extends Operation {
+    constructor(id, name, voiceCommand, activable, active, editable, hasMenu, annotations){
+        super();
+        this.initOperation(id, name, voiceCommand, activable, active, editable, hasMenu, annotations);
+    }
+
+    configureOperation() {
+    }
+
+    startOperation() {
+        goBack();
+    }
+
+    stopOperation() {
+    }
+}
+
 // Videos
 class VideosOperation extends Operation {
     constructor(id, name, voiceCommand, activable, active, editable, hasMenu, annotations){
@@ -965,6 +986,7 @@ function createAnnotationsMenu(){
         a2b.className = "icon";
         a2b.title = "Reset" + annotations[annotationsIndex].name;
         a2b.addEventListener("click", function(){
+            //TODO: confirm
             for(var i = 0; i < annotations.length; i++){
                 if(annotations[i].id === this.id.split("reset").join("")){
                     annotations[i].reset();
@@ -1278,7 +1300,7 @@ function saveAnnotations(annotation){
 function saveAnnotationsTextSections(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
 
-        var result = prompt("Title of these text selections", "");
+        var result = prompt("Title of these text selections (must be recognisable by voice)", "");
 
         var exists = false;
         try{
@@ -1335,7 +1357,7 @@ function saveAnnotationsTextSections(){
 
 function saveAnnotationsElements(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
-        var result = prompt("Title of this section", "");
+        var result = prompt("Title of this section (must be recognisable by voice)", "");
         if(result !== null){
 
 
@@ -1836,7 +1858,7 @@ function createCommandsMenu(){
         a1.addEventListener("click", function(){
             for(var index = 0; index < operations.length; index++){
                 if(operations[index].id === this.id.split("Edit").join("")){
-                    var result = prompt("New command value for '" + operations[index].name + "' command", operations[index].voiceCommand);
+                    var result = prompt("New command value for '" + operations[index].name + "' command (must be recognisable by voice)", operations[index].voiceCommand);
                     if(result !== null){
                         operations[index].voiceCommand = result.toLowerCase();
                         myStorage.setItem(localStoragePrefix + operations[index].id, result.toLowerCase());
@@ -2010,10 +2032,13 @@ function sectionsToString(){
     }
 
     for(var index = 0; index < names.length; index++){
-        readContent += names[index] + ", ";
+        if(index > 0){
+            readContent += ", ";
+        }
+        readContent += names[index];
     }
 
-    readContent += "but if you can dowload more annotations using the voice command: " + loadAnnotationsCommand;
+    readContent += ". You can dowload more annotations using the voice command: " + loadAnnotationsCommand;
 
     return readContent;
 }
@@ -2160,8 +2185,8 @@ function KeyPress(e) {
             recognition.start();
             var aToggleListening = document.getElementById("toggleListeningA");
             aToggleListening.text = 'Stop Listening';
-            var inputVoiceCommands = document.getElementById("voiceCommandsInput");
-            inputVoiceCommands.checked = recognitionActive;
+            //var inputVoiceCommands = document.getElementById("voiceCommandsInput");
+            //inputVoiceCommands.checked = recognitionActive;
             var toggleListeningIcon = document.getElementById("toggleListeningIcon");
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
             Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command, which disables all voice commands.");
@@ -2171,12 +2196,14 @@ function KeyPress(e) {
             recognition.abort();
             var aToggleListening2 = document.getElementById("toggleListeningA");
             aToggleListening2.text = 'Start Listening';
-            var inputVoiceCommands2 = document.getElementById("voiceCommandsInput");
-            inputVoiceCommands2.checked = recognitionActive;
+            //var inputVoiceCommands2 = document.getElementById("voiceCommandsInput");
+            //inputVoiceCommands2.checked = recognitionActive;
             var toggleListeningIcon2 = document.getElementById("toggleListeningIcon");
             toggleListeningIcon2.style = "color:red; margin-left: 8px";
             Read("Listening stop, to start listening use the control and space keys, which enables all voice commands.");
         }
+
+        myStorage.setItem("recognitionActive", recognitionActive);
     }
 }
 
@@ -2196,7 +2223,7 @@ function audioToText(){
 
     recognition.onresult = event => {
         if(reading === false) {
-            const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase();
+            const speechToText = event.results[event.results.length -1][0].transcript.toLowerCase().trim();
             commandListened = speechToText;
             console.log(speechToText);
             if(!changeCommandInProcess1 && !changeCommandInProcess2){
@@ -2254,7 +2281,7 @@ function audioToText(){
                     Read("Listening stopped, to start listening use control and space keys.");
                 } else {
                     for(var i = 0; i < operations.length; i++){
-                        if(speechToText.startsWith(operations[i].voiceCommand)){
+                        if(speechToText.startsWith(operations[i].voiceCommand) && operations[i].voiceCommand.length > 0){
                             if(operations[i].active){
                                 try{
                                     if(operations[i].annotations.length > 0) {
@@ -2347,6 +2374,7 @@ function audioToText(){
 
     recognition.onend = function() {
         console.log("onend");
+        recognition.stop();
         setTimeout(function(){
             if(recognitionActive && !reading){
                 console.log("recognition reset");
@@ -2366,18 +2394,17 @@ function audioToText(){
         console.log("onstart");
     }
 
+    if(myStorage.getItem("recognitionActive") !== null){
+        recognitionActive = (myStorage.getItem("recognitionActive") == 'true')
+    } else {
+        myStorage.setItem("recognitionActive", recognitionActive);
+    }
 
     if(document[hidden]){
         recognitionActive = false;
-        myStorage.setItem("recognitionActive", recognitionActive);
+        //myStorage.setItem("recognitionActive", recognitionActive);
 
         console.log("Window tab is not focused, listening not allowed");
-    } else {
-        if(myStorage.getItem("recognitionActive") !== null){
-            recognitionActive = (myStorage.getItem("recognitionActive") == 'true')
-        } else {
-            myStorage.setItem("recognitionActive", recognitionActive);
-        }
     }
 
     //setInterval(function(){
@@ -2577,6 +2604,15 @@ function breadcrumb(){
     });
 
     //toggleBreadcrumb()
+}
+
+function goBack(){
+    var breadcrumbChildren = document.getElementById("BreadCrumb").children;
+    if(breadcrumbChildren.length > 1){
+        breadcrumbChildren[breadcrumbChildren.length-2].firstElementChild.click();
+    } else {
+        Read("There is no previous page in the history from same web domain");
+    }
 }
 
 
@@ -2874,9 +2910,11 @@ function loadAnnotationsFromServerByVoice(){
             }
 
             if(annotationsLoaded.length > 0){
-                annotationsToRead += ". If you want to download one of these annotations just say: load annotations " + title;
-                Read(annotationsToRead);
+                annotationsToRead += ". If you want to download one of these annotations just say the load annotations command and the title of the annotations. For example: load annotations " + title;
+            } else {
+                annotationsToRead += "There aren't annotations to download for this website.";
             }
+            Read(annotationsToRead);
         }
     };
 
