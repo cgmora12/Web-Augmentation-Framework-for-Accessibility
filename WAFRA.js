@@ -254,10 +254,17 @@ class Annotation {
         throw new Error("Method 'reset()' must be implemented.");
     }
 
+    edit() {
+        throw new Error("Method 'edit()' must be implemented.");
+    }
+
     undo() {
         throw new Error("Method 'undo()' must be implemented.");
     }
 
+    openMenu(){
+        throw new Error("Method 'openMenu()' must be implemented.");
+    }
 
     initAnnotation(id, name, domElements, items) {
         this.id = id;
@@ -298,12 +305,21 @@ class TextAnnotation extends Annotation {
         stopAnnotations(this);
     }
 
-    reset() {
-        resetAnnotationsById(this.id);
+    reset(name) {
+        resetAnnotationsById(this.id, name);
+    }
+
+    edit(name) {
+        editAnnotationsByName(this.id, name);
     }
 
     undo() {
         undoAnnotations(this);
+    }
+
+    openMenu() {
+        closeAnnotationsMenu();
+        showSubmenu("menu-" + this.id);
     }
 }
 
@@ -334,12 +350,21 @@ class ParagraphAnnotation extends Annotation {
         stopAnnotations(this);
     }
 
-    reset() {
-        resetAnnotationsById(this.id);
+    reset(name) {
+        resetAnnotationsById(this.id, name);
+    }
+
+    edit(name) {
+        editAnnotationsByName(this.id, name);
     }
 
     undo() {
         undoAnnotations(this);
+    }
+
+    openMenu() {
+        closeAnnotationsMenu();
+        showSubmenu("menu-" + this.id);
     }
 }
 
@@ -371,12 +396,21 @@ class UselessAnnotation extends Annotation {
         stopAnnotations(this);
     }
 
-    reset() {
-        resetAnnotationsById(this.id);
+    reset(name) {
+        resetAnnotationsById(this.id, name);
+    }
+
+    edit(name) {
+        editAnnotationsByName(this.id, name);
     }
 
     undo() {
         undoAnnotations(this);
+    }
+
+    openMenu() {
+        closeAnnotationsMenu();
+        showSubmenu("menu-" + this.id);
     }
 }
 
@@ -982,22 +1016,40 @@ function createAnnotationsMenu(){
         divAnnotationsMenu.appendChild(a2);
 
         var a2b = document.createElement('a');
-        a2b.id = "reset" + annotations[annotationsIndex].id;
+        a2b.id = "edit" + annotations[annotationsIndex].id;
         a2b.className = "icon";
-        a2b.title = "Reset" + annotations[annotationsIndex].name;
+        a2b.title = "Edit" + annotations[annotationsIndex].name;
         a2b.addEventListener("click", function(){
-            //TODO: confirm
             for(var i = 0; i < annotations.length; i++){
-                if(annotations[i].id === this.id.split("reset").join("")){
-                    annotations[i].reset();
+                if(annotations[i].id === this.id.split("edit").join("")){
+                    annotations[i].openMenu();
                 }
             }
         }, false);
         var a2bIcon = document.createElement("i");
-        a2bIcon.className = "fa fa-trash-o";
+        a2bIcon.className = "fa fa-edit";
         a2bIcon.style = "margin-left: 8px";
         a2b.appendChild(a2bIcon);
         divAnnotationsMenu.appendChild(a2b);
+
+        var a2bTrash = document.createElement('a');
+        a2bTrash.id = "reset" + annotations[annotationsIndex].id;
+        a2bTrash.className = "icon";
+        a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
+        a2bTrash.addEventListener("click", function(){
+                for(var i = 0; i < annotations.length; i++){
+                    if(annotations[i].id === this.id.split("reset").join("")){
+                        if(confirm("Are you sure to delete all the " + annotations[i].name + " annotations?")){
+                            annotations[i].reset();
+                        }
+                    }
+                }
+        }, false);
+        var a2bTrashIcon = document.createElement("i");
+        a2bTrashIcon.className = "fa fa-trash-o";
+        a2bTrashIcon.style = "margin-left: 8px";
+        a2bTrash.appendChild(a2bTrashIcon);
+        divAnnotationsMenu.appendChild(a2bTrash);
 
         divAnnotationsMenu.appendChild(document.createElement('br'));
     }
@@ -1033,6 +1085,10 @@ function createAnnotationsMenu(){
     divMenuAnnotations.appendChild(divLoadAnnotations);
 
     document.body.appendChild(divMenuAnnotations);
+
+    for(var annotationsI = 0; annotationsI < annotations.length; annotationsI++){
+        createSubmenuForAnnotations("menu-" + annotations[annotationsI].id, annotations[annotationsI].id);
+    }
 
 
     var saveModal = document.createElement("div");
@@ -1470,6 +1526,10 @@ function stopAnnotationsTextSections(){
             }
         }
 
+        for(var j = 0; j < annotations.length; j++){
+            updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
+        }
+
         toggleHiddenSections();
 
     }
@@ -1506,6 +1566,10 @@ function stopAnnotationsElements(){
         if(operations[i].hasMenu){
             updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
         }
+    }
+
+    for(var j = 0; j < annotations.length; j++){
+        updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
     }
 
     toggleHiddenSections();
@@ -1570,12 +1634,28 @@ function undoAnnotationsElements(){
     }
 }
 
-function resetAnnotationsById(id){
+function resetAnnotationsById(id, name){
 
-    //remove text selections
-    //annotatedItems = [];
-    myStorage.setItem(localStoragePrefix + id, JSON.stringify([]));
-    closeAnnotationsMenu();
+    var resetSection = false;
+
+    if(name !== null && typeof name !== 'undefined'){
+        resetSection = true;
+    }
+
+    if(!resetSection){
+        myStorage.setItem(localStoragePrefix + id, JSON.stringify([]));
+    } else {
+        for(var k = 0; k < annotations.length; k++){
+            if(annotations[k].id === id){
+                for(var a = 0; a < annotations[k].items.length; a++){
+                    if(annotations[k].items[a].name === name){
+                        annotations[k].items.splice(a, 1);
+                    }
+                }
+                myStorage.setItem(localStoragePrefix + id, JSON.stringify(annotations[k].items));
+            }
+        }
+    }
 
     for(var i = 0; i < operations.length; i++){
         if(operations[i].hasMenu){
@@ -1583,6 +1663,81 @@ function resetAnnotationsById(id){
         }
     }
 
+    for(var j = 0; j < annotations.length; j++){
+        updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
+    }
+
+    closeAnnotationsMenu();
+    closeSubmenu("menu-" + id);
+    toggleHiddenSections();
+}
+
+function editAnnotationsByName(id, name){
+
+    var editSection = false;
+
+    if(name !== null && typeof name !== 'undefined'){
+        editSection = true;
+    }
+
+    if(editSection){
+        for(var k = 0; k < annotations.length; k++){
+            if(annotations[k].id === id){
+                for(var a = 0; a < annotations[k].items.length; a++){
+                    if(annotations[k].items[a].name === name){
+                        var result = prompt("Title of this section (must be recognisable by voice)", "");
+
+                        var exists = false;
+                        try{
+                            var currentItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textAnnotation"));
+                            var otherItems = JSON.parse(myStorage.getItem(localStoragePrefix + "paragraphAnnotation"))
+                            var allItems = currentItems.concat(otherItems);
+                            if(Array.isArray(allItems) && allItems.length > 0){
+                                for(var i = 0; i < allItems.length; i++){
+                                    if(allItems[i].name.toLowerCase() === result.toLowerCase()){
+                                        exists = true;
+                                    }
+                                }
+                            }
+                        } catch(e){
+                            console.log("error merging elements");
+                        }
+
+                        while(exists){
+                            exists = false;
+                            result = prompt("Title of this section (choose a title that does not exist)", "");
+                            try{
+                                if(Array.isArray(allItems) && allItems.length > 0){
+                                    for(var j = 0; j < allItems.length; j++){
+                                        if(allItems[j].name.toLowerCase() === result.toLowerCase()){
+                                            exists = true;
+                                        }
+                                    }
+                                }
+                            } catch(e){}
+                        }
+                        if(result !== null && result !== "" && typeof result !== 'undefined'){
+                            annotations[k].items[a].name = result;
+                        }
+                    }
+                }
+                myStorage.setItem(localStoragePrefix + id, JSON.stringify(annotations[k].items));
+            }
+        }
+    }
+
+    for(var x = 0; x < operations.length; x++){
+        if(operations[x].hasMenu){
+            updateSubmenuForOperationAndAnnotations("menu-" + operations[x].id, operations[x], operations[x].annotations);
+        }
+    }
+
+    for(var y = 0; y < annotations.length; y++){
+        updateSubmenuForAnnotations("menu-" + annotations[y].id, annotations[y].id);
+    }
+
+    closeAnnotationsMenu();
+    closeSubmenu("menu-" + id);
     toggleHiddenSections();
 }
 
@@ -1731,6 +1886,10 @@ function basicAnnotationByQueryAndProperty(queryURL, property){
                             updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
                         }
                     }
+
+                    for(var j = 0; j < annotations.length; j++){
+                        updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
+                    }
                 }
             },
             error: function(data) {
@@ -1778,7 +1937,7 @@ function createOperationsMenu(){
             } else {
                 a.style.setProperty("pointer-events", "none");
             }
-            //Refactor for reusability
+            //TODO: Refactor for reusability
             input.addEventListener("change", function(){
                 for(var operationsI = 0; operationsI < operations.length; operationsI++){
                     if(operations[operationsI].id === this.id.split("Input").join("")){
@@ -1956,6 +2115,151 @@ function updateSubmenuForOperationAndAnnotations(menuId, operationForSubmenu, an
     } catch(e){}
 
     document.getElementById("div-webaugmentation").appendChild(divSubMenu);
+}
+
+function createSubmenuForAnnotations(menuId, annotationId){
+
+    var divSubMenu = document.createElement("div");
+    divSubMenu.id = menuId;
+    divSubMenu.style = "z-index: 100; padding: 10px; border: 2px solid black; display: none; background-color: white";
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close';
+    i.style = "position: absolute; right: 1%; top: 31%; z-index: 100;";
+    i.addEventListener("click", closeSubmenu, false);
+    i.menuId = menuId;
+    divSubMenu.appendChild(i);
+
+    try{
+        for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
+            if(annotationId === annotations[annotationsIndex].id){
+                var annotationItems = myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id);
+                annotations[annotationsIndex].items = JSON.parse(annotationItems);
+                var items = annotations[annotationsIndex].items
+                for(var sectionsIndex = 0; sectionsIndex < items.length; sectionsIndex ++){
+                    var label = document.createElement('label');
+                    label.innerText = items[sectionsIndex].name;
+
+                    divSubMenu.appendChild(label);
+
+                    var a2b = document.createElement('a');
+                    a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
+                    a2b.className = "icon";
+                    a2b.title = "Edit" + items[sectionsIndex].name;
+                    a2b.addEventListener("click", function(){
+                        for(var i = 0; i < annotations.length; i++){
+                            if(annotations[i].id === this.id.split("editSection")[0]){
+                                annotations[i].edit(this.id.split("editSection")[1]);
+                            }
+                        }
+                    }, false);
+                    var a2bIcon = document.createElement("i");
+                    a2bIcon.className = "fa fa-edit";
+                    a2bIcon.style = "margin-left: 8px";
+                    a2b.appendChild(a2bIcon);
+                    divSubMenu.appendChild(a2b);
+
+                    var a2bTrash = document.createElement('a');
+                    a2bTrash.id = annotations[annotationsIndex].id + "resetSection" + items[sectionsIndex].name;
+                    a2bTrash.className = "icon";
+                    a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
+                    a2bTrash.addEventListener("click", function(){
+                        if(confirm("Are you sure to delete this section?")){
+                            for(var i = 0; i < annotations.length; i++){
+                                if(annotations[i].id === this.id.split("resetSection")[0]){
+                                    annotations[i].reset(this.id.split("resetSection")[1]);
+                                }
+                            }
+                        }
+                    }, false);
+                    var a2bTrashIcon = document.createElement("i");
+                    a2bTrashIcon.className = "fa fa-trash-o";
+                    a2bTrashIcon.style = "margin-left: 8px";
+                    a2bTrash.appendChild(a2bTrashIcon);
+                    divSubMenu.appendChild(a2bTrash);
+
+                    divSubMenu.appendChild(document.createElement('br'));
+                }
+            }
+        }
+    } catch(e){}
+
+    document.getElementById("div-intermediary").appendChild(divSubMenu);
+}
+
+function updateSubmenuForAnnotations(menuId, annotationsId){
+
+    var divSubMenu = document.getElementById(menuId);
+    while (divSubMenu.firstChild) {
+        divSubMenu.removeChild(divSubMenu.firstChild);
+    }
+    //divSubMenu.innerHTML = "";
+
+
+    var i = document.createElement('i');
+    i.className = 'fa fa-close';
+    i.style = "position: absolute; right: 1%; top: 31%; z-index: 100;";
+    i.addEventListener("click", closeSubmenu, false);
+    i.menuId = menuId;
+    divSubMenu.appendChild(i);
+
+    try{
+        for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
+            if(annotationsId === annotations[annotationsIndex].id){
+                var annotationItems = myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id);
+                annotations[annotationsIndex].items = JSON.parse(annotationItems);
+                var items = annotations[annotationsIndex].items
+                for(var sectionsIndex = 0; sectionsIndex < items.length; sectionsIndex ++){
+                    var label = document.createElement('label');
+                    label.innerText = items[sectionsIndex].name;
+
+                    divSubMenu.appendChild(label);
+
+                    var a2b = document.createElement('a');
+                    a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
+                    a2b.className = "icon";
+                    a2b.title = "Edit" + items[sectionsIndex].name;
+                    a2b.addEventListener("click", function(){
+                        for(var i = 0; i < annotations.length; i++){
+                            if(annotations[i].id === this.id.split("editSection")[0]){
+                                annotations[i].edit(this.id.split("editSection")[1]);
+                            }
+                        }
+                    }, false);
+                    var a2bIcon = document.createElement("i");
+                    a2bIcon.className = "fa fa-edit";
+                    a2bIcon.style = "margin-left: 8px";
+                    a2b.appendChild(a2bIcon);
+                    divSubMenu.appendChild(a2b);
+
+                    var a2bTrash = document.createElement('a');
+                    a2bTrash.id = annotations[annotationsIndex].id + "resetSection" + items[sectionsIndex].name;
+                    a2bTrash.className = "icon";
+                    a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
+                    a2bTrash.addEventListener("click", function(){
+                        if(confirm("Are you sure to delete this section?")){
+                            for(var i = 0; i < annotations.length; i++){
+                                if(annotations[i].id === this.id.split("resetSection")[0]){
+                                    annotations[i].reset(this.id.split("resetSection")[1]);
+                                }
+                            }
+                        }
+                    }, false);
+                    var a2bTrashIcon = document.createElement("i");
+                    a2bTrashIcon.className = "fa fa-trash-o";
+                    a2bTrashIcon.style = "margin-left: 8px";
+                    a2bTrash.appendChild(a2bTrashIcon);
+                    divSubMenu.appendChild(a2bTrash);
+
+                    divSubMenu.appendChild(document.createElement('br'));
+
+                    divSubMenu.appendChild(document.createElement('br'));
+                }
+            }
+        }
+    } catch(e){}
+
+    document.getElementById("div-intermediary").appendChild(divSubMenu);
 }
 
 function showSubmenu(id){
@@ -2952,6 +3256,10 @@ function loadAnnotationByTitleAndWebsite(title, byVoice){
                     if(operations[i].hasMenu){
                         updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
                     }
+                }
+
+                for(var j = 0; j < annotations.length; j++){
+                    updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
                 }
                 updateScriptXPath();
 
