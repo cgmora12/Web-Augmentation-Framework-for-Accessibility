@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      2.0
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -49,6 +49,7 @@ var activateCommand = "activate";
 var deactivateCommand = "deactivate";
 var loadAnnotationsCommand = "load annotations";
 var loadAnnotationCommand = "load annotation";
+var rateCommand = "score";
 var changeCommandQuestion = "which command";
 var newCommandQuestion = "which is the new command";
 var changeCommandInProcess1 = false;
@@ -2439,7 +2440,7 @@ function Read(message){
     if(!document[hidden]){
 
         var reader = new SpeechSynthesisUtterance(message);
-        reader.rate = 0.75;
+        reader.rate = 0.6;
         reader.lang = languageCodeSyntesis;
         reader.onstart = function(event) {
             resumeInfinity();
@@ -2585,6 +2586,33 @@ function audioToText(){
                 }
                 else if(speechToText.includes(loadAnnotationsCommand) || speechToText.includes(loadAnnotationCommand)){
                     loadAnnotationsFromServerByVoice();
+                }
+                else if(speechToText.includes(rateCommand)){
+                    var rating = 0;
+                    if(speechToText.includes("one") || speechToText.includes("1")){
+                       rating = 1;
+                    } else if(speechToText.includes("two") || speechToText.includes("2")){
+                       rating = 2;
+                    } else if(speechToText.includes("three") || speechToText.includes("3")){
+                       rating = 3;
+                    } else if(speechToText.includes("four") || speechToText.includes("for") || speechToText.includes("4")){
+                       rating = 4;
+                    } else if(speechToText.includes("five") || speechToText.includes("5")){
+                       rating = 5;
+                    }
+
+                    var annotationTitle = myStorage.getItem(localStoragePrefix + "annotationTitle");
+                    if(annotationTitle != null && typeof annotationTitle != 'undefined' && annotationTitle.length > 0){
+                        if(rating > 0){
+                            saveRatingsOfAnnotationInServer(rating, annotationTitle);
+                            //TODO: check if an error occurred
+                            Read("Score saved to annotations: " + annotationTitle + ".");
+                        } else {
+                            Read("Score should be from 1 to 5.");
+                        }
+                    } else {
+                        Read("You need to load annotations first using the voice command Load annotations.");
+                    }
                 }
                 else if(speechToText.includes(changeCommand)){
                     console.log("changeCommandInProcess = true")
@@ -2744,7 +2772,7 @@ function audioToText(){
 
 function updateGrammar(){
 
-    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening'];
+    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening', 'score', 'one', 'two', 'three', 'four', 'five' ];
     var commandsAux = [];
     for(var i = 0; i < operations.length; i++){
         //TODO: add operation + annotations names to grammar
@@ -3153,7 +3181,7 @@ function loadAnnotationsFromServer(){
             for(var i = 0; i < annotationsLoaded.length; i++){
                 var a = document.createElement('a');
                 a.text = annotationsLoaded[i].title;
-                a.href = "#";
+                a.href = "javascript:void(0);";
                 var title = annotationsLoaded[i].title;
                 a.title = annotationsLoaded[i].title;
                 a.addEventListener("click", function(title){
@@ -3283,7 +3311,10 @@ function loadAnnotationsFromServer(){
 }
 
 function saveRatingsOfAnnotationInServer(rating, annotationTitle){
-    annotationTitle = annotationTitle.currentTarget.title
+    if(typeof annotationTitle.currentTarget !== 'undefined'){
+        annotationTitle = annotationTitle.currentTarget.title
+    }
+    //annotationTitle = annotationTitle.currentTarget.title
     console.log("saveRatingsOfAnnotationInServer: " + rating + ", " + annotationTitle);
     if(rating != null && annotationTitle != null){
 
@@ -3360,6 +3391,7 @@ function loadAnnotationsFromServerByVoice(){
                 var description = annotationsLoaded[i].description;
                 var category = annotationsLoaded[i].category;
                 var targetUsers = annotationsLoaded[i].targetUsers;
+                var ratings = annotationsLoaded[i].ratings;
                 if(commandListened.toLowerCase().includes(title.toLowerCase())){
                     loadAnnotationByTitleAndWebsite(title, true);
                     return;
@@ -3374,12 +3406,22 @@ function loadAnnotationsFromServerByVoice(){
                     if(typeof category != 'undefined'){
                         annotationsToRead += "; category: " + category;
                     }
+                    if(typeof ratings != 'undefined'){
+                        var finalRating = 0;
+                        for(var ratingsStored = 0; ratingsStored < ratings.length; ratingsStored++){
+                            finalRating += ratings[ratingsStored];
+                        }
+                        finalRating = Math.round(finalRating * 100.0 / annotationsLoaded[i].ratings.length) / 100;
+                        annotationsToRead += "; ratings: " + finalRating + " out of 5";
+                    }
                     annotationsToRead += ".  ";
                 }
             }
 
             if(annotationsLoaded.length > 0){
-                annotationsToRead += ". If you want to download one of these annotations just say the load annotations command and the title of the annotations. For example: load annotations " + title;
+                annotationsToRead +=
+                    ". If you want to download one of these annotations just say the load annotations command and the title of the annotations. For example: load annotations "
+                    + title + ". To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." ;
             } else {
                 annotationsToRead += "There aren't annotations to download for this website.";
             }
@@ -3412,6 +3454,8 @@ function loadAnnotationByTitleAndWebsite(title, byVoice){
                 //TODO: refactor
                 console.log(annotationsJSON);
 
+                myStorage.setItem(localStoragePrefix + "annotationTitle", annotationsJSON.title);
+
                 for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
                     myStorage.setItem(localStoragePrefix + annotations[annotationsIndex].id, annotationsJSON[localStoragePrefix + annotations[annotationsIndex].id]);
                 }
@@ -3432,7 +3476,8 @@ function loadAnnotationByTitleAndWebsite(title, byVoice){
                 toggleHiddenSections();
 
                 if(byVoice === true){
-                    Read("Annotations loaded, use list sections to know the new sections available.");
+                    Read("Annotations loaded, use list sections to know the new sections available."
+                         + " To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." );
                 } else {
                     alert("Annotations loaded!");
                     hideLoadAnnotationsInfoForServer();
@@ -3547,7 +3592,7 @@ function updateScriptXPath(){
             var all
             var added = false;
             for(var i = 0; i < paragraphItemsXPath.length; i++){
-                if(typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
+                if(typeof paragraphItemsXPath[i].value !== 'undefined' && paragraphItemsXPath[i].value.length > 0 && typeof paragraphItemsXPath[i].value[0] !== 'undefined'){
                     script.text += '"' + paragraphItemsXPath[i].value[0] + '",';
                     added = true;
                 }
