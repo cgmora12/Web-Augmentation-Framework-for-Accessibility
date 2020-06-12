@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.8
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -83,6 +83,12 @@ $(document).ready(function() {
     link.href = 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css';
     document.head.appendChild(link);
     $('*[class=""]').removeAttr('class');
+
+    /*var meta = document.createElement('meta');
+    meta.setAttribute('http-equiv', 'Content-Security-Policy-Report-Only');
+    meta.content = "default-src 'self'; script-src 'self' 'unsafe-inline' https:; manifest-src 'self'";
+    document.head.appendChild(meta);*/
+    //<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
     // Browsers require user interaction for speech synthesis
     var hiddenButton = document.createElement("button");
@@ -846,7 +852,6 @@ function createMenus(){
 
     var aToggleListening = document.createElement('a');
     aToggleListening.id = "toggleListeningA";
-    aToggleListening.href = "javascript:void(0);";
     aToggleListening.addEventListener("click", function(){
         closeMenu();
         if(recognitionActive){
@@ -881,7 +886,6 @@ function createMenus(){
     var a5 = document.createElement('a');
     a5.id = "voiceCommandsA";
     //a5.href = '';
-    a5.href = "javascript:void(0);";
     a5.addEventListener("click", function(){
         toggleMenu();
         toggleCommandsMenu();
@@ -916,7 +920,6 @@ function createMenus(){
 
     var aOperations = document.createElement('a');
     aOperations.id = "operationsA";
-    aOperations.href = "javascript:void(0);";
     aOperations.addEventListener("click", toggleOperationsMenu, false);
     aOperations.text = 'Accessibility Operations';
     divButtons.appendChild(aOperations);
@@ -1008,7 +1011,6 @@ function createAnnotationsMenu(){
         var a2 = document.createElement('a');
         a2.id = annotations[annotationsIndex].id;
         //a2.href = '';
-        a2.href = "javascript:void(0);";
         a2.addEventListener("click", function(){
             for(var i = 0; i < annotations.length; i++){
                 if(annotations[i].id === this.id){
@@ -1021,7 +1023,6 @@ function createAnnotationsMenu(){
 
         var a2b = document.createElement('a');
         a2b.id = "edit" + annotations[annotationsIndex].id;
-        a2b.href = "javascript:void(0);";
         a2b.className = "icon";
         a2b.title = "Edit" + annotations[annotationsIndex].name;
         a2b.addEventListener("click", function(){
@@ -1039,7 +1040,6 @@ function createAnnotationsMenu(){
 
         var a2bTrash = document.createElement('a');
         a2bTrash.id = "reset" + annotations[annotationsIndex].id;
-        a2bTrash.href = "javascript:void(0);";
         a2bTrash.className = "icon";
         a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
         a2bTrash.addEventListener("click", function(){
@@ -1062,7 +1062,6 @@ function createAnnotationsMenu(){
 
     var a7 = document.createElement('a');
     a7.id = "loadAnnotationsA";
-    a7.href = "javascript:void(0);";
     a7.text = "Load annotations";
     a7.addEventListener("click", loadAnnotationsFromServer, false);
     divAnnotationsMenu.appendChild(a7);
@@ -1070,7 +1069,6 @@ function createAnnotationsMenu(){
 
     var a8 = document.createElement('a');
     a8.id = "saveAnnotationsA";
-    a8.href = "javascript:void(0);";
     a8.text = "Save annotations";
     a8.addEventListener("click", askAnnotationsInfoForServer, false);
     divAnnotationsMenu.appendChild(a8);
@@ -1813,77 +1811,32 @@ function clearTextSelected() {
 }
 
 function basicAnnotation(){
+    var queryURL = "https://live.dbpedia.org/sparql";
 
+    var propertyName1 = "name"
+    var propertyURL1 = "http://xmlns.com/foaf/0.1/name";
+    var property1 = {name : propertyName1, URL: propertyURL1};
+    basicAnnotationByQueryAndProperty(queryURL, property1);
 
-    //Live DBpedia (not always working because https is down)
-    var queryURL2 = "https://live.dbpedia.org/sparql";
+    var propertyName2 = "summary";
+    var propertyURL2 = "http://dbpedia.org/ontology/abstract";
+    var property2 = {name : propertyName2, URL: propertyURL2};
+    basicAnnotationByQueryAndProperty(queryURL, property2);
 
-    var propertyName21 = "name"
-    var propertyURL21 = "http://xmlns.com/foaf/0.1/name";
-    var property21 = {name : propertyName21, URL: propertyURL21};
-    basicAnnotationByQueryAndProperty(queryURL2, property21, stripped_value);
+    var propertyName3 = "birth date";
+    var propertyURL3 = "http://dbpedia.org/ontology/birthDate";
+    var property3 = {name : propertyName3, URL: propertyURL3};
+    basicAnnotationByQueryAndProperty(queryURL, property3);
 
-    var propertyName22 = "abstract";
-    var propertyURL22 = "http://dbpedia.org/ontology/abstract";
-    var property22 = {name : propertyName22, URL: propertyURL22};
-    basicAnnotationByQueryAndProperty(queryURL2, property22, stripped_value);
+    var propertyName4 = "death date";
+    var propertyURL4 = "http://dbpedia.org/ontology/deathDate";
+    var property4 = {name : propertyName4, URL: propertyURL4};
+    basicAnnotationByQueryAndProperty(queryURL, property4);
 
-    stripped_value = false;
-
-    var propertyName23 = "birth date";
-    var propertyURL23 = "http://dbpedia.org/ontology/birthDate";
-    var property23 = {name : propertyName23, URL: propertyURL23};
-    basicAnnotationByQueryAndProperty(queryURL2, property23, stripped_value);
-
-    var propertyName24 = "death date";
-    var propertyURL24 = "http://dbpedia.org/ontology/deathDate";
-    var property24 = {name : propertyName24, URL: propertyURL24};
-    basicAnnotationByQueryAndProperty(queryURL2, property24, stripped_value);
-
-    stripped_value = true;
-
-    var propertyName25 = "description";
-    var propertyURL25 = "http://purl.org/dc/terms/description";
-    var property25 = {name : propertyName25, URL: propertyURL25};
-    basicAnnotationByQueryAndProperty(queryURL2, property25, stripped_value);
-
-
-    //DBpedia endpoint
-    var queryURL1 = "https://dbpedia.org/sparql";
-    var stripped_value = true;
-
-    var propertyName11 = "name"
-    var propertyURL11 = "http://xmlns.com/foaf/0.1/name";
-    var property11 = {name : propertyName11, URL: propertyURL11};
-    basicAnnotationByQueryAndProperty(queryURL1, property11, stripped_value);
-
-    var propertyName12 = "abstract";
-    var propertyURL12 = "http://dbpedia.org/ontology/abstract";
-    var property12 = {name : propertyName12, URL: propertyURL12};
-    basicAnnotationByQueryAndProperty(queryURL1, property12, stripped_value);
-
-    stripped_value = false;
-
-    var propertyName13 = "birth date";
-    var propertyURL13 = "http://dbpedia.org/ontology/birthDate";
-    var property13 = {name : propertyName13, URL: propertyURL13};
-    basicAnnotationByQueryAndProperty(queryURL1, property13, stripped_value);
-
-    var propertyName14 = "death date";
-    var propertyURL14 = "http://dbpedia.org/ontology/deathDate";
-    var property14 = {name : propertyName14, URL: propertyURL14};
-    basicAnnotationByQueryAndProperty(queryURL1, property14, stripped_value);
-
-    stripped_value = true;
-
-    var propertyName15 = "description";
-    var propertyURL15 = "http://purl.org/dc/terms/description";
-    var property15 = {name : propertyName15, URL: propertyURL15};
-    basicAnnotationByQueryAndProperty(queryURL1, property15, stripped_value);
 
 }
 
-function basicAnnotationByQueryAndProperty(queryURL, property, stripped_value){
+function basicAnnotationByQueryAndProperty(queryURL, property){
 
     var exists = false;
 
@@ -1901,36 +1854,20 @@ function basicAnnotationByQueryAndProperty(queryURL, property, stripped_value){
 
     if(!exists){
         var currentURL = window.location.hostname + window.location.pathname;
-        var queryPart1 = "", queryPart2 = "";
-        if(stripped_value){
-            queryPart1 = encodeURIComponent([
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-                "SELECT distinct ?stripped_value",
-                "WHERE {",
-                "<http://"
-            ].join(" "));
+        var queryPart1 = encodeURIComponent([
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+            "SELECT distinct ?stripped_value",
+            "WHERE {",
+            "<http://"
+        ].join(" "));
 
-            queryPart2 = encodeURIComponent([
-                "> foaf:primaryTopic ?label.",
-                "?label <" + property.URL + "> ?value",
-                "FILTER (LANG(?value)='en')",
-                "BIND (STR(?value)  AS ?stripped_value)",
-                "} LIMIT 1"
-            ].join(" "));
-        } else {
-            queryPart1 = encodeURIComponent([
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-                "SELECT distinct ?stripped_value",
-                "WHERE {",
-                "<http://"
-            ].join(" "));
-
-            queryPart2 = encodeURIComponent([
-                "> foaf:primaryTopic ?label.",
-                "?label <" + property.URL + "> ?stripped_value",
-                "} LIMIT 1"
-            ].join(" "));
-        }
+        var queryPart2 = encodeURIComponent([
+            "> foaf:primaryTopic ?label.",
+            "?label <" + property.URL + "> ?value",
+            "FILTER (LANG(?value)='en')",
+            "BIND (STR(?value)  AS ?stripped_value)",
+            "} LIMIT 1"
+        ].join(" "));
 
         var query = queryPart1 + currentURL + queryPart2;
 
@@ -1946,43 +1883,29 @@ function basicAnnotationByQueryAndProperty(queryURL, property, stripped_value){
                 if(results.length > 0) {
                     var res = results[0].stripped_value.value;
                     console.log("query result: " + res);
-                    var exists = false;
 
                     var annotationId = "textAnnotation";
+                    var jsons = new Array();
                     try{
                         var items = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
                         if(Array.isArray(items) && items.length > 0){
-                            for(var a = 0; a < items.length; a++){
-                                if(items[a].name === property.name){
-                                    exists = true;
-                                }
-                            }
+                            jsons = items;
                         }
                     } catch(e){}
+                    var newItem = {name: property.name, value: [res]};
+                    jsons.push(newItem);
+                    console.log("saved annotations: " + JSON.stringify(jsons));
+                    myStorage.setItem(localStoragePrefix + annotationId, JSON.stringify(jsons));
+                    //myStorage.setItem(localStoragePrefix + propertyName.name, res);
 
-                    if(!exists){
-                        var jsons = new Array();
-                        try{
-                            //var items = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
-                            if(Array.isArray(items) && items.length > 0){
-                                jsons = items;
-                            }
-                        } catch(e){}
-                        var newItem = {name: property.name, value: [res]};
-                        jsons.push(newItem);
-                        console.log("saved annotations: " + JSON.stringify(jsons));
-                        myStorage.setItem(localStoragePrefix + annotationId, JSON.stringify(jsons));
-                        //myStorage.setItem(localStoragePrefix + propertyName.name, res);
-
-                        for(var i = 0; i < operations.length; i++){
-                            if(operations[i].hasMenu){
-                                updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
-                            }
+                    for(var i = 0; i < operations.length; i++){
+                        if(operations[i].hasMenu){
+                            updateSubmenuForOperationAndAnnotations("menu-" + operations[i].id, operations[i], operations[i].annotations);
                         }
+                    }
 
-                        for(var j = 0; j < annotations.length; j++){
-                            updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
-                        }
+                    for(var j = 0; j < annotations.length; j++){
+                        updateSubmenuForAnnotations("menu-" + annotations[j].id, annotations[j].id);
                     }
                 }
             },
@@ -2011,7 +1934,6 @@ function createOperationsMenu(){
         var a = document.createElement('a');
         a.id = operations[operationsIndex].id;
         //a.href = '';
-        a.href = "javascript:void(0);";
         a.text = operations[operationsIndex].name;
         operations[operationsIndex].configureOperation();
         if(operations[operationsIndex].hasMenu){
@@ -2027,7 +1949,6 @@ function createOperationsMenu(){
             input.id = operations[operationsIndex].id + "Input";
             input.value = operations[operationsIndex].id + "Input";
             input.checked = operations[operationsIndex].active;
-            input.style.setProperty("margin-left", "5px");
             if(operations[operationsIndex].active){
                 a.style.setProperty("pointer-events", "all");
             } else {
@@ -2109,7 +2030,6 @@ function createCommandsMenu(){
     for(var index = 0; index < operations.length; index++){
         var a1 = document.createElement('a');
         a1.id = operations[index].id + "Edit";
-        a1.href = "javascript:void(0);";
         a1.text = "'" + operations[index].name + "' command " + "(" + operations[index].voiceCommand + ") ";
         a1.addEventListener("click", function(){
             for(var index = 0; index < operations.length; index++){
@@ -2157,7 +2077,6 @@ function createSubmenuForOperationAndAnnotations(menuId, operationForSubmenu){
                     var items = annotations[annotationsIndex].items
                     for(var sectionsIndex = 0; sectionsIndex < items.length; sectionsIndex ++){
                         var a1 = document.createElement('a');
-                        a1.href = "javascript:void(0);";
                         a1.text = items[sectionsIndex].name
                         var sectionName = items[sectionsIndex].name
                         a1.addEventListener("click", operationForSubmenu.startOperation, false);
@@ -2199,7 +2118,6 @@ function updateSubmenuForOperationAndAnnotations(menuId, operationForSubmenu, an
                     var items = annotations[annotationsIndex].items
                     for(var sectionsIndex = 0; sectionsIndex < items.length; sectionsIndex ++){
                         var a1 = document.createElement('a');
-                        a1.href = "javascript:void(0);";
                         a1.text = items[sectionsIndex].name
                         var sectionName = items[sectionsIndex].name
                         a1.addEventListener("click", operationForSubmenu.startOperation, false);
@@ -2243,7 +2161,6 @@ function createSubmenuForAnnotations(menuId, annotationId){
 
                     var a2b = document.createElement('a');
                     a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
-                    a2b.href = "javascript:void(0);";
                     a2b.className = "icon";
                     a2b.title = "Edit" + items[sectionsIndex].name;
                     a2b.addEventListener("click", function(){
@@ -2261,7 +2178,6 @@ function createSubmenuForAnnotations(menuId, annotationId){
 
                     var a2bTrash = document.createElement('a');
                     a2bTrash.id = annotations[annotationsIndex].id + "resetSection" + items[sectionsIndex].name;
-                    a2bTrash.href = "javascript:void(0);";
                     a2bTrash.className = "icon";
                     a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
                     a2bTrash.addEventListener("click", function(){
@@ -2318,7 +2234,6 @@ function updateSubmenuForAnnotations(menuId, annotationsId){
 
                     var a2b = document.createElement('a');
                     a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
-                    a2b.href = "javascript:void(0);";
                     a2b.className = "icon";
                     a2b.title = "Edit" + items[sectionsIndex].name;
                     a2b.addEventListener("click", function(){
@@ -2336,7 +2251,6 @@ function updateSubmenuForAnnotations(menuId, annotationsId){
 
                     var a2bTrash = document.createElement('a');
                     a2bTrash.id = annotations[annotationsIndex].id + "resetSection" + items[sectionsIndex].name;
-                    a2bTrash.href = "javascript:void(0);";
                     a2bTrash.className = "icon";
                     a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
                     a2bTrash.addEventListener("click", function(){
@@ -3239,7 +3153,7 @@ function loadAnnotationsFromServer(){
             for(var i = 0; i < annotationsLoaded.length; i++){
                 var a = document.createElement('a');
                 a.text = annotationsLoaded[i].title;
-                a.href = "javascript:void(0);";
+                a.href = "#";
                 var title = annotationsLoaded[i].title;
                 a.title = annotationsLoaded[i].title;
                 a.addEventListener("click", function(title){
@@ -3247,6 +3161,98 @@ function loadAnnotationsFromServer(){
                     return false;
                 }, false);
                 divLoad.appendChild(a);
+
+                if(annotationsLoaded[i].ratings != null && typeof annotationsLoaded[i].ratings != 'undefined'
+                   && annotationsLoaded[i].ratings.length > 0){
+                    var finalRating = 0;
+                    for(var ratingsStored = 0; ratingsStored < annotationsLoaded[i].ratings.length; ratingsStored++){
+                        finalRating += annotationsLoaded[i].ratings[ratingsStored];
+                    }
+                    finalRating = Math.round(finalRating * 100.0 / annotationsLoaded[i].ratings.length) / 100;
+                    var labelRating = document.createElement("label");
+                    labelRating.style.marginLeft = "5px";
+                    labelRating.innerHTML = " (" + finalRating + "/5 stars)";
+                    divLoad.appendChild(labelRating);
+                }
+
+                var divRating = document.createElement('div');
+                var rateLabel = document.createElement('label');
+                rateLabel.innerHTML = "Rate: ";
+                rateLabel.style.marginRight = "5px";
+                divRating.appendChild(rateLabel);
+
+                var spanRating1 = document.createElement('span');
+                spanRating1.classList.add("icon");
+                spanRating1.style.cursor = "pointer";
+                spanRating1.innerHTML = "&#9733;";
+                spanRating1.onmouseover = function(){changeColor(this, 1, true);};
+                spanRating1.onmouseout = function(){changeColor(this, 1, false);};
+                spanRating1.onclick= function(title){
+                    changeColor(this, 1, true);
+                    disableChangeColor(this);
+                    saveRatingsOfAnnotationInServer(1, title);
+                };
+                spanRating1.title = title;
+                divRating.appendChild(spanRating1);
+
+                var spanRating2 = document.createElement('span');
+                spanRating2.classList.add("icon");
+                spanRating2.style.cursor = "pointer";
+                spanRating2.innerHTML = "&#9733;";
+                spanRating2.onmouseover = function(){changeColor(this, 2, true);};
+                spanRating2.onmouseout = function(){changeColor(this, 2, false);};
+                spanRating2.onclick= function(title){
+                    changeColor(this, 2, true);
+                    disableChangeColor(this);
+                    saveRatingsOfAnnotationInServer(2, title);
+                };
+                spanRating2.title = title;
+                divRating.appendChild(spanRating2);
+
+                var spanRating3 = document.createElement('span');
+                spanRating3.classList.add("icon");
+                spanRating3.style.cursor = "pointer";
+                spanRating3.innerHTML = "&#9733;";
+                spanRating3.onmouseover = function(){changeColor(this, 3, true);};
+                spanRating3.onmouseout = function(){changeColor(this, 3, false);};
+                spanRating3.onclick= function(title){
+                    changeColor(this, 3, true);
+                    disableChangeColor(this);
+                    saveRatingsOfAnnotationInServer(3, title);
+                };
+                spanRating3.title = title;
+                divRating.appendChild(spanRating3);
+
+                var spanRating4 = document.createElement('span');
+                spanRating4.classList.add("icon");
+                spanRating4.style.cursor = "pointer";
+                spanRating4.innerHTML = "&#9733;";
+                spanRating4.onmouseover = function(){changeColor(this, 4, true);};
+                spanRating4.onmouseout = function(){changeColor(this, 4, false);};
+                spanRating4.onclick= function(title){
+                    changeColor(this, 4, true);
+                    disableChangeColor(this);
+                    saveRatingsOfAnnotationInServer(4, title);
+                };
+                spanRating4.title = title;
+                divRating.appendChild(spanRating4);
+
+                var spanRating5 = document.createElement('span');
+                spanRating5.classList.add("icon");
+                spanRating5.style.cursor = "pointer";
+                spanRating5.innerHTML = "&#9733;";
+                spanRating5.onmouseover = function(){changeColor(this, 5, true);};
+                spanRating5.onmouseout = function(){changeColor(this, 5, false);};
+                spanRating5.onclick= function(title){
+                    changeColor(this, 5, true);
+                    disableChangeColor(this);
+                    saveRatingsOfAnnotationInServer(5, title);
+                };
+                spanRating5.title = title;
+                divRating.appendChild(spanRating5);
+
+                divLoad.appendChild(divRating);
+
                 divLoad.appendChild(document.createElement('br'));
 
                 if(typeof annotationsLoaded[i].description != 'undefined'){
@@ -3274,6 +3280,62 @@ function loadAnnotationsFromServer(){
 
     xmlhttp.open("GET", url, true);
     xmlhttp.send();
+}
+
+function saveRatingsOfAnnotationInServer(rating, annotationTitle){
+    annotationTitle = annotationTitle.currentTarget.title
+    console.log("saveRatingsOfAnnotationInServer: " + rating + ", " + annotationTitle);
+    if(rating != null && annotationTitle != null){
+
+        var xmlhttp = new XMLHttpRequest();
+        var url = "https://wake.dlsi.ua.es/AnnotationsServer/";
+
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var annotationsSaved = JSON.parse(this.responseText);
+                console.log(JSON.stringify(annotationsSaved));
+            }
+        };
+
+        xmlhttp.open("POST", url, true);
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        var params = {}
+        params.operation = "rate";
+        params.rating = rating;
+        params.annotationTitle = annotationTitle;
+        //console.log(JSON.stringify(params));
+        xmlhttp.send(JSON.stringify(params));
+
+        //hideAnnotationsInfoForServer();
+    } else {
+        //TODO: check errors
+        console.log("error");
+    }
+}
+
+function disableChangeColor(element){
+  var childs = element.parentNode.childNodes;
+  for(var i = 0; i < childs.length; i++){
+      childs[i].onmouseover = '';
+      childs[i].onmouseout = '';
+      childs[i].onclick = '';
+  }
+}
+
+function changeColor(element, previousSiblings, fill){
+  var color
+  if(fill){
+    color = "#F1C40F";
+  } else {
+    color = "#000";
+  }
+  var previousSiblingsAux = previousSiblings - 1;
+  element.style.color = color;
+  var elementAux = element
+  for(var i = 0; i < previousSiblingsAux; i++){
+    elementAux = elementAux.previousElementSibling
+    elementAux.style.color = color;
+  }
 }
 
 function loadAnnotationsFromServerByVoice(){
@@ -3398,7 +3460,6 @@ function hideAnnotationsInfoForServer(){
 
 function saveAnnotationsInServer(result){
     console.log("saveAnnotationsInServer: " + JSON.stringify(result));
-    //TODO: pass all params to annotationsServer
 
     //var result = prompt("Title for annotations", "");
     if(result!=null && result.title != null){
@@ -3408,6 +3469,7 @@ function saveAnnotationsInServer(result){
         annotationsObject.targetUsers = result.targetUsers;
         annotationsObject.category = result.category;
         annotationsObject.website = encodeURI(document.URL);
+        annotationsObject.ratings = [];
 
         for(var annotationsIndex = 0; annotationsIndex < annotations.length; annotationsIndex++){
             annotationsObject[localStoragePrefix + annotations[annotationsIndex].id] = myStorage.getItem(localStoragePrefix + annotations[annotationsIndex].id);
@@ -3438,6 +3500,7 @@ function saveAnnotationsInServer(result){
         console.log("error");
     }
 }
+
 
 
 function createSpeakableAnnotations(){
