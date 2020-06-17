@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.0.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -1950,6 +1950,7 @@ function createOperationsMenu(){
             input.id = operations[operationsIndex].id + "Input";
             input.value = operations[operationsIndex].id + "Input";
             input.checked = operations[operationsIndex].active;
+            input.style.setProperty("margin-left", "5px");
             if(operations[operationsIndex].active){
                 a.style.setProperty("pointer-events", "all");
             } else {
