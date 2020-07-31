@@ -27,6 +27,7 @@ var timeoutResumeInfinity;
 var recognitionActive = true;
 var recognitionFailedFirstTime = true;
 var recognitionFailedText = "Command not recognised, please try again.";
+var recognitionFailedTextES = "Comando no reconocido, por favor intÃ©ntelo de nuevo.";
 var reading = false;
 var readFirstTime = true;
 
@@ -37,6 +38,11 @@ var annotations = [];
 
 var languageCodeSyntesis = "en";
 var languageCodeCommands = "en";
+
+var spanishDomain = false;
+
+var languageCodeSyntesisES = "es";
+var languageCodeCommandsES = "es";
 
 var listOperationsCommand = "list operations";
 var listSectionsCommand = "list sections";
@@ -52,6 +58,22 @@ var loadAnnotationCommand = "load annotation";
 var rateCommand = "score";
 var changeCommandQuestion = "which command";
 var newCommandQuestion = "which is the new command";
+
+var listOperationsCommandES = "listar operaciones";
+var listSectionsCommandES = "listar secciones";
+var listSectionCommandES = "listar secciÃ³n";
+var welcomeCommandES = "bienvenida";
+var stopListeningCommandES = "parar de escuchar";
+var changeCommandES = "cambiar";
+var cancelCommandES = "cancelar";
+var activateCommandES = "activar";
+var deactivateCommandES = "desactivar";
+var loadAnnotationsCommandES = "cargar anotaciones";
+var loadAnnotationCommandES = "cargar anotaciÃ³n";
+var rateCommandES = "valorar";
+var changeCommandQuestionES = "que comando";
+var newCommandQuestionES = "cuÃ¡l es el nuevo comando?";
+
 var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
 var newCommandString = "";
@@ -111,6 +133,11 @@ $(document).ready(function() {
     // Local storage independent for each visitated website
     localStoragePrefix = encodeURI(document.URL) + "_";
 
+    // Detect if domain is spanish or english
+    if(document.domain.endsWith(".es") || document.domain.startsWith("es.")){
+        spanishDomain = true;
+    }
+
 
     /*********************** Add new annotations here ************************/
     var textAnnotation = new TextAnnotation("textAnnotation", "Text Annotation", ["text"], []);
@@ -118,14 +145,26 @@ $(document).ready(function() {
     var uselessAnnotation = new UselessAnnotation("uselessAnnotation", "Useless sections Annotation", ["all"], []);
 
     /*********************** Add new operations here ************************/
-    var increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Increase Font Size", "increase font size", true, true, true, false, []);
-    var decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Decrease Font Size", "decrease font size", true, true, true, false, []);
-    var readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
-    var goToOperation = new GoToOperation("goTo", "Go To", "go to", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
-    var goBackOperation = new GoBackOperation("goBack", "Go Back", "go back", true, true, true, false, []);
-    var videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
-    var breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
-    var hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
+    var increaseFontSizeOperation, decreaseFontSizeOperation, readAloudOperation, goToOperation, goBackOperation, videosOperation, breadCrumbOperation, hideOperation;
+    if(!spanishDomain){
+        increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Increase Font Size", "increase font size", true, true, true, false, []);
+        decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Decrease Font Size", "decrease font size", true, true, true, false, []);
+        readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
+        goToOperation = new GoToOperation("goTo", "Go To", "go to", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
+        goBackOperation = new GoBackOperation("goBack", "Go Back", "go back", true, true, true, false, []);
+        videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
+        breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
+        hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
+    } else {
+        increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Aumentar TamaÃ±o Letra", "aumentar tamaÃ±o letra", true, true, true, false, []);
+        decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Reducir TamaÃ±o Letra", "reducir tamaÃ±o letra", true, true, true, false, []);
+        readAloudOperation = new ReadAloudOperation("readAloud", "Leer en voz alta", "leer", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
+        goToOperation = new GoToOperation("goTo", "Ir a", "ir a", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
+        goBackOperation = new GoBackOperation("goBack", "Volver", "volver", true, true, true, false, []);
+        videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
+        breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Panel navegaciÃ³n", "", true, true, true, false, []);
+        hideOperation = new HideOperation("hide", "Esconder secciones inservibles", "", true, true, true, false, ["uselessAnnotation"]);
+    }
 
     checkFocus();
     initWAFRA();
@@ -593,20 +632,36 @@ function readAloudFromSectionName(menuId, operation, sectionName){
         for(var j = 0; j < items.length; j++){
             if(sectionNameToRead === items[j].name){
                 if(annotationsForOperation[i] === "textAnnotation"){
-                    readContent += "Section " + sectionNameToRead + ". " ;
+                    if(!spanishDomain){
+                        readContent += "Section " + sectionNameToRead + ". " ;
+                    } else {
+                        readContent += "SecciÃ³n " + sectionNameToRead + ". " ;
+                    }
                     if(readFirstTime){
                         readFirstTime = false;
-                        readContent += "You can use control + space to stop the reading aloud operation. ";
+                        if(!spanishDomain){
+                            readContent += "You can use control + space to stop the reading aloud operation. ";
+                        } else {
+                            readContent += "Puedes utilizar control + espacio para detener la lectura en voz alta. ";
+                        }
                     }
                     for(var b = 0; b < items[j].value.length; b++){
                         readContent += items[j].value[b] + " ";
                         console.log("content: " + readContent);
                     }
                 } else {
-                    readContent += "Section " + sectionNameToRead + ". " ;
+                    if(!spanishDomain){
+                        readContent += "Section " + sectionNameToRead + ". " ;
+                    } else {
+                        readContent += "SecciÃ³n " + sectionNameToRead + ". " ;
+                    }
                     if(readFirstTime){
                         readFirstTime = false;
-                        readContent += "You can use control + space to stop the reading aloud operation. ";
+                        if(!spanishDomain){
+                            readContent += "You can use control + space to stop the reading aloud operation. ";
+                        } else {
+                            readContent += "Puedes utilizar control + espacio para detener la lectura en voz alta. ";
+                        }
                     }
                     for(var z = 0; z < items[j].value.length; z++){
                         var element = getElementByXPath(items[j].value[z]);
@@ -669,7 +724,7 @@ function goToFromSectionName(menuId, operation, sectionName){
             if(sectionNameToGo === items[j].name){
                 if(annotationsForOperation[i] === "textAnnotation"){
                     if(items[j].value.length > 0){
-                        var foundItem = $("*:contains('" + items[j].value[0] + "'):last").offset();
+                        var foundItem = $("*:contains('" + items[j].value[0] + "'):first").offset();
                         if(typeof foundItem != 'undefined'){
                             $(window).scrollTop(foundItem.top);
                         }
@@ -858,14 +913,22 @@ function createMenus(){
         if(recognitionActive){
             console.log("recognition deactivated")
             recognitionActive = false;
-            aToggleListening.text = 'Start Listening';
+            if(!spanishDomain){
+                aToggleListening.text = 'Start Listening';
+            } else {
+                aToggleListening.text = 'Activar comandos por voz';
+            }
             toggleListeningIcon.style = "color:red; margin-left: 8px";
             recognition.abort();
         } else{
             console.log("recognition activated")
             recognitionActive = true;
             recognition.start();
-            aToggleListening.text = 'Stop Listening';
+            if(!spanishDomain){
+                aToggleListening.text = 'Stop Listening';
+            } else {
+                aToggleListening.text = 'Desactivar comandos por voz';
+            }
             //inputVoiceCommands.checked = recognitionActive;
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
         }
@@ -873,11 +936,19 @@ function createMenus(){
         myStorage.setItem("recognitionActive", recognitionActive);
     }, false);
     if(recognitionActive){
-        aToggleListening.text = 'Stop Listening';
+        if(!spanishDomain){
+            aToggleListening.text = 'Stop Listening';
+        } else {
+            aToggleListening.text = 'Desactivar comandos por voz';
+        }
         toggleListeningIcon.style = "color:gray; margin-left: 8px";
     }
     else{
-        aToggleListening.text = 'Start Listening';
+        if(!spanishDomain){
+            aToggleListening.text = 'Start Listening';
+        } else {
+            aToggleListening.text = 'Activar comandos por voz';
+        }
         toggleListeningIcon.style = "color:red; margin-left: 8px";
     }
     divButtons.appendChild(aToggleListening);
@@ -893,7 +964,11 @@ function createMenus(){
         closeAnnotationsMenu();
         closeOperationsMenu();
     }, false);
-    a5.text = 'Voice commands';
+    if(!spanishDomain){
+        a5.text = 'Voice commands';
+    } else {
+        a5.text = 'Comandos por voz';
+    }
     divButtons.appendChild(a5);
     /*var inputVoiceCommands = document.createElement('input');
     inputVoiceCommands.type = 'checkbox';
@@ -922,7 +997,11 @@ function createMenus(){
     var aOperations = document.createElement('a');
     aOperations.id = "operationsA";
     aOperations.addEventListener("click", toggleOperationsMenu, false);
-    aOperations.text = 'Accessibility Operations';
+    if(!spanishDomain){
+        aOperations.text = 'Accessibility Operations';
+    } else {
+        aOperations.text = 'Operaciones de Accesibilidad';
+    }
     divButtons.appendChild(aOperations);
 
     var i = document.createElement('i');
@@ -958,7 +1037,11 @@ function createAnnotationsMenu(){
     aSave.id = "saveAnnotationsA";
     aSave.href = "javascript:void(0);";
     aSave.className = "icon";
-    aSave.title = "Save";
+    if(!spanishDomain){
+        aSave.title = "Save";
+    } else {
+        aSave.title = "Guardar";
+    }
     aSave.style = "display: none";
     aSave.addEventListener("click", saveAnnotationsSections, false);
     var saveIcon = document.createElement("i");
@@ -971,7 +1054,11 @@ function createAnnotationsMenu(){
     aStop.id = "stopAnnotationsA";
     aStop.href = "javascript:void(0);";
     aStop.className = "icon";
-    aStop.title = "Stop";
+    if(!spanishDomain){
+        aStop.title = "Stop";
+    } else {
+        aStop.title = "Detener";
+    }
     aStop.style = "display: none";
     aStop.addEventListener("click", stopAnnotationsSections, false);
     var stopIcon = document.createElement("i");
@@ -984,7 +1071,11 @@ function createAnnotationsMenu(){
     aUndo.id = "undoAnnotationsA";
     aUndo.href = "javascript:void(0);";
     aUndo.className = "icon";
-    aUndo.title = "Undo";
+    if(!spanishDomain){
+        aUndo.title = "Undo";
+    } else {
+        aUndo.title = "Deshacer";
+    }
     aUndo.style = "display: none";
     aUndo.addEventListener("click", undoAnnotationsSections, false);
     var undoIcon = document.createElement("i");
@@ -1025,7 +1116,11 @@ function createAnnotationsMenu(){
         var a2b = document.createElement('a');
         a2b.id = "edit" + annotations[annotationsIndex].id;
         a2b.className = "icon";
-        a2b.title = "Edit" + annotations[annotationsIndex].name;
+        if(!spanishDomain){
+            a2b.title = "Edit" + annotations[annotationsIndex].name;
+        } else {
+            a2b.title = "Editar" + annotations[annotationsIndex].name;
+        }
         a2b.addEventListener("click", function(){
             for(var i = 0; i < annotations.length; i++){
                 if(annotations[i].id === this.id.split("edit").join("")){
@@ -1042,12 +1137,22 @@ function createAnnotationsMenu(){
         var a2bTrash = document.createElement('a');
         a2bTrash.id = "reset" + annotations[annotationsIndex].id;
         a2bTrash.className = "icon";
-        a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
+        if(!spanishDomain){
+            a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
+        } else {
+            a2bTrash.title = "Resetear" + annotations[annotationsIndex].name;
+        }
         a2bTrash.addEventListener("click", function(){
                 for(var i = 0; i < annotations.length; i++){
                     if(annotations[i].id === this.id.split("reset").join("")){
-                        if(confirm("Are you sure to delete all the " + annotations[i].name + " annotations?")){
-                            annotations[i].reset();
+                        if(!spanishDomain){
+                            if(confirm("Are you sure to delete all the " + annotations[i].name + " annotations?")){
+                                annotations[i].reset();
+                            }
+                        } else {
+                            if(confirm("Â¿EstÃ¡s seguro de borrar todas las anotaciones " + annotations[i].name + "?")){
+                                annotations[i].reset();
+                            }
                         }
                     }
                 }
@@ -1063,7 +1168,11 @@ function createAnnotationsMenu(){
 
     var a7 = document.createElement('a');
     a7.id = "loadAnnotationsA";
-    a7.text = "Load annotations";
+    if(!spanishDomain){
+        a7.text = "Load annotations";
+    } else {
+        a7.text = "Cargar anotaciones";
+    }
     a7.addEventListener("click", loadAnnotationsFromServer, false);
     divAnnotationsMenu.appendChild(a7);
     divAnnotationsMenu.appendChild(document.createElement('br'));
@@ -1071,6 +1180,11 @@ function createAnnotationsMenu(){
     var a8 = document.createElement('a');
     a8.id = "saveAnnotationsA";
     a8.text = "Save annotations";
+    if(!spanishDomain){
+        a8.text = "Save annotations";
+    } else {
+        a8.text = "Guardar anotaciones";
+    }
     a8.addEventListener("click", askAnnotationsInfoForServer, false);
     divAnnotationsMenu.appendChild(a8);
     divAnnotationsMenu.appendChild(document.createElement('br'));
@@ -1112,14 +1226,22 @@ function createAnnotationsMenu(){
     saveModalContent.appendChild(spanClose);
 
     var h2 = document.createElement("h2");
-    h2.innerHTML = "Save annotations in server";
+    if(!spanishDomain){
+        h2.innerHTML = "Save annotations in server";
+    } else {
+        h2.innerHTML = "Guardar anotaciones en el servidor";
+    }
     saveModalContent.appendChild(h2);
 
     var form = document.createElement("form");
 
     // title should be unique and easy to say (recongnisable)
     var labelTitleModal = document.createElement("label");
-    labelTitleModal.innerHTML = "Title of annotations: ";
+    if(!spanishDomain){
+        labelTitleModal.innerHTML = "Title of annotations: ";
+    } else {
+        labelTitleModal.innerHTML = "Nombre de las anotaciones: ";
+    }
     labelTitleModal.for = "inputTitleModal";
     form.appendChild(labelTitleModal);
 
@@ -1128,14 +1250,22 @@ function createAnnotationsMenu(){
     inputTitleModal.type = "text";
     inputTitleModal.classList.add("form-control");
     inputTitleModal.required = true;
-    inputTitleModal.placeholder = "A unique title that can be recognised by voice";
+    if(!spanishDomain){
+        inputTitleModal.placeholder = "A unique title that can be recognised by voice";
+    } else {
+        inputTitleModal.placeholder = "Un nombre Ãºnico que pueda ser reconocido por voz";
+    }
     form.appendChild(inputTitleModal);
 
     var br = document.createElement("br");
     form.appendChild(br);
 
     var labelDescriptionModal = document.createElement("label");
-    labelDescriptionModal.innerHTML = "Description of annotations: ";
+    if(!spanishDomain){
+        labelDescriptionModal.innerHTML = "Description of annotations: ";
+    } else {
+        labelDescriptionModal.innerHTML = "DescripciÃ³n de las annotaciones: ";
+    }
     labelDescriptionModal.for = "inputDescriptionModal";
     form.appendChild(labelDescriptionModal);
 
@@ -1143,14 +1273,22 @@ function createAnnotationsMenu(){
     inputDescriptionModal.id = "inputDescriptionModal";
     inputDescriptionModal.type = "text";
     inputDescriptionModal.classList.add("form-control");
-    inputDescriptionModal.placeholder = "A description about the annotations done";
+    if(!spanishDomain){
+        inputDescriptionModal.placeholder = "A description about the annotations done";
+    } else {
+        inputDescriptionModal.placeholder = "Una descripciÃ³n de las anotaciones realizadas";
+    }
     form.appendChild(inputDescriptionModal);
 
     br = document.createElement("br");
     form.appendChild(br);
 
     var labelTargetUsersModal = document.createElement("label");
-    labelTargetUsersModal.innerHTML = "Target users: ";
+    if(!spanishDomain){
+        labelTargetUsersModal.innerHTML = "Target users: ";
+    } else {
+        labelTargetUsersModal.innerHTML = "Usuarios destinatarios: ";
+    }
     labelTargetUsersModal.for = "selectTargetUsersModal";
     form.appendChild(labelTargetUsersModal);
 
@@ -1161,13 +1299,19 @@ function createAnnotationsMenu(){
     //selectTargetUsersModal.placeholder = "A description about the annotations done";
 
     var option1 = document.createElement("option");
-    option1.text = "All users";
-    selectTargetUsersModal.add(option1);
     var option2 = document.createElement("option");
-    option2.text = "Users with some visual impairment";
-    selectTargetUsersModal.add(option2);
     var option3 = document.createElement("option");
-    option3.text = "Blind people";
+    if(!spanishDomain){
+        option1.text = "All users";
+        option2.text = "Users with some visual impairment";
+        option3.text = "Blind people";
+    } else {
+        option1.text = "Todos los usuarios";
+        option2.text = "Usuarios con problemas de visiÃ³n";
+        option3.text = "Personas ciegas";
+    }
+    selectTargetUsersModal.add(option1);
+    selectTargetUsersModal.add(option2);
     selectTargetUsersModal.add(option3);
 
     form.appendChild(selectTargetUsersModal);
@@ -1176,7 +1320,11 @@ function createAnnotationsMenu(){
     form.appendChild(br);
 
     var labelCategoryModal = document.createElement("label");
-    labelCategoryModal.innerHTML = "Category: ";
+    if(!spanishDomain){
+        labelCategoryModal.innerHTML = "Category: ";
+    } else {
+        labelCategoryModal.innerHTML = "CategorÃ­a: ";
+    }
     labelCategoryModal.for = "selectCategoryModal";
     form.appendChild(labelCategoryModal);
 
@@ -1187,10 +1335,15 @@ function createAnnotationsMenu(){
     //selectCategoryModal.placeholder = "A description about the annotations done";
 
     var selectCategoryModalOption1 = document.createElement("option");
-    selectCategoryModalOption1.text = "General overview";
-    selectCategoryModal.add(selectCategoryModalOption1);
     var selectCategoryModalOption2 = document.createElement("option");
-    selectCategoryModalOption2.text = "Detailed information";
+    if(!spanishDomain){
+        selectCategoryModalOption1.text = "General overview";
+        selectCategoryModalOption2.text = "Detailed information";
+    } else {
+        selectCategoryModalOption1.text = "Resumen general";
+        selectCategoryModalOption2.text = "InformaciÃ³n detallada";
+    }
+    selectCategoryModal.add(selectCategoryModalOption1);
     selectCategoryModal.add(selectCategoryModalOption2);
 
     form.appendChild(selectCategoryModal);
@@ -1200,7 +1353,11 @@ function createAnnotationsMenu(){
 
     var buttonSaveModal = document.createElement("button");
     buttonSaveModal.id = "buttonSaveModal";
-    buttonSaveModal.innerHTML = "Save";
+    if(!spanishDomain){
+        buttonSaveModal.innerHTML = "Save";
+    } else {
+        buttonSaveModal.innerHTML = "Guardar";
+    }
     buttonSaveModal.classList.add("btn");
     buttonSaveModal.classList.add("btn-primary");
     buttonSaveModal.style = "margin: auto !important; display: block !important;"
@@ -1241,7 +1398,11 @@ function createAnnotationsMenu(){
     loadModalContent.appendChild(spanLoadClose);
 
     var h2Load = document.createElement("h2");
-    h2Load.innerHTML = "Load annotations from server";
+    if(!spanishDomain){
+        h2Load.innerHTML = "Load annotations from server";
+    } else {
+        h2Load.innerHTML = "Cargar anotaciones del servidor";
+    }
     loadModalContent.appendChild(h2Load);
 
     var divLoad = document.createElement("div");
@@ -1326,7 +1487,11 @@ function startAnnotationsTextSections(){
     textSelectionDiv.id = "textSelectionDiv";
     textSelectionDiv.style = "position: fixed; top: 80%; margin: 10px; padding: 10px; width: 95%; height: 100px; overflow: scroll; background-color: #E6E6E6; border: 1px solid #00000F; display: none";
     document.body.appendChild(textSelectionDiv);
-    alert("Please select text from a specific section with important information and then click the save icon.");
+    if(!spanishDomain){
+        alert("Please select text from a specific section with important information and then click the save icon.");
+    } else {
+        alert("Por favor selecciona texto de una secciÃ³n especÃ­fica con informaciÃ³n importante y despuÃ©s pulsa el icono de guardar.");
+    }
 
 }
 
@@ -1349,7 +1514,11 @@ function startAnnotationsElements(){
     $("#stopAnnotationsA").css({'pointer-events': 'all'});
     $("#undoAnnotationsA").css({'pointer-events': 'all'});
     annotatedItemsAux = [];
-    alert("Please click on the elements from a specific section and then click the save icon.");
+    if(!spanishDomain){
+        alert("Please click on the elements from a specific section and then click the save icon.");
+    } else {
+        alert("Por favor haz click en los elementos de una secciÃ³n especÃ­fica y despuÃ©s pulsa el icono de guardar.");
+    }
 }
 
 function saveAnnotations(annotation){
@@ -1363,7 +1532,12 @@ function saveAnnotations(annotation){
 function saveAnnotationsTextSections(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
 
-        var result = prompt("Title of these text selections (must be recognisable by voice)", "");
+        var result;
+        if(!spanishDomain){
+            result = prompt("Title of these text selections (must be recognisable by voice)", "");
+        } else {
+            result = prompt("TÃ­tulo de la selecciÃ³n de texto (tiene que ser un tÃ­tulo reconocible por voz)", "");
+        }
 
         var exists = false;
         try{
@@ -1383,7 +1557,11 @@ function saveAnnotationsTextSections(){
 
         while(exists){
             exists = false;
-            result = prompt("Title of these text selections (choose a title that does not exist)", "");
+            if(!spanishDomain){
+                result = prompt("Title of these text selections (choose a title that does not exist)", "");
+            } else {
+                result = prompt("TÃ­tulo de la selecciÃ³n de texto (elija uno que no exista)", "");
+            }
             try{
                 if(Array.isArray(allItems) && allItems.length > 0){
                     for(var j = 0; j < allItems.length; j++){
@@ -1414,45 +1592,56 @@ function saveAnnotationsTextSections(){
     }
 
     if(annotationActive){
-        alert("Please continue selecting text from other specific section (until you click the stop icon).");
+        if(!spanishDomain){
+            alert("Please continue selecting text from other specific section (until you click the stop icon).");
+        } else {
+            alert("Por favor continÃºa seleccionando texto de otras secciones (hasta que pulses el icono de stop).");
+        }
     }
 }
 
 function saveAnnotationsElements(){
     if(Array.isArray(annotatedItemsAux) && annotatedItemsAux.length > 0){
-        var result = prompt("Title of this section (must be recognisable by voice)", "");
-        if(result !== null){
-
-
-        var exists = false;
-        try{
-            var currentItems = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
-            var otherItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textAnnotation"))
-            var allItems = currentItems.concat(otherItems);
-            if(Array.isArray(allItems) && allItems.length > 0){
-                for(var i = 0; i < allItems.length; i++){
-                    if(allItems[i].name.toLowerCase() === result.toLowerCase()){
-                        exists = true;
-                    }
-                }
-            }
-        } catch(e){
-            console.log("error merging elements");
+        var result;
+        if(!spanishDomain){
+            result = prompt("Title of this section (must be recognisable by voice)", "");
+        } else {
+            result = prompt("TÃ­tulo de la secciÃ³n (tiene que ser reconocible por voz)", "");
         }
-
-        while(exists){
-            exists = false;
-            result = prompt("Title of this section (choose a title that does not exist)", "");
+        if(result !== null){
+            var exists = false;
             try{
+                var currentItems = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
+                var otherItems = JSON.parse(myStorage.getItem(localStoragePrefix + "textAnnotation"))
+                var allItems = currentItems.concat(otherItems);
                 if(Array.isArray(allItems) && allItems.length > 0){
-                    for(var j = 0; j < allItems.length; j++){
-                        if(allItems[j].name.toLowerCase() === result.toLowerCase()){
+                    for(var i = 0; i < allItems.length; i++){
+                        if(allItems[i].name.toLowerCase() === result.toLowerCase()){
                             exists = true;
                         }
                     }
                 }
-            } catch(e){}
-        }
+            } catch(e){
+                console.log("error merging elements");
+            }
+
+            while(exists){
+                exists = false;
+                if(!spanishDomain){
+                    result = prompt("Title of this section (choose a title that does not exist)", "");
+                } else {
+                    result = prompt("TÃ­tulo de la secciÃ³n (elija uno que no exista)", "");
+                }
+                try{
+                    if(Array.isArray(allItems) && allItems.length > 0){
+                        for(var j = 0; j < allItems.length; j++){
+                            if(allItems[j].name.toLowerCase() === result.toLowerCase()){
+                                exists = true;
+                            }
+                        }
+                    }
+                } catch(e){}
+            }
 
             var all = document.body.getElementsByTagName("*");
             for (var k = 0; k < all.length; k++) {
@@ -1494,7 +1683,11 @@ function saveAnnotationsElements(){
             }
 
             if(annotationActive){
-                alert("Please continue clicking on other sections (until you click the stop icon).");
+                if(!spanishDomain){
+                    alert("Please continue clicking on other sections (until you click the stop icon).");
+                } else {
+                    alert("Por favor continÃºe haciendo click en otras secciones (hasta que pulses el botÃ³n de stop).");
+                }
             }
         }
     }
@@ -1692,7 +1885,12 @@ function editAnnotationsByName(id, name){
             if(annotations[k].id === id){
                 for(var a = 0; a < annotations[k].items.length; a++){
                     if(annotations[k].items[a].name === name){
-                        var result = prompt("Title of this section (must be recognisable by voice)", "");
+                        var result;
+                        if(!spanishDomain){
+                            result = prompt("Title of this section (must be recognisable by voice)", "");
+                        } else {
+                            result = prompt("TÃ­tulo de esta secciÃ³n (tiene que ser reconocible por voz)", "");
+                        }
 
                         var exists = false;
                         try{
@@ -1712,7 +1910,11 @@ function editAnnotationsByName(id, name){
 
                         while(exists){
                             exists = false;
-                            result = prompt("Title of this section (choose a title that does not exist)", "");
+                            if(!spanishDomain){
+                                result = prompt("Title of this section (choose a title that does not exist)", "");
+                            } else {
+                                result = prompt("TÃ­tulo de esta secciÃ³n (elija uno que no exista)", "");
+                            }
                             try{
                                 if(Array.isArray(allItems) && allItems.length > 0){
                                     for(var j = 0; j < allItems.length; j++){
@@ -1814,24 +2016,28 @@ function clearTextSelected() {
 function basicAnnotation(){
     var queryURL = "https://live.dbpedia.org/sparql";
 
-    var propertyName1 = "name"
+    var propertyName1 = "name";
+    var propertyName1ES = "nombre";
     var propertyURL1 = "http://xmlns.com/foaf/0.1/name";
-    var property1 = {name : propertyName1, URL: propertyURL1};
+    var property1 = {name : propertyName1, nameES : propertyName1ES, URL: propertyURL1};
     basicAnnotationByQueryAndProperty(queryURL, property1);
 
     var propertyName2 = "summary";
+    var propertyName2ES = "resumen";
     var propertyURL2 = "http://dbpedia.org/ontology/abstract";
-    var property2 = {name : propertyName2, URL: propertyURL2};
+    var property2 = {name : propertyName2, nameES : propertyName2ES, URL: propertyURL2};
     basicAnnotationByQueryAndProperty(queryURL, property2);
 
     var propertyName3 = "birth date";
+    var propertyName3ES = "fecha nacimiento";
     var propertyURL3 = "http://dbpedia.org/ontology/birthDate";
-    var property3 = {name : propertyName3, URL: propertyURL3};
+    var property3 = {name : propertyName3, nameES : propertyName3ES, URL: propertyURL3};
     basicAnnotationByQueryAndProperty(queryURL, property3);
 
     var propertyName4 = "death date";
+    var propertyName4ES = "fecha fallecimiento";
     var propertyURL4 = "http://dbpedia.org/ontology/deathDate";
-    var property4 = {name : propertyName4, URL: propertyURL4};
+    var property4 = {name : propertyName4, nameES : propertyName4ES, URL: propertyURL4};
     basicAnnotationByQueryAndProperty(queryURL, property4);
 
 
@@ -1846,7 +2052,7 @@ function basicAnnotationByQueryAndProperty(queryURL, property){
         var items = JSON.parse(myStorage.getItem(localStoragePrefix + annotationId));
         if(Array.isArray(items) && items.length > 0){
             for(var i = 0; i < items.length; i++){
-                if(items[i].name === property.name){
+                if(items[i].name === property.name || items[i].name === property.nameES){
                     exists = true;
                 }
             }
@@ -2032,11 +2238,20 @@ function createCommandsMenu(){
     for(var index = 0; index < operations.length; index++){
         var a1 = document.createElement('a');
         a1.id = operations[index].id + "Edit";
-        a1.text = "'" + operations[index].name + "' command " + "(" + operations[index].voiceCommand + ") ";
+        if(!spanishDomain){
+            a1.text = "'" + operations[index].name + "' command (" + operations[index].voiceCommand + ") ";
+        } else {
+            a1.text = "Comando '" + operations[index].name + "' (" + operations[index].voiceCommand + ") ";
+        }
         a1.addEventListener("click", function(){
             for(var index = 0; index < operations.length; index++){
                 if(operations[index].id === this.id.split("Edit").join("")){
-                    var result = prompt("New command value for '" + operations[index].name + "' command (must be recognisable by voice)", operations[index].voiceCommand);
+                    var result;
+                    if(!spanishDomain){
+                        result = prompt("New command value for '" + operations[index].name + "' command (must be recognisable by voice)", operations[index].voiceCommand);;
+                    } else {
+                        result = prompt("Nuevo comando para '" + operations[index].name + "' (tiene que ser reconocible por voz)", operations[index].voiceCommand);;
+                    }
                     if(result !== null){
                         operations[index].voiceCommand = result.toLowerCase();
                         myStorage.setItem(localStoragePrefix + operations[index].id, result.toLowerCase());
@@ -2164,7 +2379,11 @@ function createSubmenuForAnnotations(menuId, annotationId){
                     var a2b = document.createElement('a');
                     a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
                     a2b.className = "icon";
-                    a2b.title = "Edit" + items[sectionsIndex].name;
+                    if(!spanishDomain){
+                        a2b.title = "Edit" + items[sectionsIndex].name;
+                    } else {
+                        a2b.title = "Editar" + items[sectionsIndex].name;
+                    }
                     a2b.addEventListener("click", function(){
                         for(var i = 0; i < annotations.length; i++){
                             if(annotations[i].id === this.id.split("editSection")[0]){
@@ -2183,7 +2402,13 @@ function createSubmenuForAnnotations(menuId, annotationId){
                     a2bTrash.className = "icon";
                     a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
                     a2bTrash.addEventListener("click", function(){
-                        if(confirm("Are you sure to delete this section?")){
+                        var confirmText = "";
+                        if(!spanishDomain){
+                            confirmText = "Are you sure to delete this section?";
+                        } else {
+                            confirmText = "Â¿EstÃ¡s seguro de borrar esta secciÃ³n?";
+                        }
+                        if(confirm(confirmText)){
                             for(var i = 0; i < annotations.length; i++){
                                 if(annotations[i].id === this.id.split("resetSection")[0]){
                                     annotations[i].reset(this.id.split("resetSection")[1]);
@@ -2237,7 +2462,11 @@ function updateSubmenuForAnnotations(menuId, annotationsId){
                     var a2b = document.createElement('a');
                     a2b.id = annotations[annotationsIndex].id + "editSection" + items[sectionsIndex].name;
                     a2b.className = "icon";
-                    a2b.title = "Edit" + items[sectionsIndex].name;
+                    if(!spanishDomain){
+                        a2b.title = "Edit" + items[sectionsIndex].name;
+                    } else {
+                        a2b.title = "Editar" + items[sectionsIndex].name;
+                    }
                     a2b.addEventListener("click", function(){
                         for(var i = 0; i < annotations.length; i++){
                             if(annotations[i].id === this.id.split("editSection")[0]){
@@ -2256,7 +2485,13 @@ function updateSubmenuForAnnotations(menuId, annotationsId){
                     a2bTrash.className = "icon";
                     a2bTrash.title = "Reset" + annotations[annotationsIndex].name;
                     a2bTrash.addEventListener("click", function(){
-                        if(confirm("Are you sure to delete this section?")){
+                        var confirmText = "";
+                        if(!spanishDomain){
+                            confirmText = "Are you sure to delete this section?";
+                        } else {
+                            confirmText = "Â¿EstÃ¡s seguro de borrar esta secciÃ³n?";
+                        }
+                        if(confirm(confirmText)){
                             for(var i = 0; i < annotations.length; i++){
                                 if(annotations[i].id === this.id.split("resetSection")[0]){
                                     annotations[i].reset(this.id.split("resetSection")[1]);
@@ -2303,27 +2538,49 @@ function closeSubmenu(menuId){
 
 
 function readWelcome(){
-    var readContent = "Welcome to " + document.title + "! The voice commands available are: ";
-    for(var i = 0; i < operations.length; i++){
-        readContent += operations[i].voiceCommand + ", ";
+    var readContent = "";
+    if(!spanishDomain){
+        readContent = "Welcome to " + document.title + "! The voice commands available are: ";
+        for(var i = 0; i < operations.length; i++){
+            readContent += operations[i].voiceCommand + ", ";
+        }
+        readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
+            + activateCommand + ", " + deactivateCommand + ". ";
+        readContent += sectionsToString();
+    } else {
+        readContent = "Â¡Bienvenido a " + document.title + "! Los comandos de voz disponibles son: ";
+        for(var j = 0; j < operations.length; j++){
+            readContent += operations[j].voiceCommand + ", ";
+        }
+        readContent += listOperationsCommandES + ", " + listSectionsCommandES + ", " + welcomeCommandES + ", " + stopListeningCommandES + ", " + changeCommandES + ", "
+            + activateCommandES + ", " + deactivateCommandES + ". ";
+        readContent += sectionsToString();
     }
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
-        + activateCommand + ", " + deactivateCommand + ". ";
-    readContent += sectionsToString();
+
 
     //TODO: explain and add loadAnnotations operation
     Read(readContent);
 }
 
 function readOperations(){
-    var readContent = "The voice commands available are: ";
-    for(var i = 0; i < operations.length; i++){
-        readContent += operations[i].voiceCommand + ", ";
+    var readContent = "";
+    if(!spanishDomain){
+        readContent = "The voice commands available are: ";
+        for(var i = 0; i < operations.length; i++){
+            readContent += operations[i].voiceCommand + ", ";
+        }
+        readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
+            + activateCommand + ", " + deactivateCommand + ". ";
+        readContent += sectionsToString();
+    } else {
+        readContent = "Los comandos de voz disponibles son: ";
+        for(var j = 0; j < operations.length; j++){
+            readContent += operations[j].voiceCommand + ", ";
+        }
+        readContent += listOperationsCommandES + ", " + listSectionsCommandES + ", " + welcomeCommandES + ", " + stopListeningCommandES + ", " + changeCommandES + ", "
+            + activateCommandES + ", " + deactivateCommandES + ". ";
+        readContent += sectionsToString();
     }
-
-    readContent += listOperationsCommand + ", " + listSectionsCommand + ", " + welcomeCommand + ", " + stopListeningCommand + ", " + changeCommand + ", "
-        + activateCommand + ", " + deactivateCommand + ". ";
-    readContent += sectionsToString();
     Read(readContent);
 }
 
@@ -2351,7 +2608,11 @@ function sectionsToString(){
     }
 
     if(names.length > 0){
-        readContent += "The sections of the website are: ";
+        if(!spanishDomain){
+            readContent += "The sections of the website are: ";
+        } else {
+            readContent += "Las secciones de esta web son: ";
+        }
     }
 
     for(var index = 0; index < names.length; index++){
@@ -2361,7 +2622,11 @@ function sectionsToString(){
         readContent += names[index];
     }
 
-    readContent += ". You can dowload more annotations using the voice command: " + loadAnnotationsCommand;
+    if(!spanishDomain){
+        readContent += ". You can dowload more annotations using the voice command: " + loadAnnotationsCommand;
+    } else {
+        readContent += ". Puedes descargar mÃ¡s anotaciones usando el comando de voz: " + loadAnnotationsCommandES;
+    }
 
     return readContent;
 }
@@ -2372,7 +2637,11 @@ function textToAudio(){
     var cancelfooter = document.createElement('div');
     cancelfooter.id = "cancel";
     var buttonStop = document.createElement('button');
-    buttonStop.innerText = "Pause";
+    if(!spanishDomain){
+        buttonStop.innerText = "Stop";
+    } else {
+        buttonStop.innerText = "Detener";
+    }
     buttonStop.addEventListener('click', stopReading);
     buttonStop.style.height = "50px";
     buttonStop.style.fontSize = "25px";
@@ -2441,8 +2710,12 @@ function Read(message){
     if(!document[hidden]){
 
         var reader = new SpeechSynthesisUtterance(message);
-        reader.rate = 0.6;
-        reader.lang = languageCodeSyntesis;
+        reader.rate = 0.65;
+        if(!spanishDomain){
+            reader.lang = languageCodeSyntesis;
+        } else {
+            reader.lang = languageCodeSyntesisES;
+        }
         reader.onstart = function(event) {
             resumeInfinity();
         };
@@ -2507,23 +2780,39 @@ function KeyPress(e) {
             recognitionActive = true;
             recognition.start();
             var aToggleListening = document.getElementById("toggleListeningA");
-            aToggleListening.text = 'Stop Listening';
+            if(!spanishDomain){
+                aToggleListening.text = 'Stop Listening';
+            } else {
+                aToggleListening.text = 'Desactivar comandos por voz';
+            }
             //var inputVoiceCommands = document.getElementById("voiceCommandsInput");
             //inputVoiceCommands.checked = recognitionActive;
             var toggleListeningIcon = document.getElementById("toggleListeningIcon");
             toggleListeningIcon.style = "color:gray; margin-left: 8px";
-            Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command, which disables all voice commands.");
+            if(!spanishDomain){
+                Read("Listening active, to stop listening use the " + stopListeningCommand + " voice command, which disables all voice commands.");
+            } else {
+                Read("Comandos por voz activos, para desactivarlos use el comando " + stopListeningCommand + ".");
+            }
         }
         else {
             recognitionActive = false;
             recognition.abort();
             var aToggleListening2 = document.getElementById("toggleListeningA");
-            aToggleListening2.text = 'Start Listening';
+            if(!spanishDomain){
+                aToggleListening2.text = 'Start Listening';
+            } else {
+                aToggleListening2.text = 'Activar comandos por voz';
+            }
             //var inputVoiceCommands2 = document.getElementById("voiceCommandsInput");
             //inputVoiceCommands2.checked = recognitionActive;
             var toggleListeningIcon2 = document.getElementById("toggleListeningIcon");
             toggleListeningIcon2.style = "color:red; margin-left: 8px";
-            Read("Listening stop, to start listening use the control and space keys, which enables all voice commands.");
+            if(!spanishDomain){
+                Read("Listening stop, to start listening use the control and space keys, which enables all voice commands.");
+            } else {
+                Read("Comandos por voz desactivados, para activarlos use el comando " + stopListeningCommand + ".");
+            }
         }
 
         myStorage.setItem("recognitionActive", recognitionActive);
@@ -2540,7 +2829,11 @@ function audioToText(){
     console.log("Configure speech recognition");
 
     updateGrammar();
-    recognition.lang = languageCodeCommands;
+    if(!spanishDomain){
+        recognition.lang = languageCodeCommands;
+    } else {
+        recognition.lang = languageCodeCommandsES;
+    }
     recognition.interimResults = false;
     recognition.continuous = true;
 
@@ -2550,55 +2843,68 @@ function audioToText(){
             commandListened = speechToText;
             console.log(speechToText);
             if(!changeCommandInProcess1 && !changeCommandInProcess2){
-                if(speechToText.includes(listOperationsCommand)){
+                if(speechToText.includes(listOperationsCommand) || speechToText.includes(listOperationsCommandES)){
                     readOperations();
                 }
-                else if(speechToText.includes(welcomeCommand)){
+                else if(speechToText.includes(welcomeCommand) || speechToText.includes(welcomeCommandES)){
                     readWelcome();
                 }
-                else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand)){
+                else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand) ||
+                        speechToText.includes(listSectionsCommandES)|| speechToText.includes(listSectionCommandES)){
                     readSections();
                 }
-                else if(speechToText.includes(activateCommand) && !speechToText.includes(deactivateCommand)){
+                else if((speechToText.includes(activateCommand) && !speechToText.includes(deactivateCommand)) ||
+                       (speechToText.includes(activateCommandES) && !speechToText.includes(deactivateCommandES))){
                     console.log("Activate operation: ");
                     for(var a = 0; a < operations.length; a++){
-                        if(speechToText.includes(activateCommand + " " + operations[a].voiceCommand) && !operations[a].active){
+                        if((speechToText.includes(activateCommand + " " + operations[a].voiceCommand) ||
+                            speechToText.includes(activateCommandES + " " + operations[a].voiceCommand)) && !operations[a].active){
                             console.log(operations[a].name);
                             var input = document.getElementById(operations[a].id + "Input");
                             input.checked = true;
                             var eventChange = new Event('change');
                             input.dispatchEvent(eventChange);
-                            Read("Operation " + operations[a].voiceCommand + " activated.");
+                            if(!spanishDomain){
+                                Read("Operation " + operations[a].voiceCommand + " activated.");
+                            } else {
+                                Read("OperaciÃ³n " + operations[a].voiceCommand + " activada.");
+                            }
                         }
                     }
                 }
-                else if(speechToText.includes(deactivateCommand)){
+                else if(speechToText.includes(deactivateCommand) || speechToText.includes(deactivateCommandES)){
                     console.log("Deactivate operation: ");
                     for(var b = 0; b < operations.length; b++){
-                        if(speechToText.includes(deactivateCommand + " " + operations[b].voiceCommand) && operations[b].active){
+                        if((speechToText.includes(deactivateCommand + " " + operations[b].voiceCommand) ||
+                            speechToText.includes(deactivateCommandES + " " + operations[b].voiceCommand)) && operations[b].active){
                             console.log(operations[b].name);
                             var input2 = document.getElementById(operations[b].id + "Input");
                             input2.checked = false;
                             var eventChange2 = new Event('change');
                             input2.dispatchEvent(eventChange2);
-                            Read("Operation " + operations[b].voiceCommand + " deactivated.");
+                            if(!spanishDomain){
+                                Read("Operation " + operations[b].voiceCommand + " deactivated.");
+                            } else {
+                                Read("OperaciÃ³n " + operations[b].voiceCommand + " desactivada.");
+                            }
                         }
                     }
                 }
-                else if(speechToText.includes(loadAnnotationsCommand) || speechToText.includes(loadAnnotationCommand)){
+                else if(speechToText.includes(loadAnnotationsCommand) || speechToText.includes(loadAnnotationCommand) ||
+                        speechToText.includes(loadAnnotationsCommandES) || speechToText.includes(loadAnnotationCommandES)){
                     loadAnnotationsFromServerByVoice();
                 }
                 else if(speechToText.includes(rateCommand)){
                     var rating = 0;
-                    if(speechToText.includes("one") || speechToText.includes("1")){
+                    if(speechToText.includes("one") || speechToText.includes("uno") || speechToText.includes("1")){
                        rating = 1;
-                    } else if(speechToText.includes("two") || speechToText.includes("2")){
+                    } else if(speechToText.includes("two") || speechToText.includes("dos") || speechToText.includes("2")){
                        rating = 2;
-                    } else if(speechToText.includes("three") || speechToText.includes("3")){
+                    } else if(speechToText.includes("three") || speechToText.includes("tres") || speechToText.includes("3")){
                        rating = 3;
-                    } else if(speechToText.includes("four") || speechToText.includes("for") || speechToText.includes("4")){
+                    } else if(speechToText.includes("four") || speechToText.includes("for") || speechToText.includes("cuatro") || speechToText.includes("4")){
                        rating = 4;
-                    } else if(speechToText.includes("five") || speechToText.includes("5")){
+                    } else if(speechToText.includes("five") || speechToText.includes("cinco") || speechToText.includes("5")){
                        rating = 5;
                     }
 
@@ -2607,28 +2913,50 @@ function audioToText(){
                         if(rating > 0){
                             saveRatingsOfAnnotationInServer(rating, annotationTitle);
                             //TODO: check if an error occurred
-                            Read("Score saved to annotations: " + annotationTitle + ".");
+                            if(!spanishDomain){
+                                Read("Score saved to annotations: " + annotationTitle + ".");
+                            } else {
+                                Read("ValoraciÃ³n guardada en anotaciÃ³n: " + annotationTitle + ".");
+                            }
                         } else {
-                            Read("Score should be from 1 to 5.");
+                            if(!spanishDomain){
+                                Read("Score should be from 1 to 5.");
+                            } else {
+                                Read("La valoraciÃ³n debe ser entre 1 y 5.");
+                            }
                         }
                     } else {
-                        Read("You need to load annotations first using the voice command Load annotations.");
+                        if(!spanishDomain){
+                            Read("You need to load annotations first using the voice command: " + loadAnnotationsCommand + ".");
+                        } else {
+                            Read("Necesitar cargar las anotaciones usando el comando de voz: " + loadAnnotationsCommandES + ".");
+                        }
                     }
                 }
-                else if(speechToText.includes(changeCommand)){
+                else if(speechToText.includes(changeCommand) || speechToText.includes(changeCommandES)){
                     console.log("changeCommandInProcess = true")
                     changeCommandInProcess1 = true;
-                    Read(changeCommandQuestion + "?");
+                    if(!spanishDomain){
+                        Read(changeCommandQuestion + "?");
+                    } else {
+                        Read(changeCommandQuestionES + "?");
+                    }
                 }
-                else if(speechToText.includes(stopListeningCommand)){
+                else if(speechToText.includes(stopListeningCommand) || speechToText.includes(stopListeningCommandES)){
                     if(recognitionActive){
                         console.log("recognition deactivated")
                         recognitionActive = false;
                         recognition.abort();
                     }
-                    document.getElementById("toggleListeningA").text = "Start Listening";
-                    document.getElementById("toggleListeningIcon").style = "color:red";
-                    Read("Listening stopped, to start listening use control and space keys.");
+                    if(!spanishDomain){
+                        document.getElementById("toggleListeningA").text = "Start Listening";
+                        document.getElementById("toggleListeningIcon").style = "color:red";
+                        Read("Listening stopped, to start listening use control and space keys.");
+                    } else {
+                        document.getElementById("toggleListeningA").text = "Activar comandos por voz";
+                        document.getElementById("toggleListeningIcon").style = "color:red";
+                        Read("Comandos desactivados, para activar comandos por voz use las teclas control mÃ¡s espacio.");
+                    }
                 } else {
                     for(var i = 0; i < operations.length; i++){
                         if(speechToText.startsWith(operations[i].voiceCommand) && operations[i].voiceCommand.length > 0){
@@ -2638,7 +2966,9 @@ function audioToText(){
                                         for(var j = 0; j < operations[i].annotations.length; j++){
                                             var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
                                             for(var k = 0; k < items.length; k++){
-                                                if(speechToText.includes(operations[i].voiceCommand + " " + items[k].name)){
+                                                var cleanSpeechText = speechToText.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '').replace(/\s+/g,' ').trim().toLowerCase();
+                                                var cleanSection = items[k].name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '').replace(/\s+/g,' ').trim().toLowerCase();
+                                                if(cleanSpeechText.includes(operations[i].voiceCommand + " " + cleanSection)){
                                                     var params = {};
                                                     var current = {};
                                                     params.currentTarget = current;
@@ -2655,24 +2985,38 @@ function audioToText(){
                                     }
                                 }catch(e){}
                             } else {
-                                Read("Operation " + operations[i].voiceCommand + " is not activated, please activate using the voice command: activate " + operations[i].voiceCommand + ".");
+                                if(!spanishDomain){
+                                    Read("Operation " + operations[i].voiceCommand + " is not activated, please activate using the voice command: " + activateCommand + " " + operations[i].voiceCommand + ".");
+                                } else {
+                                    Read("OperaciÃ³n " + operations[i].voiceCommand + " estÃ¡ desactivada, por favor actÃ­vala usando el comando de voz: " + activateCommandES + " " + operations[i].voiceCommand + ".");
+                                }
                                 return;
                             }
                         }
                     }
                     if(recognitionFailedFirstTime){
                         recognitionFailedFirstTime = false;
-                        Read(recognitionFailedText + " You can use: " + listOperationsCommand + " to know which operations are available and: "
+                        if(!spanishDomain){
+                            Read(recognitionFailedText + " You can use: " + listOperationsCommand + " to know which operations are available and: "
                              + listSectionsCommand + " to know which sections can be read aloud.");
+                        } else {
+                            Read(recognitionFailedTextES + " Puedes usar: " + listOperationsCommandES + " para saber que operaciones estÃ¡n disponibles y: "
+                             + listSectionsCommandES + " para saber quÃ© secciones se pueden leer en voz alta.");
+                        }
                     } else {
-                        Read(recognitionFailedText);
+                        if(!spanishDomain){
+                            Read(recognitionFailedText);
+                        } else {
+                            Read(recognitionFailedTextES);
+                        }
                     }
                 }
             } else {
                 if(changeCommandInProcess1){
                     //Command change in process
-                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
-                        if(speechToText.toLowerCase() == cancelCommand) {
+                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion) &&
+                       !speechToText.includes(changeCommandQuestionES) && !speechToText.includes(newCommandQuestionES)){
+                        if(speechToText.toLowerCase() == cancelCommand || speechToText.toLowerCase() == cancelCommandES) {
                             console.log("Cancel change of command")
                             changeCommandInProcess1 = false;
                             changeCommandInProcess2 = false;
@@ -2680,7 +3024,12 @@ function audioToText(){
                         }
                         for(var opIndex = 0; opIndex < operations.length; opIndex++){
                             if(speechToText.includes(operations[opIndex].voiceCommand)){
-                                Read(newCommandQuestion + "?");
+
+                                if(!spanishDomain){
+                                    Read(newCommandQuestion + "?");
+                                } else {
+                                    Read(newCommandQuestionES + "");
+                                }
                                 newCommandString = speechToText.toLowerCase();
                                 operationToChange = operations[opIndex];
                                 changeCommandInProcess1 = false;
@@ -2689,17 +3038,26 @@ function audioToText(){
                             }
                         }
 
-                        Read(speechToText + " is not an existing command. Try again.");
+                        if(!spanishDomain){
+                            Read(speechToText + " is not an existing command. Try again.");
+                        } else {
+                            Read(speechToText + " no es un comando. IntÃ©ntelo de nuevo.");
+                        }
                     }
                 } else if(changeCommandInProcess2){
                     //Command change in process
-                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion)){
+                    if(!speechToText.includes(changeCommandQuestion) && !speechToText.includes(newCommandQuestion) &&
+                      !speechToText.includes(changeCommandQuestionES) && !speechToText.includes(newCommandQuestionES)){
                         if(speechToText.toLowerCase() == cancelCommand) {
                             console.log("Cancel change of command")
                             changeCommandInProcess1 = false;
                             changeCommandInProcess2 = false;
                         } else {
-                            Read(speechToText + " is the new command");
+                            if(!spanishDomain){
+                                Read(speechToText + " is the new command");
+                            } else {
+                                Read(speechToText + " es el nuevo comando");
+                            }
                             myStorage.setItem(localStoragePrefix + operationToChange.id, speechToText.toLowerCase());
                             operationToChange.voiceCommand = speechToText.toLowerCase();
                             //console.log("new variable value " + eval(camelize(newCommandString) + "Command"))
@@ -2730,7 +3088,7 @@ function audioToText(){
                 console.log("recognition reset");
                 recognition.start();
             }
-        }, 1000);
+        }, 100);
     }
 
     recognition.onerror = function(event) {
@@ -2773,19 +3131,36 @@ function audioToText(){
 
 function updateGrammar(){
 
-    var commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening', 'score', 'one', 'two', 'three', 'four', 'five' ];
-    var commandsAux = [];
-    for(var i = 0; i < operations.length; i++){
-        //TODO: add operation + annotations names to grammar
-        /*if(operations[i].voiceCommand === "read" || operations[i].voiceCommand === "go to"){
+    var commandsGrammar, commandsAux = [], grammar;
+    if(!spanishDomain){
+        commandsGrammar = [ 'increase', 'magnify', 'read', 'play', 'font', 'size', 'decrease', 'reduce', 'stop', 'listening', 'score', 'one', 'two', 'three', 'four', 'five' ];
+        commandsAux = [];
+        for(var i = 0; i < operations.length; i++){
+            //TODO: add operation + annotations names to grammar
+            /*if(operations[i].voiceCommand === "read" || operations[i].voiceCommand === "go to"){
             for(var j = 0; j < sectionsNames.length; j++){
                 commandsAux.push(operations[i] + " " + sectionsNames[j].toLowerCase())
             }
         } else {*/
             commandsAux.push(operations[i].voiceCommand)
-        //}
+            //}
+        }
+    } else {
+        commandsGrammar = [ 'aumentar', 'incrementar', 'leer', 'play', 'letra', 'tamaÃ±o', 'decrementar', 'reducir', 'detener', 'activar', 'desactivar', 'valoraciÃ³n', 'uno', 'dos', 'tres', 'cuatro', 'cinco' ];
+        commandsAux = [];
+        for(var j = 0; j < operations.length; j++){
+            //TODO: add operation + annotations names to grammar
+            /*if(operations[i].voiceCommand === "read" || operations[i].voiceCommand === "go to"){
+            for(var j = 0; j < sectionsNames.length; j++){
+                commandsAux.push(operations[i] + " " + sectionsNames[j].toLowerCase())
+            }
+        } else {*/
+            commandsAux.push(operations[j].voiceCommand)
+            //}
+        }
     }
-    var grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.concat(commandsAux).join(' | ') + ' ;';
+
+    grammar = '#JSGF V1.0; grammar commands; public <command> = ' + commandsGrammar.concat(commandsAux).join(' | ') + ' ;';
     console.log("grammar: " + grammar);
     var speechRecognitionList = new SpeechGrammarList();
     speechRecognitionList.addFromString(grammar, 1);
@@ -2836,7 +3211,11 @@ function showResults(results) {
     //$('.mw-parser-output').append("<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>")
 
     var youtubeVideoContent = document.createElement("DIV");
-    youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>";
+    if(!spanishDomain){
+        youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>";
+    } else {
+        youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>VÃ­deos de Youtube</span></h2></div>";
+    }
     document.body.appendChild(youtubeVideoContent);
     $('#youtubeVideos').append(content)
 
@@ -2961,7 +3340,11 @@ function goBack(){
     if(breadcrumbChildren.length > 1){
         breadcrumbChildren[breadcrumbChildren.length-2].firstElementChild.click();
     } else {
-        Read("There is no previous page in the history from same web domain");
+        if(!spanishDomain){
+            Read("There is no previous page in the history from same web domain");
+        } else {
+            Read("No hay una pÃ¡gina anterior en el historial que pertenezca al mismo dominio");
+        }
     }
 }
 
@@ -3206,7 +3589,11 @@ function loadAnnotationsFromServer(){
 
                 var divRating = document.createElement('div');
                 var rateLabel = document.createElement('label');
-                rateLabel.innerHTML = "Rate: ";
+                if(!spanishDomain){
+                    rateLabel.innerHTML = "Rate: ";
+                } else {
+                    rateLabel.innerHTML = "ValoraciÃ³n: ";
+                }
                 rateLabel.style.marginRight = "5px";
                 divRating.appendChild(rateLabel);
 
@@ -3286,19 +3673,31 @@ function loadAnnotationsFromServer(){
 
                 if(typeof annotationsLoaded[i].description != 'undefined'){
                     var label = document.createElement('label');
-                    label.innerHTML = "<b>Description: </b>" + annotationsLoaded[i].description;
+                    if(!spanishDomain){
+                        label.innerHTML = "<b>Description: </b>" + annotationsLoaded[i].description;
+                    } else {
+                        label.innerHTML = "<b>DescripciÃ³n: </b>" + annotationsLoaded[i].description;
+                    }
                     divLoad.appendChild(label);
                     divLoad.appendChild(document.createElement('br'));
                 }
                 if(typeof annotationsLoaded[i].category != 'undefined'){
                     var label2 = document.createElement('label');
-                    label2.innerHTML = "<b>Category: </b>" + annotationsLoaded[i].category;
+                    if(!spanishDomain){
+                        label2.innerHTML = "<b>Category: </b>" + annotationsLoaded[i].category;
+                    } else {
+                        label2.innerHTML = "<b>CategorÃ­a: </b>" + annotationsLoaded[i].category;
+                    }
                     divLoad.appendChild(label2);
                     divLoad.appendChild(document.createElement('br'));
                 }
                 if(typeof annotationsLoaded[i].targetUsers != 'undefined'){
                     var label3 = document.createElement('label');
-                    label3.innerHTML = "<b>Target users: </b>" + annotationsLoaded[i].targetUsers;
+                    if(!spanishDomain){
+                        label3.innerHTML = "<b>Target users: </b>" + annotationsLoaded[i].targetUsers;
+                    } else {
+                        label3.innerHTML = "<b>Destinatarios: </b>" + annotationsLoaded[i].targetUsers;
+                    }
                     divLoad.appendChild(label3);
                     divLoad.appendChild(document.createElement('br'));
                 }
@@ -3383,7 +3782,11 @@ function loadAnnotationsFromServerByVoice(){
             var annotationsToRead = "";
 
             if(annotationsLoaded.length > 0){
-                annotationsToRead += "The available annotations to download are: ";
+                if(!spanishDomain){
+                    annotationsToRead += "The available annotations to download are: ";
+                } else {
+                    annotationsToRead += "Las anotaciones disponibles para descargar son: ";
+                }
             }
 
             var title = ""
@@ -3399,13 +3802,25 @@ function loadAnnotationsFromServerByVoice(){
                 } else {
                     annotationsToRead += "title: " + title;
                     if(typeof description != 'undefined'){
-                        annotationsToRead += "; description: " + description;
+                        if(!spanishDomain){
+                            annotationsToRead += "; description: " + description;
+                        } else {
+                            annotationsToRead += "; descripciÃ³n: " + description;
+                        }
                     }
                     if(typeof targetUsers != 'undefined'){
-                        annotationsToRead += "; for: " + targetUsers;
+                        if(!spanishDomain){
+                            annotationsToRead += "; for: " + targetUsers;
+                        } else {
+                            annotationsToRead += "; para: " + targetUsers;
+                        }
                     }
                     if(typeof category != 'undefined'){
-                        annotationsToRead += "; category: " + category;
+                        if(!spanishDomain){
+                            annotationsToRead += "; category: " + category;
+                        } else {
+                            annotationsToRead += "; categorÃ­a: " + category;
+                        }
                     }
                     if(typeof ratings != 'undefined'){
                         var finalRating = 0;
@@ -3413,18 +3828,33 @@ function loadAnnotationsFromServerByVoice(){
                             finalRating += ratings[ratingsStored];
                         }
                         finalRating = Math.round(finalRating * 100.0 / annotationsLoaded[i].ratings.length) / 100;
-                        annotationsToRead += "; ratings: " + finalRating + " out of 5";
+                        if(!spanishDomain){
+                            annotationsToRead += "; ratings: " + finalRating + " out of 5";
+                        } else {
+                            annotationsToRead += "; valoraciÃ³n: " + finalRating + " de 5";
+                        }
                     }
                     annotationsToRead += ".  ";
                 }
             }
 
             if(annotationsLoaded.length > 0){
-                annotationsToRead +=
+                if(!spanishDomain){
+                    annotationsToRead +=
                     ". If you want to download one of these annotations just say the load annotations command and the title of the annotations. For example: load annotations "
                     + title + ". To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." ;
+                } else {
+                    annotationsToRead +=
+                    ". Si quieres descargar una de estas anotaciones solo utiliza el comando cargar anotaciones y el tÃ­tulo de la anotaciÃ³n. Por ejemplo: cargar anotaciones "
+                    + title + ". Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoraciÃ³n numÃ©rica entre 1 y 5, por ejemplo: valorar 5." ;
+                }
+
             } else {
-                annotationsToRead += "There aren't annotations to download for this website.";
+                if(!spanishDomain){
+                    annotationsToRead += "There aren't annotations to download for this website.";
+                } else {
+                    annotationsToRead += "No hay anotaciones para descargar en esta web.";
+                }
             }
             Read(annotationsToRead);
         }
@@ -3477,10 +3907,19 @@ function loadAnnotationByTitleAndWebsite(title, byVoice){
                 toggleHiddenSections();
 
                 if(byVoice === true){
-                    Read("Annotations loaded, use list sections to know the new sections available."
+                    if(!spanishDomain){
+                        Read("Annotations loaded, use list sections to know the new sections available."
                          + " To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." );
+                    } else {
+                        Read("Anotaciones cargadas, utiliza listar secciones para saber quÃ© secciones hay disponibles."
+                         + " Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoraciÃ³n numÃ©rica entre 1 y 5, por ejemplo: valorar 5." );
+                    }
                 } else {
-                    alert("Annotations loaded!");
+                    if(!spanishDomain){
+                        alert("Annotations loaded!");
+                    } else {
+                        alert("Â¡Anotaciones cargadas!");
+                    }
                     hideLoadAnnotationsInfoForServer();
                 }
             }
