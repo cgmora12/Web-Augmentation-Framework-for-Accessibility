@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      2.0.1
+// @version      2.1.0
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -27,7 +27,7 @@ var timeoutResumeInfinity;
 var recognitionActive = true;
 var recognitionFailedFirstTime = true;
 var recognitionFailedText = "Command not recognised, please try again.";
-var recognitionFailedTextES = "Comando no reconocido, por favor intÃ©ntelo de nuevo.";
+var recognitionFailedTextES = "Comando no reconocido, por favor inténtelo de nuevo.";
 var reading = false;
 var readFirstTime = true;
 
@@ -61,7 +61,7 @@ var newCommandQuestion = "which is the new command";
 
 var listOperationsCommandES = "listar operaciones";
 var listSectionsCommandES = "listar secciones";
-var listSectionCommandES = "listar secciÃ³n";
+var listSectionCommandES = "listar sección";
 var welcomeCommandES = "bienvenida";
 var stopListeningCommandES = "parar de escuchar";
 var changeCommandES = "cambiar";
@@ -69,10 +69,10 @@ var cancelCommandES = "cancelar";
 var activateCommandES = "activar";
 var deactivateCommandES = "desactivar";
 var loadAnnotationsCommandES = "cargar anotaciones";
-var loadAnnotationCommandES = "cargar anotaciÃ³n";
+var loadAnnotationCommandES = "cargar anotación";
 var rateCommandES = "valorar";
 var changeCommandQuestionES = "que comando";
-var newCommandQuestionES = "cuÃ¡l es el nuevo comando?";
+var newCommandQuestionES = "cuál es el nuevo comando?";
 
 var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
@@ -162,7 +162,7 @@ $(document).ready(function() {
         goToOperation = new GoToOperation("goTo", "Ir a", "ir a", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goBackOperation = new GoBackOperation("goBack", "Volver", "volver", true, true, true, false, []);
         videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
-        breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Panel navegaciÃ³n", "", true, true, true, false, []);
+        breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Panel navegación", "", true, true, true, false, []);
         hideOperation = new HideOperation("hide", "Esconder secciones inservibles", "", true, true, true, false, ["uselessAnnotation"]);
     }
 
@@ -635,7 +635,7 @@ function readAloudFromSectionName(menuId, operation, sectionName){
                     if(!spanishDomain){
                         readContent += "Section " + sectionNameToRead + ". " ;
                     } else {
-                        readContent += "SecciÃ³n " + sectionNameToRead + ". " ;
+                        readContent += "Sección " + sectionNameToRead + ". " ;
                     }
                     if(readFirstTime){
                         readFirstTime = false;
@@ -653,7 +653,7 @@ function readAloudFromSectionName(menuId, operation, sectionName){
                     if(!spanishDomain){
                         readContent += "Section " + sectionNameToRead + ". " ;
                     } else {
-                        readContent += "SecciÃ³n " + sectionNameToRead + ". " ;
+                        readContent += "Sección " + sectionNameToRead + ". " ;
                     }
                     if(readFirstTime){
                         readFirstTime = false;
@@ -1150,7 +1150,7 @@ function createAnnotationsMenu(){
                                 annotations[i].reset();
                             }
                         } else {
-                            if(confirm("Â¿EstÃ¡s seguro de borrar todas las anotaciones " + annotations[i].name + "?")){
+                            if(confirm("¿Estás seguro de borrar todas las anotaciones " + annotations[i].name + "?")){
                                 annotations[i].reset();
                             }
                         }
@@ -1253,7 +1253,7 @@ function createAnnotationsMenu(){
     if(!spanishDomain){
         inputTitleModal.placeholder = "A unique title that can be recognised by voice";
     } else {
-        inputTitleModal.placeholder = "Un nombre Ãºnico que pueda ser reconocido por voz";
+        inputTitleModal.placeholder = "Un nombre único que pueda ser reconocido por voz";
     }
     form.appendChild(inputTitleModal);
 
@@ -1264,7 +1264,7 @@ function createAnnotationsMenu(){
     if(!spanishDomain){
         labelDescriptionModal.innerHTML = "Description of annotations: ";
     } else {
-        labelDescriptionModal.innerHTML = "DescripciÃ³n de las annotaciones: ";
+        labelDescriptionModal.innerHTML = "Descripción de las annotaciones: ";
     }
     labelDescriptionModal.for = "inputDescriptionModal";
     form.appendChild(labelDescriptionModal);
@@ -1276,7 +1276,7 @@ function createAnnotationsMenu(){
     if(!spanishDomain){
         inputDescriptionModal.placeholder = "A description about the annotations done";
     } else {
-        inputDescriptionModal.placeholder = "Una descripciÃ³n de las anotaciones realizadas";
+        inputDescriptionModal.placeholder = "Una descripción de las anotaciones realizadas";
     }
     form.appendChild(inputDescriptionModal);
 
@@ -1307,7 +1307,7 @@ function createAnnotationsMenu(){
         option3.text = "Blind people";
     } else {
         option1.text = "Todos los usuarios";
-        option2.text = "Usuarios con problemas de visiÃ³n";
+        option2.text = "Usuarios con problemas de visión";
         option3.text = "Personas ciegas";
     }
     selectTargetUsersModal.add(option1);
@@ -1323,7 +1323,7 @@ function createAnnotationsMenu(){
     if(!spanishDomain){
         labelCategoryModal.innerHTML = "Category: ";
     } else {
-        labelCategoryModal.innerHTML = "CategorÃ­a: ";
+        labelCategoryModal.innerHTML = "Categoría: ";
     }
     labelCategoryModal.for = "selectCategoryModal";
     form.appendChild(labelCategoryModal);
@@ -1341,7 +1341,7 @@ function createAnnotationsMenu(){
         selectCategoryModalOption2.text = "Detailed information";
     } else {
         selectCategoryModalOption1.text = "Resumen general";
-        selectCategoryModalOption2.text = "InformaciÃ³n detallada";
+        selectCategoryModalOption2.text = "Información detallada";
     }
     selectCategoryModal.add(selectCategoryModalOption1);
     selectCategoryModal.add(selectCategoryModalOption2);
@@ -1490,7 +1490,7 @@ function startAnnotationsTextSections(){
     if(!spanishDomain){
         alert("Please select text from a specific section with important information and then click the save icon.");
     } else {
-        alert("Por favor selecciona texto de una secciÃ³n especÃ­fica con informaciÃ³n importante y despuÃ©s pulsa el icono de guardar.");
+        alert("Por favor selecciona texto de una sección específica con información importante y después pulsa el icono de guardar.");
     }
 
 }
@@ -1517,7 +1517,7 @@ function startAnnotationsElements(){
     if(!spanishDomain){
         alert("Please click on the elements from a specific section and then click the save icon.");
     } else {
-        alert("Por favor haz click en los elementos de una secciÃ³n especÃ­fica y despuÃ©s pulsa el icono de guardar.");
+        alert("Por favor haz click en los elementos de una sección específica y después pulsa el icono de guardar.");
     }
 }
 
@@ -1536,7 +1536,7 @@ function saveAnnotationsTextSections(){
         if(!spanishDomain){
             result = prompt("Title of these text selections (must be recognisable by voice)", "");
         } else {
-            result = prompt("TÃ­tulo de la selecciÃ³n de texto (tiene que ser un tÃ­tulo reconocible por voz)", "");
+            result = prompt("Título de la selección de texto (tiene que ser un título reconocible por voz)", "");
         }
 
         var exists = false;
@@ -1560,7 +1560,7 @@ function saveAnnotationsTextSections(){
             if(!spanishDomain){
                 result = prompt("Title of these text selections (choose a title that does not exist)", "");
             } else {
-                result = prompt("TÃ­tulo de la selecciÃ³n de texto (elija uno que no exista)", "");
+                result = prompt("Título de la selección de texto (elija uno que no exista)", "");
             }
             try{
                 if(Array.isArray(allItems) && allItems.length > 0){
@@ -1595,7 +1595,7 @@ function saveAnnotationsTextSections(){
         if(!spanishDomain){
             alert("Please continue selecting text from other specific section (until you click the stop icon).");
         } else {
-            alert("Por favor continÃºa seleccionando texto de otras secciones (hasta que pulses el icono de stop).");
+            alert("Por favor continúa seleccionando texto de otras secciones (hasta que pulses el icono de stop).");
         }
     }
 }
@@ -1606,7 +1606,7 @@ function saveAnnotationsElements(){
         if(!spanishDomain){
             result = prompt("Title of this section (must be recognisable by voice)", "");
         } else {
-            result = prompt("TÃ­tulo de la secciÃ³n (tiene que ser reconocible por voz)", "");
+            result = prompt("Título de la sección (tiene que ser reconocible por voz)", "");
         }
         if(result !== null){
             var exists = false;
@@ -1630,7 +1630,7 @@ function saveAnnotationsElements(){
                 if(!spanishDomain){
                     result = prompt("Title of this section (choose a title that does not exist)", "");
                 } else {
-                    result = prompt("TÃ­tulo de la secciÃ³n (elija uno que no exista)", "");
+                    result = prompt("Título de la sección (elija uno que no exista)", "");
                 }
                 try{
                     if(Array.isArray(allItems) && allItems.length > 0){
@@ -1686,7 +1686,7 @@ function saveAnnotationsElements(){
                 if(!spanishDomain){
                     alert("Please continue clicking on other sections (until you click the stop icon).");
                 } else {
-                    alert("Por favor continÃºe haciendo click en otras secciones (hasta que pulses el botÃ³n de stop).");
+                    alert("Por favor continúe haciendo click en otras secciones (hasta que pulses el botón de stop).");
                 }
             }
         }
@@ -1889,7 +1889,7 @@ function editAnnotationsByName(id, name){
                         if(!spanishDomain){
                             result = prompt("Title of this section (must be recognisable by voice)", "");
                         } else {
-                            result = prompt("TÃ­tulo de esta secciÃ³n (tiene que ser reconocible por voz)", "");
+                            result = prompt("Título de esta sección (tiene que ser reconocible por voz)", "");
                         }
 
                         var exists = false;
@@ -1913,7 +1913,7 @@ function editAnnotationsByName(id, name){
                             if(!spanishDomain){
                                 result = prompt("Title of this section (choose a title that does not exist)", "");
                             } else {
-                                result = prompt("TÃ­tulo de esta secciÃ³n (elija uno que no exista)", "");
+                                result = prompt("Título de esta sección (elija uno que no exista)", "");
                             }
                             try{
                                 if(Array.isArray(allItems) && allItems.length > 0){
@@ -2406,7 +2406,7 @@ function createSubmenuForAnnotations(menuId, annotationId){
                         if(!spanishDomain){
                             confirmText = "Are you sure to delete this section?";
                         } else {
-                            confirmText = "Â¿EstÃ¡s seguro de borrar esta secciÃ³n?";
+                            confirmText = "¿Estás seguro de borrar esta sección?";
                         }
                         if(confirm(confirmText)){
                             for(var i = 0; i < annotations.length; i++){
@@ -2489,7 +2489,7 @@ function updateSubmenuForAnnotations(menuId, annotationsId){
                         if(!spanishDomain){
                             confirmText = "Are you sure to delete this section?";
                         } else {
-                            confirmText = "Â¿EstÃ¡s seguro de borrar esta secciÃ³n?";
+                            confirmText = "¿Estás seguro de borrar esta sección?";
                         }
                         if(confirm(confirmText)){
                             for(var i = 0; i < annotations.length; i++){
@@ -2548,7 +2548,7 @@ function readWelcome(){
             + activateCommand + ", " + deactivateCommand + ". ";
         readContent += sectionsToString();
     } else {
-        readContent = "Â¡Bienvenido a " + document.title + "! Los comandos de voz disponibles son: ";
+        readContent = "¡Bienvenido a " + document.title + "! Los comandos de voz disponibles son: ";
         for(var j = 0; j < operations.length; j++){
             readContent += operations[j].voiceCommand + ", ";
         }
@@ -2625,7 +2625,7 @@ function sectionsToString(){
     if(!spanishDomain){
         readContent += ". You can dowload more annotations using the voice command: " + loadAnnotationsCommand;
     } else {
-        readContent += ". Puedes descargar mÃ¡s anotaciones usando el comando de voz: " + loadAnnotationsCommandES;
+        readContent += ". Puedes descargar más anotaciones usando el comando de voz: " + loadAnnotationsCommandES;
     }
 
     return readContent;
@@ -2867,7 +2867,7 @@ function audioToText(){
                             if(!spanishDomain){
                                 Read("Operation " + operations[a].voiceCommand + " activated.");
                             } else {
-                                Read("OperaciÃ³n " + operations[a].voiceCommand + " activada.");
+                                Read("Operación " + operations[a].voiceCommand + " activada.");
                             }
                         }
                     }
@@ -2885,7 +2885,7 @@ function audioToText(){
                             if(!spanishDomain){
                                 Read("Operation " + operations[b].voiceCommand + " deactivated.");
                             } else {
-                                Read("OperaciÃ³n " + operations[b].voiceCommand + " desactivada.");
+                                Read("Operación " + operations[b].voiceCommand + " desactivada.");
                             }
                         }
                     }
@@ -2916,13 +2916,13 @@ function audioToText(){
                             if(!spanishDomain){
                                 Read("Score saved to annotations: " + annotationTitle + ".");
                             } else {
-                                Read("ValoraciÃ³n guardada en anotaciÃ³n: " + annotationTitle + ".");
+                                Read("Valoración guardada en anotación: " + annotationTitle + ".");
                             }
                         } else {
                             if(!spanishDomain){
                                 Read("Score should be from 1 to 5.");
                             } else {
-                                Read("La valoraciÃ³n debe ser entre 1 y 5.");
+                                Read("La valoración debe ser entre 1 y 5.");
                             }
                         }
                     } else {
@@ -2955,7 +2955,7 @@ function audioToText(){
                     } else {
                         document.getElementById("toggleListeningA").text = "Activar comandos por voz";
                         document.getElementById("toggleListeningIcon").style = "color:red";
-                        Read("Comandos desactivados, para activar comandos por voz use las teclas control mÃ¡s espacio.");
+                        Read("Comandos desactivados, para activar comandos por voz use las teclas control más espacio.");
                     }
                 } else {
                     for(var i = 0; i < operations.length; i++){
@@ -2988,7 +2988,7 @@ function audioToText(){
                                 if(!spanishDomain){
                                     Read("Operation " + operations[i].voiceCommand + " is not activated, please activate using the voice command: " + activateCommand + " " + operations[i].voiceCommand + ".");
                                 } else {
-                                    Read("OperaciÃ³n " + operations[i].voiceCommand + " estÃ¡ desactivada, por favor actÃ­vala usando el comando de voz: " + activateCommandES + " " + operations[i].voiceCommand + ".");
+                                    Read("Operación " + operations[i].voiceCommand + " está desactivada, por favor actívala usando el comando de voz: " + activateCommandES + " " + operations[i].voiceCommand + ".");
                                 }
                                 return;
                             }
@@ -3000,8 +3000,8 @@ function audioToText(){
                             Read(recognitionFailedText + " You can use: " + listOperationsCommand + " to know which operations are available and: "
                              + listSectionsCommand + " to know which sections can be read aloud.");
                         } else {
-                            Read(recognitionFailedTextES + " Puedes usar: " + listOperationsCommandES + " para saber que operaciones estÃ¡n disponibles y: "
-                             + listSectionsCommandES + " para saber quÃ© secciones se pueden leer en voz alta.");
+                            Read(recognitionFailedTextES + " Puedes usar: " + listOperationsCommandES + " para saber que operaciones están disponibles y: "
+                             + listSectionsCommandES + " para saber qué secciones se pueden leer en voz alta.");
                         }
                     } else {
                         if(!spanishDomain){
@@ -3041,7 +3041,7 @@ function audioToText(){
                         if(!spanishDomain){
                             Read(speechToText + " is not an existing command. Try again.");
                         } else {
-                            Read(speechToText + " no es un comando. IntÃ©ntelo de nuevo.");
+                            Read(speechToText + " no es un comando. Inténtelo de nuevo.");
                         }
                     }
                 } else if(changeCommandInProcess2){
@@ -3146,7 +3146,7 @@ function updateGrammar(){
             //}
         }
     } else {
-        commandsGrammar = [ 'aumentar', 'incrementar', 'leer', 'play', 'letra', 'tamaÃ±o', 'decrementar', 'reducir', 'detener', 'activar', 'desactivar', 'valoraciÃ³n', 'uno', 'dos', 'tres', 'cuatro', 'cinco' ];
+        commandsGrammar = [ 'aumentar', 'incrementar', 'leer', 'play', 'letra', 'tamaÃ±o', 'decrementar', 'reducir', 'detener', 'activar', 'desactivar', 'valoración', 'uno', 'dos', 'tres', 'cuatro', 'cinco' ];
         commandsAux = [];
         for(var j = 0; j < operations.length; j++){
             //TODO: add operation + annotations names to grammar
@@ -3214,7 +3214,7 @@ function showResults(results) {
     if(!spanishDomain){
         youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Youtube videos</span></h2></div>";
     } else {
-        youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>VÃ­deos de Youtube</span></h2></div>";
+        youtubeVideoContent.innerHTML = "<div id='youtubeVideos' style='display: block'><br><h2><span class='mw-headline' id='Youtube_videos'>Vídeos de Youtube</span></h2></div>";
     }
     document.body.appendChild(youtubeVideoContent);
     $('#youtubeVideos').append(content)
@@ -3343,7 +3343,7 @@ function goBack(){
         if(!spanishDomain){
             Read("There is no previous page in the history from same web domain");
         } else {
-            Read("No hay una pÃ¡gina anterior en el historial que pertenezca al mismo dominio");
+            Read("No hay una página anterior en el historial que pertenezca al mismo dominio");
         }
     }
 }
@@ -3592,7 +3592,7 @@ function loadAnnotationsFromServer(){
                 if(!spanishDomain){
                     rateLabel.innerHTML = "Rate: ";
                 } else {
-                    rateLabel.innerHTML = "ValoraciÃ³n: ";
+                    rateLabel.innerHTML = "Valoración: ";
                 }
                 rateLabel.style.marginRight = "5px";
                 divRating.appendChild(rateLabel);
@@ -3676,7 +3676,7 @@ function loadAnnotationsFromServer(){
                     if(!spanishDomain){
                         label.innerHTML = "<b>Description: </b>" + annotationsLoaded[i].description;
                     } else {
-                        label.innerHTML = "<b>DescripciÃ³n: </b>" + annotationsLoaded[i].description;
+                        label.innerHTML = "<b>Descripción: </b>" + annotationsLoaded[i].description;
                     }
                     divLoad.appendChild(label);
                     divLoad.appendChild(document.createElement('br'));
@@ -3686,7 +3686,7 @@ function loadAnnotationsFromServer(){
                     if(!spanishDomain){
                         label2.innerHTML = "<b>Category: </b>" + annotationsLoaded[i].category;
                     } else {
-                        label2.innerHTML = "<b>CategorÃ­a: </b>" + annotationsLoaded[i].category;
+                        label2.innerHTML = "<b>Categoría: </b>" + annotationsLoaded[i].category;
                     }
                     divLoad.appendChild(label2);
                     divLoad.appendChild(document.createElement('br'));
@@ -3805,7 +3805,7 @@ function loadAnnotationsFromServerByVoice(){
                         if(!spanishDomain){
                             annotationsToRead += "; description: " + description;
                         } else {
-                            annotationsToRead += "; descripciÃ³n: " + description;
+                            annotationsToRead += "; descripción: " + description;
                         }
                     }
                     if(typeof targetUsers != 'undefined'){
@@ -3819,7 +3819,7 @@ function loadAnnotationsFromServerByVoice(){
                         if(!spanishDomain){
                             annotationsToRead += "; category: " + category;
                         } else {
-                            annotationsToRead += "; categorÃ­a: " + category;
+                            annotationsToRead += "; categoría: " + category;
                         }
                     }
                     if(typeof ratings != 'undefined'){
@@ -3831,7 +3831,7 @@ function loadAnnotationsFromServerByVoice(){
                         if(!spanishDomain){
                             annotationsToRead += "; ratings: " + finalRating + " out of 5";
                         } else {
-                            annotationsToRead += "; valoraciÃ³n: " + finalRating + " de 5";
+                            annotationsToRead += "; valoración: " + finalRating + " de 5";
                         }
                     }
                     annotationsToRead += ".  ";
@@ -3845,8 +3845,8 @@ function loadAnnotationsFromServerByVoice(){
                     + title + ". To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." ;
                 } else {
                     annotationsToRead +=
-                    ". Si quieres descargar una de estas anotaciones solo utiliza el comando cargar anotaciones y el tÃ­tulo de la anotaciÃ³n. Por ejemplo: cargar anotaciones "
-                    + title + ". Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoraciÃ³n numÃ©rica entre 1 y 5, por ejemplo: valorar 5." ;
+                    ". Si quieres descargar una de estas anotaciones solo utiliza el comando cargar anotaciones y el título de la anotación. Por ejemplo: cargar anotaciones "
+                    + title + ". Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoración numérica entre 1 y 5, por ejemplo: valorar 5." ;
                 }
 
             } else {
@@ -3911,14 +3911,14 @@ function loadAnnotationByTitleAndWebsite(title, byVoice){
                         Read("Annotations loaded, use list sections to know the new sections available."
                          + " To rate your current loaded annotations you can use the voice command 'score' and the rating number between 1 and 5: for example score 5." );
                     } else {
-                        Read("Anotaciones cargadas, utiliza listar secciones para saber quÃ© secciones hay disponibles."
-                         + " Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoraciÃ³n numÃ©rica entre 1 y 5, por ejemplo: valorar 5." );
+                        Read("Anotaciones cargadas, utiliza listar secciones para saber qué secciones hay disponibles."
+                         + " Para valorar las anotaciones descargadas utiliza el comando 'valorar' y la valoración numérica entre 1 y 5, por ejemplo: valorar 5." );
                     }
                 } else {
                     if(!spanishDomain){
                         alert("Annotations loaded!");
                     } else {
-                        alert("Â¡Anotaciones cargadas!");
+                        alert("¡Anotaciones cargadas!");
                     }
                     hideLoadAnnotationsInfoForServer();
                 }
