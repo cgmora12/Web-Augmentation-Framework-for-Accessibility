@@ -3,7 +3,7 @@
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA.js
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
+// @version      2.1.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA)
 // @author       Cesar Gonzalez Mora
 // @match        *://*/*
@@ -156,8 +156,8 @@ $(document).ready(function() {
         breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
         hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
     } else {
-        increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Aumentar TamaÃ±o Letra", "aumentar tamaÃ±o letra", true, true, true, false, []);
-        decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Reducir TamaÃ±o Letra", "reducir tamaÃ±o letra", true, true, true, false, []);
+        increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Aumentar Tamaño Letra", "aumentar tamaño letra", true, true, true, false, []);
+        decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Reducir Tamaño Letra", "reducir tamaño letra", true, true, true, false, []);
         readAloudOperation = new ReadAloudOperation("readAloud", "Leer en voz alta", "leer", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goToOperation = new GoToOperation("goTo", "Ir a", "ir a", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goBackOperation = new GoBackOperation("goBack", "Volver", "volver", true, true, true, false, []);
@@ -3146,7 +3146,7 @@ function updateGrammar(){
             //}
         }
     } else {
-        commandsGrammar = [ 'aumentar', 'incrementar', 'leer', 'play', 'letra', 'tamaÃ±o', 'decrementar', 'reducir', 'detener', 'activar', 'desactivar', 'valoración', 'uno', 'dos', 'tres', 'cuatro', 'cinco' ];
+        commandsGrammar = [ 'aumentar', 'incrementar', 'leer', 'play', 'letra', 'tamaño', 'decrementar', 'reducir', 'detener', 'activar', 'desactivar', 'valoración', 'uno', 'dos', 'tres', 'cuatro', 'cinco' ];
         commandsAux = [];
         for(var j = 0; j < operations.length; j++){
             //TODO: add operation + annotations names to grammar
