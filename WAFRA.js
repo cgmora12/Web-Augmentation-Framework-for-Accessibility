@@ -62,6 +62,14 @@ var newCommandQuestion = "which is the new command";
 var listOperationsCommandES = "listar operaciones";
 var listSectionsCommandES = "listar secciones";
 var listSectionCommandES = "listar sección";
+
+var readSectionsCommand = "read sections";
+var readSectionsCommandES = "leer secciones";
+var readNextSectionCommand = "read next";
+var readNextSectionCommandES = "leer siguiente";
+var readPreviousSectionCommand = "read previous";
+var readPreviousSectionCommandES = "leer anterior";
+
 var welcomeCommandES = "bienvenida";
 var stopListeningCommandES = "parar de escuchar";
 var changeCommandES = "cambiar";
@@ -73,6 +81,9 @@ var loadAnnotationCommandES = "cargar anotación";
 var rateCommandES = "valorar";
 var changeCommandQuestionES = "que comando";
 var newCommandQuestionES = "cuál es el nuevo comando?";
+
+var readAllSections;
+var lastSectionRead = "";
 
 var changeCommandInProcess1 = false;
 var changeCommandInProcess2 = false;
@@ -632,6 +643,7 @@ function readAloudFromSectionName(menuId, operation, sectionName){
         for(var j = 0; j < items.length; j++){
             if(sectionNameToRead === items[j].name){
                 if(annotationsForOperation[i] === "textAnnotation"){
+                    lastSectionRead = sectionNameToRead;
                     if(!spanishDomain){
                         readContent += "Section " + sectionNameToRead + ". " ;
                     } else {
@@ -2631,6 +2643,138 @@ function sectionsToString(){
     return readContent;
 }
 
+function readSectionsText(){
+
+    var readAloudPosition = 0;
+    var lastAnnotationName = "";
+    for(var i = 0; i < operations.length; i++){
+        if(operations[i].id == "readAloud"){
+            readAloudPosition = i;
+            try{
+                for(var j = 0; j < operations[i].annotations.length; j++){
+                    var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                    for(var k = 0; k < items.length; k++){
+                        if(k == items.length -1){
+                            lastAnnotationName = items[k].name;
+                        }
+                    }
+                }
+            } catch(e){
+            }
+        }
+    }
+
+    var readFirst = false;
+    if (lastSectionRead == lastAnnotationName){
+        readFirst = true;
+    }
+
+    readAllSections = setInterval(function(){
+        //console.log("setInterval");
+        //console.log("reading: " + reading);
+        var error = false;
+        try{
+            //console.log("lastSectionRead: " + lastSectionRead);
+            //console.log("lastAnnotationName: " + lastAnnotationName);
+            if (lastSectionRead != lastAnnotationName || readFirst){
+                if(!reading){
+                    //console.log("readNextSectionText");
+                    readNextSectionText();
+                    readFirst = false;
+                }
+            } else {
+                clearInterval(readAllSections);
+                //console.log("clearInterval");
+            }
+        } catch(e){
+            error = true;
+            console.log(e);
+        }
+
+        if(error){
+            try{
+                clearInterval(readAllSections);
+                //console.log("clearInterval");
+            } catch (e2){
+            }
+        }
+
+    } , 1000);
+}
+
+function readNextSectionText(){
+
+    for(var i = 0; i < operations.length; i++){
+        if(operations[i].id == "readAloud" && operations[i].active){
+
+            try{
+                for(var j = 0; j < operations[i].annotations.length; j++){
+                    var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                    for(var k = 0; k < items.length; k++){
+                        var ok = false;
+                        if(items[k].name == lastSectionRead){
+                            k++;
+                            if(k >= items.length){
+                                k = 0;
+                            }
+                            ok = true;
+                        } else if(lastSectionRead == ""){
+                            k = 0;
+                            ok = true;
+                        }
+
+                        if(ok){
+                            var params = {};
+                            var current = {};
+                            params.currentTarget = current;
+                            params.currentTarget.sectionName = items[k].name;
+                            params.currentTarget.operation = operations[i];
+                            operations[i].startOperation(params);
+                            return;
+                        }
+                    }
+                }
+            } catch(e){}
+        }
+    }
+}
+
+function readPreviousSectionText(){
+
+    for(var i = 0; i < operations.length; i++){
+        if(operations[i].id == "readAloud" && operations[i].active){
+
+            try{
+                for(var j = 0; j < operations[i].annotations.length; j++){
+                    var items = JSON.parse(myStorage.getItem(localStoragePrefix + operations[i].annotations[j]));
+                    for(var k = 0; k < items.length; k++){
+                        var ok = false;
+                        if(items[k].name == lastSectionRead){
+                            k--;
+                            if(k < 0){
+                                k = items.length -1;
+                            }
+                            ok = true;
+                        } else if(lastSectionRead == ""){
+                            k = 0;
+                            ok = true;
+                        }
+                        if(ok){
+                            var params = {};
+                            var current = {};
+                            params.currentTarget = current;
+                            params.currentTarget.sectionName = items[k].name;
+                            params.currentTarget.operation = operations[i];
+                            operations[i].startOperation(params);
+                            return;
+                        }
+                    }
+                }
+            } catch(e){}
+        }
+    }
+}
+
 function textToAudio(){
     createPlayButtons();
 
@@ -2754,6 +2898,11 @@ function stopReading(){
     window.speechSynthesis.cancel();
     clearTimeout(timeoutResumeInfinity);
     $('#cancel').css('visibility', 'hidden');
+
+    try{
+        clearInterval(readAllSections);
+    } catch (e2){
+    }
     setTimeout(function(){
         reading = false;
 
@@ -2766,7 +2915,11 @@ function stopReading(){
 function KeyPress(e) {
     var evtobj = window.event? event : e
 
-
+    // No mic tests
+    /*if(evtobj.ctrlKey && evtobj.shiftKey){
+        console.log("No mic tests");
+        readSectionsText();
+    }*/
     if(evtobj.keyCode == 32 && evtobj.ctrlKey && evtobj.shiftKey){
         if(!reading){
             readWelcome();
@@ -2849,9 +3002,18 @@ function audioToText(){
                 else if(speechToText.includes(welcomeCommand) || speechToText.includes(welcomeCommandES)){
                     readWelcome();
                 }
-                else if(speechToText.includes(listSectionsCommand)|| speechToText.includes(listSectionCommand) ||
-                        speechToText.includes(listSectionsCommandES)|| speechToText.includes(listSectionCommandES)){
+                else if(speechToText.includes(listSectionsCommand) || speechToText.includes(listSectionCommand) ||
+                        speechToText.includes(listSectionsCommandES) || speechToText.includes(listSectionCommandES)){
                     readSections();
+                }
+                else if(speechToText.includes(readSectionsCommand) || speechToText.includes(readSectionsCommandES)){
+                    readSectionsText();
+                }
+                else if(speechToText.includes(readNextSectionCommand) || speechToText.includes(readNextSectionCommandES)){
+                    readNextSectionText();
+                }
+                else if(speechToText.includes(readPreviousSectionCommand) || speechToText.includes(readPreviousSectionCommandES)){
+                    readPreviousSectionText();
                 }
                 else if((speechToText.includes(activateCommand) && !speechToText.includes(deactivateCommand)) ||
                        (speechToText.includes(activateCommandES) && !speechToText.includes(deactivateCommandES))){
