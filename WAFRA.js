@@ -170,13 +170,14 @@ $(document).ready(function() {
     }
 
     /*********************** Add new operations here ************************/
-    var increaseFontSizeOperation, decreaseFontSizeOperation, readAloudOperation, goToOperation, goBackOperation, videosOperation, breadCrumbOperation, hideOperation;
+    var increaseFontSizeOperation, decreaseFontSizeOperation, readAloudOperation, goToOperation, goBackOperation, goForwardOperation, videosOperation, breadCrumbOperation, hideOperation;
     if(!spanishDomain){
         increaseFontSizeOperation = new IncreaseFontSizeOperation("increaseFontSizeOperation", "Increase Font Size", "increase font size", true, true, true, false, []);
         decreaseFontSizeOperation = new DecreaseFontSizeOperation("decreaseFontSizeOperation", "Decrease Font Size", "decrease font size", true, true, true, false, []);
         readAloudOperation = new ReadAloudOperation("readAloud", "Read Aloud", "read aloud", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goToOperation = new GoToOperation("goTo", "Go To", "go to", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goBackOperation = new GoBackOperation("goBack", "Go Back", "go back", true, true, true, false, []);
+        goForwardOperation = new GoForwardOperation("goForward", "Go Forward", "go forward", true, true, true, false, []);
         videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
         breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Breadcrumb", "", true, true, true, false, []);
         hideOperation = new HideOperation("hide", "Hide useless sections", "", true, true, true, false, ["uselessAnnotation"]);
@@ -186,6 +187,7 @@ $(document).ready(function() {
         readAloudOperation = new ReadAloudOperation("readAloud", "Leer en voz alta", "leer", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goToOperation = new GoToOperation("goTo", "Ir a", "ir a", true, true, true, true, ["textAnnotation", "paragraphAnnotation"]);
         goBackOperation = new GoBackOperation("goBack", "Volver", "volver", true, true, true, false, []);
+        goForwardOperation = new GoForwardOperation("goForward", "Avanzar página", "avanzar página", true, true, true, false, []);
         videosOperation = new VideosOperation("videos", "Videos", "videos", true, true, true, false, []);
         breadCrumbOperation = new BreadcrumbOperation("breadcrumb", "Panel navegación", "", true, true, true, false, []);
         hideOperation = new HideOperation("hide", "Esconder secciones inservibles", "", true, true, true, false, ["uselessAnnotation"]);
@@ -777,6 +779,24 @@ function goToFromSectionName(menuId, operation, sectionName){
 
 // Go back
 class GoBackOperation extends Operation {
+    constructor(id, name, voiceCommand, activable, active, editable, hasMenu, annotations){
+        super();
+        this.initOperation(id, name, voiceCommand, activable, active, editable, hasMenu, annotations);
+    }
+
+    configureOperation() {
+    }
+
+    startOperation() {
+        goBack();
+    }
+
+    stopOperation() {
+    }
+}
+
+// Go forward
+class GoForwardOperation extends Operation {
     constructor(id, name, voiceCommand, activable, active, editable, hasMenu, annotations){
         super();
         this.initOperation(id, name, voiceCommand, activable, active, editable, hasMenu, annotations);
