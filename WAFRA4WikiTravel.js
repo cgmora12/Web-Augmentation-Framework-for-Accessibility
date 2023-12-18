@@ -3,6 +3,8 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA) for WikiTravel
+// @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
+// @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
 // @author       Cesar Gonzalez Mora
 // @match        *://wikitravel.org/*
 // @noframes
