@@ -2130,7 +2130,7 @@ function clearTextSelected() {
 }
 
 function basicAnnotation(){
-    var queryURL = "https://live.dbpedia.org/sparql";
+    var queryURL = "https://dbpedia.org/sparql";
 
     var propertyName1 = "name";
     var propertyName1ES = "nombre";
@@ -4306,7 +4306,7 @@ function createSpeakableAnnotations(){
     var script = document.createElement('script'); // Create a script element
     script.type = "application/ld+json";
     script.id = "AnnotationsScript";
-    script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+    script.text = '{"@context": "https://schema.org/","@type": "TouristDestination","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
     var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
     try{
@@ -4343,7 +4343,7 @@ function createSpeakableAnnotations(){
 function updateScriptXPath(){
     try{
         var script = document.getElementById("AnnotationsScript");
-        script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+        script.text = '{"@context": "https://schema.org/","@type": "TouristDestination","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
         var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
         try{
