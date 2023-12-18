@@ -1,10 +1,8 @@
 // ==UserScript==
 // @name         WAFRA4WikiTravel
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Web Augmentation Framework for Accessibility (WAFRA) for WikiTravel
-// @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
-// @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
 // @author       Cesar Gonzalez Mora
 // @match        *://wikitravel.org/*
 // @noframes
@@ -12,6 +10,8 @@
 // @grant        none
 // @require http://code.jquery.com/jquery-3.3.1.slim.min.js
 // @require http://code.jquery.com/jquery-3.3.1.min.js
+// @downloadURL https://update.greasyfork.org/scripts/478885/WAFRA4WikiTravel.user.js
+// @updateURL https://update.greasyfork.org/scripts/478885/WAFRA4WikiTravel.meta.js
 // ==/UserScript==
 
 
@@ -2146,15 +2146,15 @@ function basicAnnotation(){
     var property2 = {name : propertyName2, nameES : propertyName2ES, URL: propertyURL2};
     basicAnnotationByQueryAndProperty(queryURL, property2);
 
-    var propertyName3 = "birth date";
-    var propertyName3ES = "fecha nacimiento";
-    var propertyURL3 = "http://dbpedia.org/ontology/birthDate";
+    var propertyName3 = "comment";
+    var propertyName3ES = "comentario";
+    var propertyURL3 = "rdfs:comment";
     var property3 = {name : propertyName3, nameES : propertyName3ES, URL: propertyURL3};
     basicAnnotationByQueryAndProperty(queryURL, property3);
 
-    var propertyName4 = "death date";
-    var propertyName4ES = "fecha fallecimiento";
-    var propertyURL4 = "http://dbpedia.org/ontology/deathDate";
+    var propertyName4 = "population";
+    var propertyName4ES = "población";
+    var propertyURL4 = "http://dbpedia.org/ontology/populationTotal";
     var property4 = {name : propertyName4, nameES : propertyName4ES, URL: propertyURL4};
     basicAnnotationByQueryAndProperty(queryURL, property4);
 
@@ -2178,7 +2178,10 @@ function basicAnnotationByQueryAndProperty(queryURL, property){
     } catch(e){}
 
     if(!exists){
-        var currentURL = window.location.hostname + window.location.pathname;
+
+        // var currentURL = window.location.hostname + window.location.pathname;
+        var currentURL = "en.wikipedia.org/wiki/" + window.location.pathname.split("/")[2];
+
         var queryPart1 = encodeURIComponent([
             "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
             "SELECT distinct ?stripped_value",
