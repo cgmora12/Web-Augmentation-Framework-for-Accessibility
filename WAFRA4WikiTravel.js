@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WAFRA4WikiTravel
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Web Augmentation Framework for Accessibility (WAFRA) for WikiTravel
 // @updateURL    https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
 // @downloadURL  https://raw.githubusercontent.com/cgmora12/Web-Augmentation-Framework-for-Accessibility/master/WAFRA4WikiTravel.js
