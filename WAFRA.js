@@ -2070,7 +2070,7 @@ function clearTextSelected() {
 }
 
 function basicAnnotation(){
-    var queryURL = "https://live.dbpedia.org/sparql";
+    var queryURL = "https://dbpedia.org/sparql";
 
     var propertyName1 = "name";
     var propertyName1ES = "nombre";
