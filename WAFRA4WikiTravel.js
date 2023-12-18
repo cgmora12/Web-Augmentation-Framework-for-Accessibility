@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WAFRA4WikiTravel
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Web Augmentation Framework for Accessibility (WAFRA) for WikiTravel
 // @author       Cesar Gonzalez Mora
 // @match        *://wikitravel.org/*
