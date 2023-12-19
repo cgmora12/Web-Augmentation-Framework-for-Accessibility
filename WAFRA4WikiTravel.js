@@ -194,11 +194,22 @@ function mainBody(){
 
         var menu = $("#toc").children()[1].children;
         for(var menuIndex = 0; menuIndex < menu.length; menuIndex++){
-            var menuElement = $("#toc").children()[2].children[menuIndex].firstChild;
-            var elementName = menuElement.innerHTML;
+            var menuElement, elementName;
 
-            elementAux = document.getElementById(elementName.replaceAll(' ', '_')).parentElement.nextElementSibling;
-            menuJsonObject = { name: elementName.toLowerCase(), value: [] };
+            try{
+                menuElement = $("#toc").children()[1].children[menuIndex].firstChild;
+                elementName = menuElement.innerHTML;
+    
+                elementAux = document.getElementById(elementName.replaceAll(' ', '_')).parentElement.nextElementSibling;
+                menuJsonObject = { name: elementName.toLowerCase(), value: [] };
+            } catch(err){
+                
+                menuElement = $("#toc").children()[2].children[menuIndex].firstChild;
+                elementName = menuElement.innerHTML;
+    
+                elementAux = document.getElementById(elementName.replaceAll(' ', '_')).parentElement.nextElementSibling;
+                menuJsonObject = { name: elementName.toLowerCase(), value: [] };
+            }
 
             ok = true;
             while(ok){
