@@ -194,7 +194,7 @@ function mainBody(){
 
         var menu = $("#toc").children()[1].children;
         for(var menuIndex = 0; menuIndex < menu.length; menuIndex++){
-            var menuElement = $("#toc").children()[1].children[menuIndex].firstChild;
+            var menuElement = $("#toc").children()[2].children[menuIndex].firstChild;
             var elementName = menuElement.innerHTML;
 
             elementAux = document.getElementById(elementName.replaceAll(' ', '_')).parentElement.nextElementSibling;
