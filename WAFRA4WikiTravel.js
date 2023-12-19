@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WAFRA4WikiTravel
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Web Augmentation Framework for Accessibility (WAFRA) for WikiTravel
 // @author       Cesar Gonzalez Mora
 // @match        *://wikitravel.org/*
@@ -4322,7 +4322,7 @@ function createTourismAnnotation(){
     script.type = "application/ld+json";
     script.id = "TourismAnnotationsScript";
     script.text = '{"@context": "https://schema.org/","@type": "TouristDestination", "name": "' + document.title + 
-        '", "sameAs": "http://en.wikipedia.org/wiki/"' + window.location.pathname.split("/")[2] + '", "url": "' + document.URL + '" }';
+        '", "sameAs": "http://en.wikipedia.org/wiki/' + window.location.pathname.split("/")[2] + '", "url": "' + document.URL + '" }';
     document.body.appendChild(script);
 }
 
