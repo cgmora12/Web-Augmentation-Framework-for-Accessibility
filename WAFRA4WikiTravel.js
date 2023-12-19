@@ -2326,6 +2326,7 @@ function createOperationsMenu(){
     /*  createReadMenu();
         createGoToMenu();*/
     createSpeakableAnnotations();
+    createTourismAnnotation();
     //readWelcome();
     setTimeout(function() { say(); }, 1000);
 
@@ -4305,13 +4306,20 @@ function saveAnnotationsInServer(result){
     }
 }
 
-
+function createTourismAnnotation(){
+    var script = document.createElement('script'); // Create a script element
+    script.type = "application/ld+json";
+    script.id = "TourismAnnotationsScript";
+    script.text = '{"@context": "https://schema.org/","@type": "TouristDestination", "name": "' + document.title + 
+        '", "sameAs": "http://en.wikipedia.org/wiki/"' + window.location.pathname.split("/")[2] + '", "url": "' + document.URL + '" }';
+    document.body.appendChild(script);
+}
 
 function createSpeakableAnnotations(){
     var script = document.createElement('script'); // Create a script element
     script.type = "application/ld+json";
     script.id = "AnnotationsScript";
-    script.text = '{"@context": "https://schema.org/","@type": "TouristDestination","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+    script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
     var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
     try{
@@ -4348,7 +4356,7 @@ function createSpeakableAnnotations(){
 function updateScriptXPath(){
     try{
         var script = document.getElementById("AnnotationsScript");
-        script.text = '{"@context": "https://schema.org/","@type": "TouristDestination","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
+        script.text = '{"@context": "https://schema.org/","@type": "WebPage","name": "' + document.title + '","speakable":{"@type": "SpeakableSpecification","xpath": [';
 
         var paragraphItemsXPath = myStorage.getItem(localStoragePrefix + "paragraphItemsXPath");
         try{
